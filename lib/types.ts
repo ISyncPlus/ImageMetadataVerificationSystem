@@ -7,6 +7,7 @@ export type MetadataResult = {
   captureTime: string | null;
   gps: GpsCoordinates;
   device: string | null;
+  locationName: string | null;
   completeness: "Complete" | "Partial" | "Missing";
 };
 

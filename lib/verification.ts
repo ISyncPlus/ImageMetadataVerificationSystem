@@ -8,7 +8,10 @@ export const verifyImage = (
   const reused = history.some((entry) => entry.hash === hash);
   const timeCheck = metadata.captureTime ? "Pass" : "Fail";
   const locationCheck =
-    metadata.gps.latitude != null && metadata.gps.longitude != null
+    metadata.gps.latitude != null &&
+    metadata.gps.longitude != null &&
+    Number.isFinite(metadata.gps.latitude) &&
+    Number.isFinite(metadata.gps.longitude)
       ? "Pass"
       : "Fail";
 
