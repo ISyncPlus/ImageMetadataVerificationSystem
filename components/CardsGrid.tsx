@@ -1,7 +1,6 @@
 import type { ChangeEvent } from "react";
 import type { DebugMetadata } from "../lib/metadata";
 import type { HistoryEntry, MetadataResult, VerificationResult } from "../lib/types";
-import DebugMetadataCard from "./DebugMetadataCard";
 import HistoryCard from "./HistoryCard";
 import MetadataCard from "./MetadataCard";
 import UploadCard from "./UploadCard";
@@ -52,7 +51,6 @@ export default function CardsGrid({
         formatCoordinate={formatCoordinate}
       />
       <VerificationCard verification={verification} />
-      <DebugMetadataCard debugInfo={debugInfo} />
       <HistoryCard history={history} onClear={onClearHistory} />
     </div>
   );

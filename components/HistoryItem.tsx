@@ -36,12 +36,11 @@ export default function HistoryItem({ entry }: { entry: HistoryEntry }) {
         </div>
       </div>
       <div className="flex flex-col gap-3 text-center text-xs text-white/70 sm:grid sm:grid-cols-3 sm:items-start sm:text-left">
-        <div className="flex items-start justify-center gap-6 sm:col-span-2 sm:grid sm:grid-cols-2 sm:gap-3 sm:justify-start">
           <div>
             <p className="text-white/40">Capture Time</p>
             <p>{entry.metadata.captureTime ?? "Not Available"}</p>
           </div>
-          <div>
+        <div>
             <p className="text-white/40">Location</p>
             <p>
               {entry.metadata.locationName ? (
@@ -56,7 +55,6 @@ export default function HistoryItem({ entry }: { entry: HistoryEntry }) {
               )}
             </p>
           </div>
-        </div>
         <div className="sm:col-span-1">
           <p className="text-white/40">Device</p>
           <p>{entry.metadata.device ?? "Not Available"}</p>
