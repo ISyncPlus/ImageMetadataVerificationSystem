@@ -9,7 +9,7 @@ import StatusBadge from "../components/StatusBadge";
 import { readFileAsArrayBuffer, readFileAsDataUrl } from "../lib/file";
 import { hashArrayBuffer } from "../lib/hash";
 import { extractMetadata } from "../lib/metadata";
-import { loadHistory, saveHistory } from "../lib/storage";
+import { clearHistory, loadHistory, saveHistory } from "../lib/storage";
 import { verifyImage } from "../lib/verification";
 import type { HistoryEntry, MetadataResult, VerificationResult } from "../lib/types";
 
@@ -75,6 +75,11 @@ export default function Home() {
   const [fileName, setFileName] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
+
+  const handleClearHistory = () => {
+    clearHistory();
+    setHistory([]);
+  };
 
   useEffect(() => {
     setHistory(loadHistory());
@@ -175,11 +180,6 @@ export default function Home() {
             <h1 className="text-3xl font-semibold text-white md:text-4xl">
               Image Metadata Verification System
             </h1>
-            <p className="max-w-2xl text-sm text-white/70 md:text-base">
-              Verify capture time and location authenticity for SIWES, fieldwork,
-              and laboratory submissions using real image metadata directly in
-              the browser.
-            </p>
           </div>
           <div className="grid gap-4 md:grid-cols-6">
             <div className="relative overflow-hidden rounded-3xl border border-cyan-400/20 bg-gradient-to-br from-cyan-500/10 via-white/5 to-transparent p-6 backdrop-blur md:col-span-3">
@@ -403,6 +403,16 @@ export default function Home() {
             title="Verification History"
             subtitle="Previous submissions"
             className="lg:col-span-3"
+            actions={
+              <button
+                type="button"
+                onClick={handleClearHistory}
+                disabled={history.length === 0}
+                className="rounded-full border border-white/10 px-4 py-2 text-xs font-semibold uppercase tracking-[0.2em] text-white/70 transition hover:border-rose-400/60 hover:text-rose-200 disabled:cursor-not-allowed disabled:opacity-40"
+              >
+                Clear history
+              </button>
+            }
           >
             <div className="space-y-4">
               {history.length === 0 ? (
