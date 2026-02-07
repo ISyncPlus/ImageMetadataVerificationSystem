@@ -23,5 +23,9 @@ export const saveHistory = (items: HistoryEntry[]) => {
   if (typeof window === "undefined") {
     return;
   }
-  window.localStorage.setItem(STORAGE_KEY, JSON.stringify(items));
+  try {
+    window.localStorage.setItem(STORAGE_KEY, JSON.stringify(items));
+  } catch (error) {
+    console.warn("Unable to save history to localStorage.", error);
+  }
 };

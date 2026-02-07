@@ -10,9 +10,44 @@ const toNumber = (value: ExifValue): number => {
   return value.numerator / value.denominator;
 };
 
+const parseCoordinateString = (value: string): number | null => {
+  const trimmed = value.trim();
+  if (!trimmed) {
+    return null;
+  }
+
+  const directionMatch = trimmed.match(/[NSEW]/i);
+  const direction = directionMatch ? directionMatch[0].toUpperCase() : null;
+  const numberMatches = trimmed.match(/-?\d+(?:\.\d+)?/g);
+  if (!numberMatches || numberMatches.length === 0) {
+    return null;
+  }
+
+  const numbers = numberMatches.map((item) => Number(item));
+  if (numbers.some((item) => Number.isNaN(item))) {
+    return null;
+  }
+
+  let coordinate = numbers[0];
+  if (numbers.length >= 3) {
+    const [deg, min, sec] = numbers;
+    coordinate = deg + min / 60 + sec / 3600;
+  }
+
+  if (direction === "S" || direction === "W") {
+    coordinate = -Math.abs(coordinate);
+  }
+
+  return coordinate;
+};
+
 const normalizeCoordinate = (value: unknown): number | null => {
   if (typeof value === "number") {
     return value;
+  }
+
+  if (typeof value === "string") {
+    return parseCoordinateString(value);
   }
 
   if (
@@ -88,9 +123,15 @@ export const extractMetadata = async (
     parseExifDate(data?.ModifyDate);
 
   const latitude =
-    gpsData?.latitude ?? normalizeCoordinate(data?.GPSLatitude);
+    gpsData?.latitude ??
+    normalizeCoordinate(data?.GPSLatitude) ??
+    normalizeCoordinate(data?.latitude) ??
+    normalizeCoordinate(data?.Latitude);
   const longitude =
-    gpsData?.longitude ?? normalizeCoordinate(data?.GPSLongitude);
+    gpsData?.longitude ??
+    normalizeCoordinate(data?.GPSLongitude) ??
+    normalizeCoordinate(data?.longitude) ??
+    normalizeCoordinate(data?.Longitude);
 
   const latitudeRef = data?.GPSLatitudeRef;
   const longitudeRef = data?.GPSLongitudeRef;
