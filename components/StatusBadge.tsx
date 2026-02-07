@@ -9,7 +9,7 @@ const statusStyles: Record<VerificationStatus, string> = {
 export default function StatusBadge({ status }: { status: VerificationStatus }) {
   return (
     <span
-      className={`inline-flex items-center rounded-full border px-3 py-1 text-xs font-semibold uppercase tracking-[0.25em] ${
+      className={`inline-flex shrink-0 items-center whitespace-nowrap rounded-full border px-3 py-1 text-xs font-semibold uppercase tracking-[0.25em] ${
         statusStyles[status]
       }`}
     >
