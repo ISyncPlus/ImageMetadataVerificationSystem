@@ -8,6 +8,14 @@ export default function HistoryItem({ entry }: { entry: HistoryEntry }) {
     timeStyle: "short",
   }).format(new Date(entry.checkedAt));
 
+  const coordinates =
+    entry.metadata.gps.latitude != null &&
+    entry.metadata.gps.longitude != null &&
+    Number.isFinite(entry.metadata.gps.latitude) &&
+    Number.isFinite(entry.metadata.gps.longitude)
+      ? `${entry.metadata.gps.latitude.toFixed(5)}, ${entry.metadata.gps.longitude.toFixed(5)}`
+      : null;
+
   return (
     <div className="flex flex-col gap-4 rounded-2xl border border-white/10 bg-white/5 p-4 backdrop-blur">
       <div className="flex flex-col items-center gap-4 text-center sm:flex-row sm:flex-wrap sm:items-center sm:text-left">
@@ -36,10 +44,16 @@ export default function HistoryItem({ entry }: { entry: HistoryEntry }) {
           <div>
             <p className="text-white/40">Location</p>
             <p>
-              {entry.metadata.gps.latitude != null &&
-              entry.metadata.gps.longitude != null
-                ? `${entry.metadata.gps.latitude.toFixed(5)}, ${entry.metadata.gps.longitude.toFixed(5)}`
-                : "Not Available"}
+              {entry.metadata.locationName ? (
+                <>
+                  <span className="block">{entry.metadata.locationName}</span>
+                  <span className="block text-white/50">
+                    {coordinates ?? "Coordinates unavailable"}
+                  </span>
+                </>
+              ) : (
+                coordinates ?? "Not Available"
+              )}
             </p>
           </div>
         </div>
