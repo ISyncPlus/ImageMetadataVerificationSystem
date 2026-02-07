@@ -14,7 +14,57 @@ import { verifyImage } from "../lib/verification";
 import type { HistoryEntry, MetadataResult, VerificationResult } from "../lib/types";
 
 const formatCoordinate = (value: number | null) =>
-  value != null ? value.toFixed(5) : "Not Available";
+  value != null && Number.isFinite(value) ? value.toFixed(5) : "Not Available";
+
+const fetchLocationName = async (
+  latitude: number,
+  longitude: number
+): Promise<string | null> => {
+  try {
+    const url = new URL("https://nominatim.openstreetmap.org/reverse");
+    url.searchParams.set("format", "jsonv2");
+    url.searchParams.set("lat", latitude.toString());
+    url.searchParams.set("lon", longitude.toString());
+    url.searchParams.set("zoom", "18");
+    url.searchParams.set("addressdetails", "0");
+    url.searchParams.set("accept-language", "en");
+
+    const response = await fetch(url.toString(), {
+      headers: {
+        Accept: "application/json",
+      },
+    });
+
+    if (!response.ok) {
+      return null;
+    }
+
+    const data = (await response.json()) as { display_name?: string };
+    return typeof data.display_name === "string" ? data.display_name : null;
+  } catch {
+    return null;
+  }
+};
+
+const attachLocationName = async (
+  metadata: MetadataResult
+): Promise<MetadataResult> => {
+  const { latitude, longitude } = metadata.gps;
+  if (
+    latitude == null ||
+    longitude == null ||
+    !Number.isFinite(latitude) ||
+    !Number.isFinite(longitude)
+  ) {
+    return metadata;
+  }
+
+  const locationName = await fetchLocationName(latitude, longitude);
+  return {
+    ...metadata,
+    locationName,
+  };
+};
 
 export default function Home() {
   const [history, setHistory] = useState<HistoryEntry[]>([]);
@@ -75,11 +125,12 @@ export default function Home() {
       ]);
 
       setHash(computedHash);
-      setMetadata(extractedMetadata);
+      const resolvedMetadata = await attachLocationName(extractedMetadata);
+      setMetadata(resolvedMetadata);
 
       const existingHistory = loadHistory();
       const verificationResult = verifyImage(
-        extractedMetadata,
+        resolvedMetadata,
         computedHash,
         existingHistory
       );
@@ -94,7 +145,7 @@ export default function Home() {
         checkedAt: new Date().toISOString(),
         status: verificationResult.status,
         reason: verificationResult.reason,
-        metadata: extractedMetadata,
+        metadata: resolvedMetadata,
       };
 
       const updatedHistory = [entry, ...existingHistory].slice(0, 20);
@@ -278,6 +329,12 @@ export default function Home() {
                 <span className="text-white/50">Capture Time</span>
                 <span className="text-white">
                   {metadata?.captureTime ?? "Not Available"}
+                </span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-white/50">Location Name</span>
+                <span className="text-white">
+                  {metadata?.locationName ?? "Not Available"}
                 </span>
               </div>
               <div className="flex items-center justify-between">
