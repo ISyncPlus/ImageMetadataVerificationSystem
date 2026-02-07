@@ -123,6 +123,29 @@ const formatDateTime = (value: Date): string =>
 const normalizeFinalCoordinate = (value: number | null): number | null =>
   value != null && Number.isFinite(value) ? value : null;
 
+const normalizeRef = (value: unknown): string | null =>
+  typeof value === "string" ? value.toUpperCase() : null;
+
+const getFieldValue = (
+  record: Record<string, unknown> | null | undefined,
+  keys: string[]
+): unknown => {
+  if (!record) {
+    return null;
+  }
+
+  for (const key of keys) {
+    if (key in record) {
+      const value = record[key];
+      if (value != null) {
+        return value;
+      }
+    }
+  }
+
+  return null;
+};
+
 export const extractMetadata = async (
   buffer: ArrayBuffer
 ): Promise<MetadataResult> => {
@@ -139,6 +162,19 @@ export const extractMetadata = async (
   );
 
   const gpsData = await exifr.gps(buffer).catch(() => null);
+  const dataRecord = (data ?? {}) as Record<string, unknown>;
+  const gpsRecord =
+    dataRecord.gps && typeof dataRecord.gps === "object"
+      ? (dataRecord.gps as Record<string, unknown>)
+      : null;
+  const exifRecord =
+    dataRecord.exif && typeof dataRecord.exif === "object"
+      ? (dataRecord.exif as Record<string, unknown>)
+      : null;
+  const xmpRecord =
+    dataRecord.xmp && typeof dataRecord.xmp === "object"
+      ? (dataRecord.xmp as Record<string, unknown>)
+      : null;
 
   const capturedAt =
     parseExifDate(data?.DateTimeOriginal) ||
@@ -147,17 +183,59 @@ export const extractMetadata = async (
 
   const latitude =
     normalizeCoordinate(gpsData?.latitude) ??
-    normalizeCoordinate(data?.GPSLatitude) ??
-    normalizeCoordinate(data?.latitude) ??
-    normalizeCoordinate(data?.Latitude);
+    normalizeCoordinate(getFieldValue(gpsRecord, ["latitude", "Latitude"])) ??
+    normalizeCoordinate(
+      getFieldValue(dataRecord, [
+        "GPSLatitude",
+        "latitude",
+        "Latitude",
+        "exif:GPSLatitude",
+        "xmp:GPSLatitude",
+      ])
+    ) ??
+    normalizeCoordinate(
+      getFieldValue(exifRecord, ["GPSLatitude", "latitude", "Latitude"])
+    ) ??
+    normalizeCoordinate(
+      getFieldValue(xmpRecord, ["GPSLatitude", "latitude", "Latitude"])
+    );
   const longitude =
     normalizeCoordinate(gpsData?.longitude) ??
-    normalizeCoordinate(data?.GPSLongitude) ??
-    normalizeCoordinate(data?.longitude) ??
-    normalizeCoordinate(data?.Longitude);
+    normalizeCoordinate(getFieldValue(gpsRecord, ["longitude", "Longitude"])) ??
+    normalizeCoordinate(
+      getFieldValue(dataRecord, [
+        "GPSLongitude",
+        "longitude",
+        "Longitude",
+        "exif:GPSLongitude",
+        "xmp:GPSLongitude",
+      ])
+    ) ??
+    normalizeCoordinate(
+      getFieldValue(exifRecord, ["GPSLongitude", "longitude", "Longitude"])
+    ) ??
+    normalizeCoordinate(
+      getFieldValue(xmpRecord, ["GPSLongitude", "longitude", "Longitude"])
+    );
 
-  const latitudeRef = data?.GPSLatitudeRef;
-  const longitudeRef = data?.GPSLongitudeRef;
+  const latitudeRef = normalizeRef(
+    getFieldValue(dataRecord, [
+      "GPSLatitudeRef",
+      "exif:GPSLatitudeRef",
+      "xmp:GPSLatitudeRef",
+    ]) ?? getFieldValue(exifRecord, ["GPSLatitudeRef"]) ??
+    getFieldValue(xmpRecord, ["GPSLatitudeRef"]) ??
+    getFieldValue(gpsRecord, ["latitudeRef", "LatitudeRef"])
+  );
+  const longitudeRef = normalizeRef(
+    getFieldValue(dataRecord, [
+      "GPSLongitudeRef",
+      "exif:GPSLongitudeRef",
+      "xmp:GPSLongitudeRef",
+    ]) ?? getFieldValue(exifRecord, ["GPSLongitudeRef"]) ??
+    getFieldValue(xmpRecord, ["GPSLongitudeRef"]) ??
+    getFieldValue(gpsRecord, ["longitudeRef", "LongitudeRef"])
+  );
 
   const signedLatitude =
     latitude != null && latitudeRef === "S"
@@ -180,7 +258,8 @@ export const extractMetadata = async (
   const device = `${deviceMake} ${deviceModel}`.trim();
 
   const timeAvailable = Boolean(capturedAt);
-  const gpsAvailable = signedLatitude != null && signedLongitude != null;
+  const gpsAvailable =
+    finalLatitude != null && finalLongitude != null;
   const deviceAvailable = Boolean(device);
 
   const completeness = timeAvailable && gpsAvailable && deviceAvailable

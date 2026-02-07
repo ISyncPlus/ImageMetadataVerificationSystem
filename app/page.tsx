@@ -408,7 +408,7 @@ export default function Home() {
                 type="button"
                 onClick={handleClearHistory}
                 disabled={history.length === 0}
-                className="rounded-full border border-white/10 px-4 py-2 text-xs font-semibold uppercase tracking-[0.2em] text-white/70 transition hover:border-rose-400/60 hover:text-rose-200 disabled:cursor-not-allowed disabled:opacity-40"
+                className="rounded-full border border-white/10 px-4 py-2 text-xs font-semibold uppercase tracking-[0.2em] text-white/70 transition hover:bg-rose-400 bg-rose-600 disabled:cursor-not-allowed disabled:opacity-40"
               >
                 Clear history
               </button>
