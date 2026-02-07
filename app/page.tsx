@@ -24,6 +24,40 @@ type DebugMetadata = {
 const formatCoordinate = (value: number | null) =>
   value != null && Number.isFinite(value) ? value.toFixed(5) : "Not Available";
 
+const getFileExtension = (name: string): string => {
+  const match = name.toLowerCase().match(/\.([a-z0-9]+)$/i);
+  return match ? match[1] : "";
+};
+
+const validateImageFile = (file: File): { ok: boolean; message?: string } => {
+  if (file.size === 0) {
+    return { ok: false, message: "The selected file is empty." };
+  }
+
+  const extension = getFileExtension(file.name);
+  const isJpeg = file.type === "image/jpeg" || extension === "jpg" || extension === "jpeg";
+  const isPng = file.type === "image/png" || extension === "png";
+  const isHeic =
+    file.type === "image/heic" ||
+    file.type === "image/heif" ||
+    extension === "heic" ||
+    extension === "heif";
+
+  if (isHeic) {
+    return {
+      ok: false,
+      message:
+        "HEIC/HEIF files often strip EXIF in browsers. Please upload an original JPEG or PNG.",
+    };
+  }
+
+  if (!isJpeg && !isPng) {
+    return { ok: false, message: "Please upload a JPEG or PNG image." };
+  }
+
+  return { ok: true };
+};
+
 const fetchLocationName = async (
   latitude: number,
   longitude: number
@@ -113,8 +147,9 @@ export default function Home() {
       return;
     }
 
-    if (!["image/jpeg", "image/png"].includes(file.type)) {
-      setError("Please upload a JPEG or PNG image.");
+    const validation = validateImageFile(file);
+    if (!validation.ok) {
+      setError(validation.message ?? "Unsupported image file.");
       return;
     }
 
@@ -361,6 +396,16 @@ export default function Home() {
                   {formatCoordinate(metadata?.gps.longitude ?? null)}
                 </span>
               </div>
+              {metadata &&
+              (metadata.gps.latitude == null || metadata.gps.longitude == null) ? (
+                <div className="rounded-2xl border border-amber-400/30 bg-amber-400/10 px-4 py-3 text-[11px] text-amber-100">
+                  {debugInfo?.gpsFields?.GPSLatitude ||
+                  debugInfo?.gpsFields?.GPSLongitude
+                    ? "GPS tags are present but empty. The file is likely a transcoded copy (metadata stripped). Upload the original file from DCIM/Camera."
+                    : "No GPS metadata found in this file. Ensure you upload the original photo without compression."
+                  }
+                </div>
+              ) : null}
               <div className="flex items-center justify-between">
                 <span className="text-white/50">Device Info</span>
                 <span className="text-white">

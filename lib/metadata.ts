@@ -236,6 +236,25 @@ export const extractMetadata = async (
       ? (dataRecord.xmp as Record<string, unknown>)
       : null;
 
+  const rawData = await exifr
+    .parse(
+      buffer,
+      {
+        tiff: true,
+        ifd0: true,
+        exif: true,
+        gps: true,
+        xmp: true,
+        translateValues: false,
+      } as unknown as Record<string, unknown>
+    )
+    .catch(() => null);
+  const rawRecord = (rawData ?? {}) as Record<string, unknown>;
+  const rawGpsRecord =
+    rawRecord.gps && typeof rawRecord.gps === "object"
+      ? (rawRecord.gps as Record<string, unknown>)
+      : null;
+
   const capturedAt =
     parseExifDate(data?.DateTimeOriginal) ||
     parseExifDate(data?.CreateDate) ||
@@ -258,6 +277,18 @@ export const extractMetadata = async (
     ) ??
     normalizeCoordinate(
       getFieldValue(xmpRecord, ["GPSLatitude", "latitude", "Latitude"])
+    ) ??
+    normalizeCoordinate(
+      getFieldValue(rawGpsRecord, ["GPSLatitude", "latitude", "Latitude"])
+    ) ??
+    normalizeCoordinate(
+      getFieldValue(rawRecord, [
+        "GPSLatitude",
+        "latitude",
+        "Latitude",
+        "exif:GPSLatitude",
+        "xmp:GPSLatitude",
+      ])
     );
   const longitude =
     normalizeCoordinate(gpsData?.longitude) ??
@@ -276,6 +307,18 @@ export const extractMetadata = async (
     ) ??
     normalizeCoordinate(
       getFieldValue(xmpRecord, ["GPSLongitude", "longitude", "Longitude"])
+    ) ??
+    normalizeCoordinate(
+      getFieldValue(rawGpsRecord, ["GPSLongitude", "longitude", "Longitude"])
+    ) ??
+    normalizeCoordinate(
+      getFieldValue(rawRecord, [
+        "GPSLongitude",
+        "longitude",
+        "Longitude",
+        "exif:GPSLongitude",
+        "xmp:GPSLongitude",
+      ])
     );
 
   const latitudeRef = normalizeRef(
