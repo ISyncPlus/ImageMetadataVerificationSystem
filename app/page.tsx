@@ -8,10 +8,18 @@ import HistoryItem from "../components/HistoryItem";
 import StatusBadge from "../components/StatusBadge";
 import { readFileAsArrayBuffer, readFileAsDataUrl } from "../lib/file";
 import { hashArrayBuffer } from "../lib/hash";
-import { extractMetadata } from "../lib/metadata";
+import { extractDebugMetadata, extractMetadata } from "../lib/metadata";
 import { clearHistory, loadHistory, saveHistory } from "../lib/storage";
 import { verifyImage } from "../lib/verification";
 import type { HistoryEntry, MetadataResult, VerificationResult } from "../lib/types";
+
+type DebugMetadata = {
+  gpsData: unknown;
+  gpsRecord: Record<string, unknown> | null;
+  exifRecord: Record<string, unknown> | null;
+  xmpRecord: Record<string, unknown> | null;
+  gpsFields: Record<string, unknown>;
+};
 
 const formatCoordinate = (value: number | null) =>
   value != null && Number.isFinite(value) ? value.toFixed(5) : "Not Available";
@@ -75,6 +83,7 @@ export default function Home() {
   const [fileName, setFileName] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
+  const [debugInfo, setDebugInfo] = useState<DebugMetadata | null>(null);
 
   const handleClearHistory = () => {
     clearHistory();
@@ -116,6 +125,7 @@ export default function Home() {
     setHash(null);
     setPreviewUrl(null);
     setFileName(file.name);
+    setDebugInfo(null);
 
     try {
       const [buffer, dataUrl] = await Promise.all([
@@ -124,14 +134,16 @@ export default function Home() {
       ]);
       setPreviewUrl(dataUrl);
 
-      const [computedHash, extractedMetadata] = await Promise.all([
+      const [computedHash, extractedMetadata, debugMetadata] = await Promise.all([
         hashArrayBuffer(buffer),
         extractMetadata(buffer),
+        extractDebugMetadata(buffer),
       ]);
 
       setHash(computedHash);
       const resolvedMetadata = await attachLocationName(extractedMetadata);
       setMetadata(resolvedMetadata);
+      setDebugInfo(debugMetadata);
 
       const existingHistory = loadHistory();
       const verificationResult = verifyImage(
@@ -395,6 +407,21 @@ export default function Home() {
             ) : (
               <div className="flex h-full flex-col items-center justify-center text-center text-sm text-white/60">
                 Upload an image to generate verification status.
+              </div>
+            )}
+          </GlassCard>
+
+          <GlassCard
+            title="Debug Metadata"
+            subtitle="Raw GPS fields"
+          >
+            {debugInfo ? (
+              <pre className="max-h-72 overflow-auto rounded-2xl border border-white/10 bg-black/40 p-4 text-[11px] text-white/70">
+                {JSON.stringify(debugInfo, null, 2)}
+              </pre>
+            ) : (
+              <div className="text-sm text-white/60">
+                Upload an image to inspect raw metadata.
               </div>
             )}
           </GlassCard>

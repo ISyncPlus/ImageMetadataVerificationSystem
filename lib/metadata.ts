@@ -146,6 +146,66 @@ const getFieldValue = (
   return null;
 };
 
+const pickGpsFields = (record: Record<string, unknown>): Record<string, unknown> => {
+  const entries = Object.entries(record).filter(([key]) => {
+    const lowerKey = key.toLowerCase();
+    return (
+      lowerKey.includes("gps") ||
+      lowerKey.includes("latitude") ||
+      lowerKey.includes("longitude")
+    );
+  });
+
+  return Object.fromEntries(entries);
+};
+
+export type DebugMetadata = {
+  gpsData: unknown;
+  gpsRecord: Record<string, unknown> | null;
+  exifRecord: Record<string, unknown> | null;
+  xmpRecord: Record<string, unknown> | null;
+  gpsFields: Record<string, unknown>;
+};
+
+export const extractDebugMetadata = async (
+  buffer: ArrayBuffer
+): Promise<DebugMetadata> => {
+  const data = await exifr.parse(
+    buffer,
+    {
+      tiff: true,
+      ifd0: true,
+      exif: true,
+      gps: true,
+      xmp: true,
+      translateValues: true,
+    } as unknown as Record<string, unknown>
+  );
+
+  const gpsData = await exifr.gps(buffer).catch(() => null);
+  const dataRecord = (data ?? {}) as Record<string, unknown>;
+  const gpsRecord =
+    dataRecord.gps && typeof dataRecord.gps === "object"
+      ? (dataRecord.gps as Record<string, unknown>)
+      : null;
+  const exifRecord =
+    dataRecord.exif && typeof dataRecord.exif === "object"
+      ? (dataRecord.exif as Record<string, unknown>)
+      : null;
+  const xmpRecord =
+    dataRecord.xmp && typeof dataRecord.xmp === "object"
+      ? (dataRecord.xmp as Record<string, unknown>)
+      : null;
+
+  return {
+    gpsData,
+    gpsRecord,
+    exifRecord,
+    xmpRecord,
+    gpsFields: pickGpsFields(dataRecord),
+  };
+};
+
 export const extractMetadata = async (
   buffer: ArrayBuffer
 ): Promise<MetadataResult> => {
