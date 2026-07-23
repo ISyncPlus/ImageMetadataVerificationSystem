@@ -1,6 +1,5 @@
 import type { ChangeEvent } from "react";
-import type { DebugMetadata } from "../lib/metadata";
-import type { HistoryEntry, MetadataResult, VerificationResult } from "../lib/types";
+import type { HistoryEntry } from "../lib/types";
 import HistoryCard from "./HistoryCard";
 import MetadataCard from "./MetadataCard";
 import UploadCard from "./UploadCard";
@@ -11,13 +10,12 @@ type CardsGridProps = {
   error: string | null;
   previewUrl: string | null;
   fileName: string | null;
-  hash: string | null;
-  metadata: MetadataResult | null;
-  verification: VerificationResult | null;
+  currentEntry: HistoryEntry | null;
   history: HistoryEntry[];
-  debugInfo: DebugMetadata | null;
   onFileChange: (event: ChangeEvent<HTMLInputElement>) => void;
-  onClearHistory: () => void;
+  onClearHistory?: () => void;
+  onEntryReport: (entry: HistoryEntry) => void;
+  onSummaryReport: () => void;
   formatCoordinate: (value: number | null) => string;
 };
 
@@ -26,13 +24,12 @@ export default function CardsGrid({
   error,
   previewUrl,
   fileName,
-  hash,
-  metadata,
-  verification,
+  currentEntry,
   history,
-  debugInfo,
   onFileChange,
   onClearHistory,
+  onEntryReport,
+  onSummaryReport,
   formatCoordinate,
 }: CardsGridProps) {
   return (
@@ -42,16 +39,25 @@ export default function CardsGrid({
         error={error}
         previewUrl={previewUrl}
         fileName={fileName}
-        hash={hash}
+        hash={currentEntry?.hash ?? null}
         onFileChange={onFileChange}
       />
       <MetadataCard
-        metadata={metadata}
-        debugInfo={debugInfo}
+        metadata={currentEntry?.metadata ?? null}
         formatCoordinate={formatCoordinate}
       />
-      <VerificationCard verification={verification} />
-      <HistoryCard history={history} onClear={onClearHistory} />
+      <VerificationCard
+        verification={currentEntry?.verification ?? null}
+        onDownloadReport={
+          currentEntry ? () => onEntryReport(currentEntry) : undefined
+        }
+      />
+      <HistoryCard
+        history={history}
+        onClear={onClearHistory}
+        onEntryReport={onEntryReport}
+        onSummaryReport={onSummaryReport}
+      />
     </div>
   );
 }

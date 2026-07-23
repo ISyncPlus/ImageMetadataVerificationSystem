@@ -1,16 +1,13 @@
 import GlassCard from "./GlassCard";
-import type { DebugMetadata } from "../lib/metadata";
 import type { MetadataResult } from "../lib/types";
 
 type MetadataCardProps = {
   metadata: MetadataResult | null;
-  debugInfo: DebugMetadata | null;
   formatCoordinate: (value: number | null) => string;
 };
 
 export default function MetadataCard({
   metadata,
-  debugInfo,
   formatCoordinate,
 }: MetadataCardProps) {
   return (
@@ -22,9 +19,9 @@ export default function MetadataCard({
             {metadata?.captureTime ?? "Not Available"}
           </span>
         </div>
-        <div className="flex items-center justify-between">
-          <span className="text-white/50">Location Name</span>
-          <span className="text-white">
+        <div className="flex items-center justify-between gap-4">
+          <span className="shrink-0 text-white/50">Location Name</span>
+          <span className="text-right text-white">
             {metadata?.locationName ?? "Not Available"}
           </span>
         </div>
@@ -43,9 +40,8 @@ export default function MetadataCard({
         {metadata &&
         (metadata.gps.latitude == null || metadata.gps.longitude == null) ? (
           <div className="rounded-2xl border border-amber-400/30 bg-amber-400/10 px-4 py-3 text-[11px] text-amber-100">
-            {debugInfo?.gpsFields?.GPSLatitude ||
-            debugInfo?.gpsFields?.GPSLongitude
-              ? "GPS tags are present but empty. The file is likely a transcoded copy (metadata stripped). Upload the original file from DCIM/Camera."
+            {metadata.gpsTagsPresent
+              ? "GPS tags are present but hold no usable values. The file is likely a transcoded copy (metadata stripped). Upload the original file from DCIM/Camera."
               : "No GPS metadata found in this file. Ensure you upload the original photo without compression."}
           </div>
         ) : null}

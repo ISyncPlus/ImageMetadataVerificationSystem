@@ -1,267 +1,158 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
-import type { ChangeEvent } from "react";
-import CardsGrid from "../components/CardsGrid";
-import DashboardHeader from "../components/DashboardHeader";
+import Link from "next/link";
+import { useEffect, useState } from "react";
 import PageShell from "../components/PageShell";
-import { readFileAsArrayBuffer, readFileAsDataUrl } from "../lib/file";
-import { hashArrayBuffer } from "../lib/hash";
-import { extractDebugMetadata, extractMetadata } from "../lib/metadata";
-import type { DebugMetadata } from "../lib/metadata";
-import { clearHistory, loadHistory, saveHistory } from "../lib/storage";
-import { verifyImage } from "../lib/verification";
-import type { HistoryEntry, MetadataResult, VerificationResult } from "../lib/types";
+import { dashboardPathFor, loadSession } from "../lib/auth";
+import type { Session } from "../lib/auth";
 
-const formatCoordinate = (value: number | null) =>
-  value != null && Number.isFinite(value) ? value.toFixed(5) : "Not Available";
+const features = [
+  {
+    title: "Metadata Extraction",
+    description:
+      "EXIF capture time, GPS coordinates, and device information are extracted directly in the browser — the image never leaves the device.",
+  },
+  {
+    title: "Rule-Based Verification",
+    description:
+      "Four objective checks — capture time, location, device, and duplicate detection — replace subjective visual inspection.",
+  },
+  {
+    title: "Duplicate Detection",
+    description:
+      "Every file is SHA-256 hashed and compared against previous submissions to flag reused or recycled evidence.",
+  },
+  {
+    title: "Verification Reports",
+    description:
+      "Printable per-image and summary reports give lecturers a clear, auditable record for departmental assessments.",
+  },
+];
 
-const getFileExtension = (name: string): string => {
-  const match = name.toLowerCase().match(/\.([a-z0-9]+)$/i);
-  return match ? match[1] : "";
-};
+const steps = [
+  {
+    step: "01",
+    title: "Student submits",
+    description:
+      "A student signs in and uploads the original photo taken during practical work, fieldwork, or SIWES.",
+  },
+  {
+    step: "02",
+    title: "System verifies",
+    description:
+      "The prototype extracts embedded metadata, runs consistency checks, and hashes the file for reuse detection.",
+  },
+  {
+    step: "03",
+    title: "Lecturer reviews",
+    description:
+      "The lecturer opens the review dashboard, inspects flagged submissions, and generates verification reports.",
+  },
+];
 
-const validateImageFile = (file: File): { ok: boolean; message?: string } => {
-  if (file.size === 0) {
-    return { ok: false, message: "The selected file is empty." };
-  }
-
-  const extension = getFileExtension(file.name);
-  const isJpeg = file.type === "image/jpeg" || extension === "jpg" || extension === "jpeg";
-  const isPng = file.type === "image/png" || extension === "png";
-  const isHeic =
-    file.type === "image/heic" ||
-    file.type === "image/heif" ||
-    extension === "heic" ||
-    extension === "heif";
-
-  if (isHeic) {
-    return {
-      ok: false,
-      message:
-        "HEIC/HEIF files often strip EXIF in browsers. Please upload an original JPEG or PNG.",
-    };
-  }
-
-  if (!isJpeg && !isPng) {
-    return { ok: false, message: "Please upload a JPEG or PNG image." };
-  }
-
-  return { ok: true };
-};
-
-const fetchLocationName = async (
-  latitude: number,
-  longitude: number
-): Promise<string | null> => {
-  try {
-    const url = new URL("https://nominatim.openstreetmap.org/reverse");
-    url.searchParams.set("format", "jsonv2");
-    url.searchParams.set("lat", latitude.toString());
-    url.searchParams.set("lon", longitude.toString());
-    url.searchParams.set("zoom", "18");
-    url.searchParams.set("addressdetails", "0");
-    url.searchParams.set("accept-language", "en");
-
-    const response = await fetch(url.toString(), {
-      headers: {
-        Accept: "application/json",
-      },
-    });
-
-    if (!response.ok) {
-      return null;
-    }
-
-    const data = (await response.json()) as { display_name?: string };
-    return typeof data.display_name === "string" ? data.display_name : null;
-  } catch {
-    return null;
-  }
-};
-
-const getBrowserLocation = (): Promise<{ latitude: number; longitude: number } | null> =>
-  new Promise((resolve) => {
-    if (typeof window === "undefined" || !("geolocation" in navigator)) {
-      resolve(null);
-      return;
-    }
-
-    navigator.geolocation.getCurrentPosition(
-      (position) => {
-        const { latitude, longitude } = position.coords;
-        if (!Number.isFinite(latitude) || !Number.isFinite(longitude)) {
-          resolve(null);
-          return;
-        }
-        resolve({ latitude, longitude });
-      },
-      () => resolve(null),
-      {
-        enableHighAccuracy: true,
-        timeout: 8000,
-        maximumAge: 0,
-      }
-    );
-  });
-
-const attachLocationName = async (
-  metadata: MetadataResult
-): Promise<MetadataResult> => {
-  const { latitude, longitude } = metadata.gps;
-  if (
-    latitude == null ||
-    longitude == null ||
-    !Number.isFinite(latitude) ||
-    !Number.isFinite(longitude)
-  ) {
-    return metadata;
-  }
-
-  const locationName = await fetchLocationName(latitude, longitude);
-  return {
-    ...metadata,
-    locationName,
-  };
-};
-
-export default function Home() {
-  const [history, setHistory] = useState<HistoryEntry[]>([]);
-  const [metadata, setMetadata] = useState<MetadataResult | null>(null);
-  const [verification, setVerification] = useState<VerificationResult | null>(null);
-  const [hash, setHash] = useState<string | null>(null);
-  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
-  const [fileName, setFileName] = useState<string | null>(null);
-  const [error, setError] = useState<string | null>(null);
-  const [isProcessing, setIsProcessing] = useState(false);
-  const [debugInfo, setDebugInfo] = useState<DebugMetadata | null>(null);
-
-  const handleClearHistory = () => {
-    clearHistory();
-    setHistory([]);
-  };
+export default function LandingPage() {
+  const [session, setSession] = useState<Session | null>(null);
 
   useEffect(() => {
-    setHistory(loadHistory());
+    setSession(loadSession());
   }, []);
-
-  const stats = useMemo(() => {
-    const verified = history.filter((entry) => entry.status === "Verified").length;
-    const suspicious = history.filter((entry) => entry.status === "Suspicious").length;
-    const reused = history.filter((entry) => entry.status === "Reused").length;
-    return {
-      total: history.length,
-      verified,
-      suspicious,
-      reused,
-    };
-  }, [history]);
-
-  const handleFileChange = async (event: ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    event.target.value = "";
-    if (!file) {
-      return;
-    }
-
-    const validation = validateImageFile(file);
-    if (!validation.ok) {
-      setError(validation.message ?? "Unsupported image file.");
-      return;
-    }
-
-    setError(null);
-    setIsProcessing(true);
-    setMetadata(null);
-    setVerification(null);
-    setHash(null);
-    setPreviewUrl(null);
-    setFileName(file.name);
-    setDebugInfo(null);
-
-    try {
-      const [buffer, dataUrl] = await Promise.all([
-        readFileAsArrayBuffer(file),
-        readFileAsDataUrl(file),
-      ]);
-      setPreviewUrl(dataUrl);
-
-      const [computedHash, extractedMetadata, debugMetadata] = await Promise.all([
-        hashArrayBuffer(buffer),
-        extractMetadata(buffer),
-        extractDebugMetadata(buffer),
-      ]);
-
-      setHash(computedHash);
-      let resolvedMetadata = extractedMetadata;
-      if (
-        resolvedMetadata.gps.latitude == null ||
-        resolvedMetadata.gps.longitude == null
-      ) {
-        const browserLocation = await getBrowserLocation();
-        if (browserLocation) {
-          resolvedMetadata = {
-            ...resolvedMetadata,
-            gps: {
-              latitude: browserLocation.latitude,
-              longitude: browserLocation.longitude,
-            },
-          };
-        }
-      }
-
-      resolvedMetadata = await attachLocationName(resolvedMetadata);
-      setMetadata(resolvedMetadata);
-      setDebugInfo(debugMetadata);
-
-      const existingHistory = loadHistory();
-      const verificationResult = verifyImage(
-        resolvedMetadata,
-        computedHash,
-        existingHistory
-      );
-
-      setVerification(verificationResult);
-
-      const entry: HistoryEntry = {
-        id: crypto.randomUUID?.() ?? `${Date.now()}`,
-        hash: computedHash,
-        fileName: file.name,
-        previewUrl: dataUrl,
-        checkedAt: new Date().toISOString(),
-        status: verificationResult.status,
-        reason: verificationResult.reason,
-        metadata: resolvedMetadata,
-      };
-
-      const updatedHistory = [entry, ...existingHistory].slice(0, 20);
-      saveHistory(updatedHistory);
-      setHistory(updatedHistory);
-    } catch (processingError) {
-      console.error(processingError);
-      setError("Unable to process this image. Please try another file.");
-    } finally {
-      setIsProcessing(false);
-    }
-  };
 
   return (
     <PageShell>
-      <DashboardHeader stats={stats} />
-      <CardsGrid
-        isProcessing={isProcessing}
-        error={error}
-        previewUrl={previewUrl}
-        fileName={fileName}
-        hash={hash}
-        metadata={metadata}
-        verification={verification}
-        history={history}
-        debugInfo={debugInfo}
-        onFileChange={handleFileChange}
-        onClearHistory={handleClearHistory}
-        formatCoordinate={formatCoordinate}
-      />
+      {/* Hero */}
+      <section className="flex flex-col items-center gap-8 pt-6 text-center md:pt-16">
+        <div className="flex items-center gap-2 rounded-full border border-cyan-400/30 bg-cyan-400/10 px-4 py-2 text-[11px] uppercase tracking-[0.3em] text-cyan-200/90">
+          <span className="h-2 w-2 rounded-full bg-cyan-400 shadow-[0_0_10px_rgba(34,211,238,0.9)]" />
+          Prototype · Faculty of Physical Sciences, UNIZIK
+        </div>
+        <h1 className="max-w-3xl text-4xl font-semibold leading-tight text-white md:text-6xl">
+          Verify the authenticity of academic image submissions
+        </h1>
+        <p className="max-w-2xl text-sm leading-relaxed text-white/60 md:text-base">
+          The Image Metadata Verification System replaces subjective visual
+          inspection with objective metadata analysis — verifying when, where,
+          and with which device an image was captured, and detecting reuse
+          across submissions.
+        </p>
+        <div className="flex flex-wrap items-center justify-center gap-4">
+          {session ? (
+            <Link
+              href={dashboardPathFor(session.role)}
+              className="rounded-full border border-cyan-400/50 bg-cyan-400/20 px-8 py-3 text-sm font-semibold uppercase tracking-[0.2em] text-cyan-100 transition hover:bg-cyan-400/30"
+            >
+              Continue as {session.name.split(" ")[0]}
+            </Link>
+          ) : null}
+          <Link
+            href="/login"
+            className={
+              session
+                ? "rounded-full border border-white/15 px-8 py-3 text-sm font-semibold uppercase tracking-[0.2em] text-white/70 transition hover:border-cyan-400/50 hover:text-cyan-200"
+                : "rounded-full border border-cyan-400/50 bg-cyan-400/20 px-8 py-3 text-sm font-semibold uppercase tracking-[0.2em] text-cyan-100 transition hover:bg-cyan-400/30"
+            }
+          >
+            {session ? "Switch account" : "Get started"}
+          </Link>
+        </div>
+      </section>
+
+      {/* Features */}
+      <section className="grid gap-6 md:grid-cols-2">
+        {features.map((feature) => (
+          <div
+            key={feature.title}
+            className="rounded-3xl border border-white/10 bg-white/5 p-6 backdrop-blur transition hover:border-cyan-400/40"
+          >
+            <h3 className="text-lg font-semibold text-white">{feature.title}</h3>
+            <p className="mt-3 text-sm leading-relaxed text-white/60">
+              {feature.description}
+            </p>
+          </div>
+        ))}
+      </section>
+
+      {/* How it works */}
+      <section className="flex flex-col gap-8">
+        <div className="text-center">
+          <p className="text-xs uppercase tracking-[0.4em] text-cyan-300/70">
+            How it works
+          </p>
+          <h2 className="mt-3 text-2xl font-semibold text-white md:text-3xl">
+            From submission to verified report
+          </h2>
+        </div>
+        <div className="grid gap-6 md:grid-cols-3">
+          {steps.map((item) => (
+            <div
+              key={item.step}
+              className="rounded-3xl border border-white/10 bg-white/5 p-6 backdrop-blur"
+            >
+              <span className="text-3xl font-semibold text-cyan-300/60">
+                {item.step}
+              </span>
+              <h3 className="mt-4 text-base font-semibold text-white">
+                {item.title}
+              </h3>
+              <p className="mt-2 text-sm leading-relaxed text-white/60">
+                {item.description}
+              </p>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* Footer */}
+      <footer className="rounded-3xl border border-white/10 bg-white/5 px-6 py-8 text-center backdrop-blur">
+        <p className="text-sm text-white/60">
+          Final Year Project — Design and Implementation of an Image Metadata
+          Verification System
+        </p>
+        <p className="mt-2 text-xs text-white/40">
+          Case study: Faculty of Physical Sciences, Nnamdi Azikiwe University,
+          Awka. All verification runs locally in the browser; no image is
+          uploaded to any server.
+        </p>
+      </footer>
     </PageShell>
   );
 }

@@ -27,6 +27,7 @@ const sanitizeEntry = (entry: HistoryEntry): HistoryEntry => {
         longitude,
       },
       locationName,
+      gpsTagsPresent: entry.metadata.gpsTagsPresent ?? false,
     },
   };
 };
@@ -48,14 +49,36 @@ export const loadHistory = (): HistoryEntry[] => {
   }
 };
 
+const tryPersist = (items: HistoryEntry[]): boolean => {
+  try {
+    window.localStorage.setItem(STORAGE_KEY, JSON.stringify(items));
+    return true;
+  } catch {
+    return false;
+  }
+};
+
+/**
+ * Saves history while staying within the localStorage quota.
+ * If a save fails, progressively drops the oldest entries, and as a
+ * last resort strips preview thumbnails, so records are never lost silently.
+ */
 export const saveHistory = (items: HistoryEntry[]) => {
   if (typeof window === "undefined") {
     return;
   }
-  try {
-    window.localStorage.setItem(STORAGE_KEY, JSON.stringify(items));
-  } catch (error) {
-    console.warn("Unable to save history to localStorage.", error);
+
+  let working = [...items];
+  while (working.length > 0) {
+    if (tryPersist(working)) {
+      return;
+    }
+    working = working.slice(0, -1);
+  }
+
+  const withoutPreviews = items.map((entry) => ({ ...entry, previewUrl: "" }));
+  if (!tryPersist(withoutPreviews)) {
+    console.warn("Unable to save verification history to localStorage.");
   }
 };
 

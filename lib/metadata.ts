@@ -3,6 +3,20 @@ import type { MetadataResult } from "./types";
 
 type ExifValue = number | { numerator: number; denominator: number };
 
+const EXIFR_OPTIONS = {
+  tiff: true,
+  ifd0: true,
+  exif: true,
+  gps: true,
+  xmp: true,
+  translateValues: true,
+} as unknown as Record<string, unknown>;
+
+const EXIFR_RAW_OPTIONS = {
+  ...EXIFR_OPTIONS,
+  translateValues: false,
+} as unknown as Record<string, unknown>;
+
 const toNumber = (value: ExifValue | string): number | null => {
   if (typeof value === "number") {
     return Number.isFinite(value) ? value : null;
@@ -120,11 +134,11 @@ const formatDateTime = (value: Date): string =>
     timeStyle: "short",
   }).format(value);
 
-const normalizeFinalCoordinate = (value: number | null): number | null =>
-  value != null && Number.isFinite(value) ? value : null;
-
 const normalizeRef = (value: unknown): string | null =>
   typeof value === "string" ? value.toUpperCase() : null;
+
+const asRecord = (value: unknown): Record<string, unknown> | null =>
+  value && typeof value === "object" ? (value as Record<string, unknown>) : null;
 
 const getFieldValue = (
   record: Record<string, unknown> | null | undefined,
@@ -146,8 +160,8 @@ const getFieldValue = (
   return null;
 };
 
-const pickGpsFields = (record: Record<string, unknown>): Record<string, unknown> => {
-  const entries = Object.entries(record).filter(([key]) => {
+const hasGpsTags = (record: Record<string, unknown>): boolean =>
+  Object.keys(record).some((key) => {
     const lowerKey = key.toLowerCase();
     return (
       lowerKey.includes("gps") ||
@@ -156,188 +170,84 @@ const pickGpsFields = (record: Record<string, unknown>): Record<string, unknown>
     );
   });
 
-  return Object.fromEntries(entries);
-};
+const LATITUDE_KEYS = [
+  "GPSLatitude",
+  "latitude",
+  "Latitude",
+  "exif:GPSLatitude",
+  "xmp:GPSLatitude",
+];
+const LONGITUDE_KEYS = [
+  "GPSLongitude",
+  "longitude",
+  "Longitude",
+  "exif:GPSLongitude",
+  "xmp:GPSLongitude",
+];
 
-export type DebugMetadata = {
-  gpsData: unknown;
-  gpsRecord: Record<string, unknown> | null;
-  exifRecord: Record<string, unknown> | null;
-  xmpRecord: Record<string, unknown> | null;
-  gpsFields: Record<string, unknown>;
-};
-
-export const extractDebugMetadata = async (
-  buffer: ArrayBuffer
-): Promise<DebugMetadata> => {
-  const data = await exifr.parse(
-    buffer,
-    {
-      tiff: true,
-      ifd0: true,
-      exif: true,
-      gps: true,
-      xmp: true,
-      translateValues: true,
-    } as unknown as Record<string, unknown>
-  );
-
-  const gpsData = await exifr.gps(buffer).catch(() => null);
-  const dataRecord = (data ?? {}) as Record<string, unknown>;
-  const gpsRecord =
-    dataRecord.gps && typeof dataRecord.gps === "object"
-      ? (dataRecord.gps as Record<string, unknown>)
-      : null;
-  const exifRecord =
-    dataRecord.exif && typeof dataRecord.exif === "object"
-      ? (dataRecord.exif as Record<string, unknown>)
-      : null;
-  const xmpRecord =
-    dataRecord.xmp && typeof dataRecord.xmp === "object"
-      ? (dataRecord.xmp as Record<string, unknown>)
-      : null;
-
-  return {
-    gpsData,
-    gpsRecord,
-    exifRecord,
-    xmpRecord,
-    gpsFields: pickGpsFields(dataRecord),
-  };
+const resolveCoordinate = (
+  records: Array<Record<string, unknown> | null>,
+  keys: string[]
+): number | null => {
+  for (const record of records) {
+    const value = normalizeCoordinate(getFieldValue(record, keys));
+    if (value != null) {
+      return value;
+    }
+  }
+  return null;
 };
 
 export const extractMetadata = async (
   buffer: ArrayBuffer
 ): Promise<MetadataResult> => {
-  const data = await exifr.parse(
-    buffer,
-    {
-      tiff: true,
-      ifd0: true,
-      exif: true,
-      gps: true,
-      xmp: true,
-      translateValues: true,
-    } as unknown as Record<string, unknown>
-  );
+  const [data, gpsData] = await Promise.all([
+    exifr.parse(buffer, EXIFR_OPTIONS).catch(() => null),
+    exifr.gps(buffer).catch(() => null),
+  ]);
 
-  const gpsData = await exifr.gps(buffer).catch(() => null);
   const dataRecord = (data ?? {}) as Record<string, unknown>;
-  const gpsRecord =
-    dataRecord.gps && typeof dataRecord.gps === "object"
-      ? (dataRecord.gps as Record<string, unknown>)
-      : null;
-  const exifRecord =
-    dataRecord.exif && typeof dataRecord.exif === "object"
-      ? (dataRecord.exif as Record<string, unknown>)
-      : null;
-  const xmpRecord =
-    dataRecord.xmp && typeof dataRecord.xmp === "object"
-      ? (dataRecord.xmp as Record<string, unknown>)
-      : null;
+  const gpsRecord = asRecord(dataRecord.gps);
+  const exifRecord = asRecord(dataRecord.exif);
+  const xmpRecord = asRecord(dataRecord.xmp);
 
-  const rawData = await exifr
-    .parse(
-      buffer,
-      {
-        tiff: true,
-        ifd0: true,
-        exif: true,
-        gps: true,
-        xmp: true,
-        translateValues: false,
-      } as unknown as Record<string, unknown>
-    )
-    .catch(() => null);
-  const rawRecord = (rawData ?? {}) as Record<string, unknown>;
-  const rawGpsRecord =
-    rawRecord.gps && typeof rawRecord.gps === "object"
-      ? (rawRecord.gps as Record<string, unknown>)
-      : null;
+  const searchRecords = [gpsRecord, dataRecord, exifRecord, xmpRecord];
 
-  const capturedAt =
-    parseExifDate(data?.DateTimeOriginal) ||
-    parseExifDate(data?.CreateDate) ||
-    parseExifDate(data?.ModifyDate);
-
-  const latitude =
+  let latitude =
     normalizeCoordinate(gpsData?.latitude) ??
-    normalizeCoordinate(getFieldValue(gpsRecord, ["latitude", "Latitude"])) ??
-    normalizeCoordinate(
-      getFieldValue(dataRecord, [
-        "GPSLatitude",
-        "latitude",
-        "Latitude",
-        "exif:GPSLatitude",
-        "xmp:GPSLatitude",
-      ])
-    ) ??
-    normalizeCoordinate(
-      getFieldValue(exifRecord, ["GPSLatitude", "latitude", "Latitude"])
-    ) ??
-    normalizeCoordinate(
-      getFieldValue(xmpRecord, ["GPSLatitude", "latitude", "Latitude"])
-    ) ??
-    normalizeCoordinate(
-      getFieldValue(rawGpsRecord, ["GPSLatitude", "latitude", "Latitude"])
-    ) ??
-    normalizeCoordinate(
-      getFieldValue(rawRecord, [
-        "GPSLatitude",
-        "latitude",
-        "Latitude",
-        "exif:GPSLatitude",
-        "xmp:GPSLatitude",
-      ])
-    );
-  const longitude =
+    resolveCoordinate(searchRecords, LATITUDE_KEYS);
+  let longitude =
     normalizeCoordinate(gpsData?.longitude) ??
-    normalizeCoordinate(getFieldValue(gpsRecord, ["longitude", "Longitude"])) ??
-    normalizeCoordinate(
-      getFieldValue(dataRecord, [
-        "GPSLongitude",
-        "longitude",
-        "Longitude",
-        "exif:GPSLongitude",
-        "xmp:GPSLongitude",
-      ])
-    ) ??
-    normalizeCoordinate(
-      getFieldValue(exifRecord, ["GPSLongitude", "longitude", "Longitude"])
-    ) ??
-    normalizeCoordinate(
-      getFieldValue(xmpRecord, ["GPSLongitude", "longitude", "Longitude"])
-    ) ??
-    normalizeCoordinate(
-      getFieldValue(rawGpsRecord, ["GPSLongitude", "longitude", "Longitude"])
-    ) ??
-    normalizeCoordinate(
-      getFieldValue(rawRecord, [
-        "GPSLongitude",
-        "longitude",
-        "Longitude",
-        "exif:GPSLongitude",
-        "xmp:GPSLongitude",
-      ])
-    );
+    resolveCoordinate(searchRecords, LONGITUDE_KEYS);
+
+  // Fallback: some files only expose usable values without tag translation.
+  if (latitude == null || longitude == null) {
+    const rawData = await exifr.parse(buffer, EXIFR_RAW_OPTIONS).catch(() => null);
+    const rawRecord = (rawData ?? {}) as Record<string, unknown>;
+    const rawRecords = [asRecord(rawRecord.gps), rawRecord];
+    latitude = latitude ?? resolveCoordinate(rawRecords, LATITUDE_KEYS);
+    longitude = longitude ?? resolveCoordinate(rawRecords, LONGITUDE_KEYS);
+  }
 
   const latitudeRef = normalizeRef(
     getFieldValue(dataRecord, [
       "GPSLatitudeRef",
       "exif:GPSLatitudeRef",
       "xmp:GPSLatitudeRef",
-    ]) ?? getFieldValue(exifRecord, ["GPSLatitudeRef"]) ??
-    getFieldValue(xmpRecord, ["GPSLatitudeRef"]) ??
-    getFieldValue(gpsRecord, ["latitudeRef", "LatitudeRef"])
+    ]) ??
+      getFieldValue(exifRecord, ["GPSLatitudeRef"]) ??
+      getFieldValue(xmpRecord, ["GPSLatitudeRef"]) ??
+      getFieldValue(gpsRecord, ["latitudeRef", "LatitudeRef"])
   );
   const longitudeRef = normalizeRef(
     getFieldValue(dataRecord, [
       "GPSLongitudeRef",
       "exif:GPSLongitudeRef",
       "xmp:GPSLongitudeRef",
-    ]) ?? getFieldValue(exifRecord, ["GPSLongitudeRef"]) ??
-    getFieldValue(xmpRecord, ["GPSLongitudeRef"]) ??
-    getFieldValue(gpsRecord, ["longitudeRef", "LongitudeRef"])
+    ]) ??
+      getFieldValue(exifRecord, ["GPSLongitudeRef"]) ??
+      getFieldValue(xmpRecord, ["GPSLongitudeRef"]) ??
+      getFieldValue(gpsRecord, ["longitudeRef", "LongitudeRef"])
   );
 
   const signedLatitude =
@@ -353,23 +263,32 @@ export const extractMetadata = async (
         ? Math.abs(longitude)
         : longitude;
 
-  const finalLatitude = normalizeFinalCoordinate(signedLatitude ?? null);
-  const finalLongitude = normalizeFinalCoordinate(signedLongitude ?? null);
+  const finalLatitude =
+    signedLatitude != null && Number.isFinite(signedLatitude) ? signedLatitude : null;
+  const finalLongitude =
+    signedLongitude != null && Number.isFinite(signedLongitude)
+      ? signedLongitude
+      : null;
+
+  const capturedAt =
+    parseExifDate(data?.DateTimeOriginal) ||
+    parseExifDate(data?.CreateDate) ||
+    parseExifDate(data?.ModifyDate);
 
   const deviceMake = data?.Make ? String(data.Make).trim() : "";
   const deviceModel = data?.Model ? String(data.Model).trim() : "";
   const device = `${deviceMake} ${deviceModel}`.trim();
 
   const timeAvailable = Boolean(capturedAt);
-  const gpsAvailable =
-    finalLatitude != null && finalLongitude != null;
+  const gpsAvailable = finalLatitude != null && finalLongitude != null;
   const deviceAvailable = Boolean(device);
 
-  const completeness = timeAvailable && gpsAvailable && deviceAvailable
-    ? "Complete"
-    : timeAvailable || gpsAvailable || deviceAvailable
-      ? "Partial"
-      : "Missing";
+  const completeness =
+    timeAvailable && gpsAvailable && deviceAvailable
+      ? "Complete"
+      : timeAvailable || gpsAvailable || deviceAvailable
+        ? "Partial"
+        : "Missing";
 
   return {
     captureTime: capturedAt ? formatDateTime(capturedAt) : null,
@@ -380,5 +299,6 @@ export const extractMetadata = async (
     device: device || null,
     locationName: null,
     completeness,
+    gpsTagsPresent: hasGpsTags(dataRecord) || Boolean(gpsRecord),
   };
 };
