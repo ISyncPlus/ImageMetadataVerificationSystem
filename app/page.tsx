@@ -1,10 +1,9 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
 import PageShell from "../components/PageShell";
-import { dashboardPathFor, loadSession } from "../lib/auth";
-import type { Session } from "../lib/auth";
+import { dashboardPathFor } from "../lib/auth";
+import { useSession } from "../lib/useSession";
 
 const features = [
   {
@@ -51,11 +50,7 @@ const steps = [
 ];
 
 export default function LandingPage() {
-  const [session, setSession] = useState<Session | null>(null);
-
-  useEffect(() => {
-    setSession(loadSession());
-  }, []);
+  const session = useSession();
 
   return (
     <PageShell>

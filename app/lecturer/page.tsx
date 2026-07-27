@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import AppNavbar from "../../components/AppNavbar";
 import DashboardHeader from "../../components/DashboardHeader";
 import GlassCard from "../../components/GlassCard";
@@ -11,7 +11,8 @@ import {
   buildSummaryReportHtml,
   openPrintableReport,
 } from "../../lib/report";
-import { clearHistory, loadHistory } from "../../lib/storage";
+import { clearHistory } from "../../lib/storage";
+import { useHistory } from "../../lib/useHistory";
 import { useRequireSession } from "../../lib/useSession";
 import type { HistoryEntry, VerificationStatus } from "../../lib/types";
 
@@ -21,13 +22,9 @@ const FILTERS: StatusFilter[] = ["All", "Verified", "Suspicious", "Reused"];
 
 export default function LecturerDashboard() {
   const session = useRequireSession("lecturer");
-  const [history, setHistory] = useState<HistoryEntry[]>([]);
+  const history = useHistory();
   const [query, setQuery] = useState("");
   const [filter, setFilter] = useState<StatusFilter>("All");
-
-  useEffect(() => {
-    setHistory(loadHistory());
-  }, []);
 
   const stats = useMemo(() => {
     const verified = history.filter((entry) => entry.status === "Verified").length;
@@ -60,7 +57,6 @@ export default function LecturerDashboard() {
 
   const handleClearHistory = () => {
     clearHistory();
-    setHistory([]);
   };
 
   const handleEntryReport = (entry: HistoryEntry) => {

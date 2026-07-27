@@ -1,9 +1,23 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useSyncExternalStore } from "react";
 import { useRouter } from "next/navigation";
-import { dashboardPathFor, loadSession } from "./auth";
+import {
+  dashboardPathFor,
+  getServerSessionSnapshot,
+  getSessionSnapshot,
+  loadSession,
+  subscribeToSession,
+} from "./auth";
 import type { Session, UserRole } from "./auth";
+
+/** Reactive session state backed by localStorage (live across tabs). */
+export const useSession = (): Session | null =>
+  useSyncExternalStore(
+    subscribeToSession,
+    getSessionSnapshot,
+    getServerSessionSnapshot
+  );
 
 /**
  * Client-side route guard for the prototype's simulated authentication.
@@ -12,9 +26,11 @@ import type { Session, UserRole } from "./auth";
  */
 export const useRequireSession = (requiredRole: UserRole): Session | null => {
   const router = useRouter();
-  const [session, setSession] = useState<Session | null>(null);
+  const session = useSession();
 
   useEffect(() => {
+    // Read localStorage directly so a transiently-empty store snapshot
+    // during hydration can never cause a spurious redirect.
     const current = loadSession();
     if (!current) {
       router.replace("/login");
@@ -22,10 +38,8 @@ export const useRequireSession = (requiredRole: UserRole): Session | null => {
     }
     if (current.role !== requiredRole) {
       router.replace(dashboardPathFor(current.role));
-      return;
     }
-    setSession(current);
-  }, [router, requiredRole]);
+  }, [router, requiredRole, session]);
 
-  return session;
+  return session && session.role === requiredRole ? session : null;
 };

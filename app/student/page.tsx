@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import type { ChangeEvent } from "react";
 import AppNavbar from "../../components/AppNavbar";
 import CardsGrid from "../../components/CardsGrid";
@@ -19,6 +19,7 @@ import {
   openPrintableReport,
 } from "../../lib/report";
 import { loadHistory, saveHistory } from "../../lib/storage";
+import { useHistory } from "../../lib/useHistory";
 import { useRequireSession } from "../../lib/useSession";
 import { verifyImage } from "../../lib/verification";
 import type { HistoryEntry, MetadataResult } from "../../lib/types";
@@ -114,16 +115,12 @@ const attachLocationName = async (
 
 export default function StudentDashboard() {
   const session = useRequireSession("student");
-  const [history, setHistory] = useState<HistoryEntry[]>([]);
+  const history = useHistory();
   const [currentEntry, setCurrentEntry] = useState<HistoryEntry | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [fileName, setFileName] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
-
-  useEffect(() => {
-    setHistory(loadHistory());
-  }, []);
 
   const myHistory = useMemo(
     () =>
@@ -219,7 +216,6 @@ export default function StudentDashboard() {
 
       const updatedHistory = [entry, ...existingHistory].slice(0, 20);
       saveHistory(updatedHistory);
-      setHistory(updatedHistory);
     } catch (processingError) {
       console.error(processingError);
       setError("Unable to process this image. Please try another file.");
