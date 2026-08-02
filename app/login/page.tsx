@@ -1,23 +1,46 @@
 "use client";
 
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import type { FormEvent } from "react";
 import PageShell from "../../components/PageShell";
-import {
-  dashboardPathFor,
-  loadSession,
-  saveSession,
-} from "../../lib/auth";
+import Card from "../../components/ui/Card";
+import Reveal from "../../components/ui/Reveal";
+import SegmentedControl from "../../components/ui/SegmentedControl";
+import { Button } from "../../components/ui/Button";
+import { Alert, ShieldCheck } from "../../components/ui/icons";
+import { dashboardPathFor, loadSession, saveSession } from "../../lib/auth";
 import type { UserRole } from "../../lib/auth";
+
+const ROLES: readonly UserRole[] = ["student", "lecturer"];
+
+type Errors = { name?: string; identifier?: string };
+
+const validate = (
+  role: UserRole,
+  name: string,
+  identifier: string
+): Errors => {
+  const errors: Errors = {};
+  if (name.trim().length < 3) {
+    errors.name = "Enter your full name.";
+  }
+  if (identifier.trim().length < 4) {
+    errors.identifier =
+      role === "student"
+        ? "Enter a valid registration number."
+        : "Enter a valid staff ID.";
+  }
+  return errors;
+};
 
 export default function LoginPage() {
   const router = useRouter();
   const [role, setRole] = useState<UserRole>("student");
   const [name, setName] = useState("");
   const [identifier, setIdentifier] = useState("");
-  const [error, setError] = useState<string | null>(null);
+  const [errors, setErrors] = useState<Errors>({});
+  const [submitted, setSubmitted] = useState(false);
 
   useEffect(() => {
     const existing = loadSession();
@@ -26,125 +49,127 @@ export default function LoginPage() {
     }
   }, [router]);
 
+  /* Once they have tried once, correct as they type rather than making them
+     submit again to find out. */
+  const revalidate = (next: { name?: string; identifier?: string }) => {
+    if (!submitted) return;
+    setErrors(
+      validate(role, next.name ?? name, next.identifier ?? identifier)
+    );
+  };
+
   const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
+    setSubmitted(true);
 
-    const trimmedName = name.trim();
-    const trimmedIdentifier = identifier.trim();
-
-    if (trimmedName.length < 3) {
-      setError("Please enter your full name.");
-      return;
-    }
-    if (trimmedIdentifier.length < 4) {
-      setError(
-        role === "student"
-          ? "Please enter a valid registration number."
-          : "Please enter a valid staff ID."
-      );
-      return;
-    }
+    const found = validate(role, name, identifier);
+    setErrors(found);
+    if (Object.keys(found).length > 0) return;
 
     saveSession({
       role,
-      name: trimmedName,
-      identifier: trimmedIdentifier,
+      name: name.trim(),
+      identifier: identifier.trim(),
       signedInAt: new Date().toISOString(),
     });
     router.replace(dashboardPathFor(role));
   };
 
-  return (
-    <PageShell>
-      <div className="mx-auto flex w-full max-w-md flex-col gap-8 pt-6 md:pt-16">
-        <Link
-          href="/"
-          className="text-center text-xs uppercase tracking-[0.3em] text-white/40 transition hover:text-cyan-200"
-        >
-          ← Back to home
-        </Link>
+  const fieldClass = (invalid?: string) =>
+    `t-callout min-h-11 w-full rounded-xl border bg-well px-3.5 py-2.5 text-ink outline-none transition-colors duration-150 placeholder:text-ink-3 focus:border-accent ${
+      invalid ? "border-bad" : "border-line"
+    }`;
 
-        <div className="rounded-3xl border border-white/10 bg-white/5 p-8 backdrop-blur-xl">
-          <div className="text-center">
-            <span className="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl border border-cyan-400/40 bg-cyan-400/10 text-base font-bold text-cyan-200">
-              IV
+  return (
+    <PageShell width="narrow">
+      <Reveal className="pt-4">
+        <Card>
+          <div className="flex flex-col items-center text-center">
+            <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-accent text-accent-ink">
+              <ShieldCheck size={24} strokeWidth={1.7} />
             </span>
-            <h1 className="mt-4 text-xl font-semibold text-white">
-              Sign in to IMVS
-            </h1>
-            <p className="mt-2 text-xs text-white/50">
-              Image Metadata Verification System — Faculty of Physical Sciences
+            <h1 className="t-title-2 mt-4 text-ink">Sign in to IMVS</h1>
+            <p className="t-footnote mt-1.5 text-ink-2">
+              Faculty of Physical Sciences, Nnamdi Azikiwe University
             </p>
           </div>
 
-          {/* Role selector */}
-          <div className="mt-8 grid grid-cols-2 gap-2 rounded-2xl border border-white/10 bg-black/20 p-1.5">
-            {(["student", "lecturer"] as const).map((option) => (
-              <button
-                key={option}
-                type="button"
-                onClick={() => {
-                  setRole(option);
-                  setError(null);
-                }}
-                className={`rounded-xl px-4 py-2.5 text-xs font-semibold uppercase tracking-[0.2em] transition ${
-                  role === option
-                    ? "border border-cyan-400/50 bg-cyan-400/20 text-cyan-100"
-                    : "text-white/50 hover:text-white"
-                }`}
-              >
-                {option}
-              </button>
-            ))}
-          </div>
-
-          <form onSubmit={handleSubmit} className="mt-6 flex flex-col gap-4">
-            <label className="flex flex-col gap-2">
-              <span className="text-xs uppercase tracking-[0.2em] text-white/50">
-                Full name
+          <form onSubmit={handleSubmit} className="mt-7 flex flex-col gap-5">
+            <div className="flex flex-col gap-2">
+              <span className="t-footnote font-medium text-ink-2">
+                I am signing in as
               </span>
+              <SegmentedControl
+                options={ROLES}
+                value={role}
+                onChange={(next) => {
+                  setRole(next);
+                  if (submitted) setErrors(validate(next, name, identifier));
+                }}
+                label="Account type"
+                className="w-full"
+                render={(option) => (
+                  <span className="capitalize">{option}</span>
+                )}
+              />
+            </div>
+
+            <label className="flex flex-col gap-1.5">
+              <span className="t-footnote font-medium text-ink-2">Full name</span>
               <input
                 type="text"
                 value={name}
-                onChange={(event) => setName(event.target.value)}
-                placeholder={role === "student" ? "e.g. Ada Obi" : "e.g. Dr. John Doe"}
-                className="rounded-2xl border border-white/10 bg-black/30 px-4 py-3 text-sm text-white placeholder-white/30 outline-none transition focus:border-cyan-400/60"
+                autoComplete="name"
+                aria-invalid={Boolean(errors.name)}
+                onChange={(event) => {
+                  setName(event.target.value);
+                  revalidate({ name: event.target.value });
+                }}
+                placeholder={role === "student" ? "Ada Obi" : "Dr. John Doe"}
+                className={fieldClass(errors.name)}
               />
+              {errors.name ? (
+                <span className="t-caption flex items-center gap-1 text-bad">
+                  <Alert size={13} strokeWidth={2} />
+                  {errors.name}
+                </span>
+              ) : null}
             </label>
-            <label className="flex flex-col gap-2">
-              <span className="text-xs uppercase tracking-[0.2em] text-white/50">
+
+            <label className="flex flex-col gap-1.5">
+              <span className="t-footnote font-medium text-ink-2">
                 {role === "student" ? "Registration number" : "Staff ID"}
               </span>
               <input
                 type="text"
                 value={identifier}
-                onChange={(event) => setIdentifier(event.target.value)}
-                placeholder={role === "student" ? "e.g. 2021/248001" : "e.g. PHY/L/0042"}
-                className="rounded-2xl border border-white/10 bg-black/30 px-4 py-3 text-sm text-white placeholder-white/30 outline-none transition focus:border-cyan-400/60"
+                aria-invalid={Boolean(errors.identifier)}
+                onChange={(event) => {
+                  setIdentifier(event.target.value);
+                  revalidate({ identifier: event.target.value });
+                }}
+                placeholder={role === "student" ? "2021/248001" : "PHY/L/0042"}
+                className={fieldClass(errors.identifier)}
               />
+              {errors.identifier ? (
+                <span className="t-caption flex items-center gap-1 text-bad">
+                  <Alert size={13} strokeWidth={2} />
+                  {errors.identifier}
+                </span>
+              ) : null}
             </label>
 
-            {error ? (
-              <div className="rounded-2xl border border-rose-400/40 bg-rose-400/10 px-4 py-3 text-xs text-rose-200">
-                {error}
-              </div>
-            ) : null}
-
-            <button
-              type="submit"
-              className="mt-2 rounded-2xl border border-cyan-400/50 bg-cyan-400/20 px-4 py-3 text-sm font-semibold uppercase tracking-[0.2em] text-cyan-100 transition hover:bg-cyan-400/30"
-            >
-              Sign in as {role}
-            </button>
+            <Button type="submit" variant="primary" size="lg" className="w-full">
+              Continue as {role}
+            </Button>
           </form>
 
-          <p className="mt-6 text-center text-[11px] leading-relaxed text-white/35">
-            Prototype note: authentication is simulated for the case study.
-            Your details are stored only in this browser and attached to your
-            verification records.
+          <p className="t-caption mt-6 text-center text-ink-3">
+            Authentication is simulated for this case study. Your details stay in
+            this browser and are attached to the records you create.
           </p>
-        </div>
-      </div>
+        </Card>
+      </Reveal>
     </PageShell>
   );
 }

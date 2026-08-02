@@ -1,6 +1,12 @@
+"use client";
+
 import Image from "next/image";
-import type { ChangeEvent } from "react";
-import GlassCard from "./GlassCard";
+import { AnimatePresence, motion, useReducedMotion } from "motion/react";
+import { useRef, useState } from "react";
+import type { ChangeEvent, DragEvent } from "react";
+import Card from "./ui/Card";
+import { Alert, Hash, Upload } from "./ui/icons";
+import { fade, springMove, springSnappy } from "../lib/motion";
 
 type UploadCardProps = {
   isProcessing: boolean;
@@ -8,7 +14,7 @@ type UploadCardProps = {
   previewUrl: string | null;
   fileName: string | null;
   hash: string | null;
-  onFileChange: (event: ChangeEvent<HTMLInputElement>) => void;
+  onFile: (file: File) => void;
 };
 
 export default function UploadCard({
@@ -17,72 +23,152 @@ export default function UploadCard({
   previewUrl,
   fileName,
   hash,
-  onFileChange,
+  onFile,
 }: UploadCardProps) {
+  const reduced = useReducedMotion();
+  const [isOver, setIsOver] = useState(false);
+  /* dragenter/leave fire for every child, so nesting has to be counted. */
+  const depth = useRef(0);
+
+  const handleInput = (event: ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    event.target.value = "";
+    if (file) onFile(file);
+  };
+
+  const handleDrop = (event: DragEvent<HTMLLabelElement>) => {
+    event.preventDefault();
+    depth.current = 0;
+    setIsOver(false);
+    const file = event.dataTransfer.files?.[0];
+    if (file) onFile(file);
+  };
+
   return (
-    <GlassCard
-      title="Image Upload"
-      subtitle="Submit image for verification"
+    <Card
+      title="Submit an image"
+      subtitle="Hashing and EXIF inspection run on this device"
       actions={
-        <span className="text-xs font-semibold uppercase tracking-[0.3em] text-white/50">
-          {isProcessing ? "Processing" : "Ready"}
+        <span
+          className={`t-caption inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 font-medium ${
+            isProcessing ? "bg-accent-wash text-accent" : "bg-well text-ink-2"
+          }`}
+        >
+          <span
+            className={`h-1.5 w-1.5 rounded-full ${
+              isProcessing ? "bg-accent" : "bg-ink-3"
+            }`}
+          />
+          {isProcessing ? "Reading" : "Ready"}
         </span>
       }
+      bodyClassName="flex flex-col gap-4"
     >
-      <div className="flex flex-col gap-4">
-        <label className="group flex cursor-pointer flex-col items-center justify-center gap-3 rounded-2xl border border-dashed border-white/20 bg-white/5 px-6 py-10 text-center transition hover:border-cyan-400/60 hover:bg-white/10">
-          <input
-            type="file"
-            accept="image/jpeg,image/png"
-            onChange={onFileChange}
-            className="hidden"
-          />
-          <div className="flex h-12 w-12 items-center justify-center rounded-2xl border border-cyan-400/40 bg-cyan-400/10">
-            <span className="text-xl text-cyan-200">+</span>
-          </div>
-          <div>
-            <p className="text-sm font-semibold text-white">
-              Drop or select a JPEG/PNG file
-            </p>
-            <p className="text-xs text-white/50">
-              SHA-256 hashing and EXIF inspection runs locally
-            </p>
-          </div>
-        </label>
+      <motion.label
+        onDragEnter={(event) => {
+          event.preventDefault();
+          depth.current += 1;
+          setIsOver(true);
+        }}
+        onDragOver={(event) => event.preventDefault()}
+        onDragLeave={() => {
+          depth.current = Math.max(0, depth.current - 1);
+          if (depth.current === 0) setIsOver(false);
+        }}
+        onDrop={handleDrop}
+        /* The zone answers the pointer throughout the drag, not only when the
+           file lands. */
+        animate={reduced ? {} : { scale: isOver ? 1.015 : 1 }}
+        whileTap={reduced ? {} : { scale: 0.99 }}
+        transition={springSnappy}
+        className={`flex cursor-pointer flex-col items-center justify-center gap-3 rounded-xl border border-dashed px-6 py-9 text-center transition-colors duration-150 ${
+          isOver
+            ? "border-accent bg-accent-wash"
+            : "border-line-strong bg-well hover:border-accent"
+        }`}
+      >
+        <input
+          type="file"
+          accept="image/jpeg,image/png"
+          onChange={handleInput}
+          className="sr-only"
+        />
+        <span
+          className={`flex h-11 w-11 items-center justify-center rounded-full transition-colors duration-150 ${
+            isOver
+              ? "bg-accent text-accent-ink"
+              : "bg-surface text-accent shadow-card"
+          }`}
+        >
+          <Upload size={20} />
+        </span>
+        <span>
+          <span className="t-callout block font-semibold text-ink">
+            {isOver ? "Release to verify" : "Drag an image here"}
+          </span>
+          <span className="t-footnote mt-0.5 block text-ink-2">
+            or click to choose a JPEG or PNG
+          </span>
+        </span>
+      </motion.label>
 
+      <AnimatePresence initial={false}>
         {error ? (
-          <div className="rounded-2xl border border-rose-400/40 bg-rose-400/10 px-4 py-3 text-xs text-rose-200">
+          <motion.p
+            key="error"
+            initial={reduced ? { opacity: 0 } : { opacity: 0, y: -6 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0 }}
+            transition={fade}
+            role="alert"
+            className="t-footnote flex items-start gap-2 rounded-xl bg-bad-wash px-3.5 py-3 text-bad"
+          >
+            <Alert size={16} strokeWidth={1.8} className="mt-px shrink-0" />
             {error}
-          </div>
+          </motion.p>
         ) : null}
+      </AnimatePresence>
 
-        <div className="flex items-center gap-4 rounded-2xl border border-white/10 bg-white/5 p-4">
-          <div className="h-16 w-16 overflow-hidden rounded-xl border border-white/10 bg-black/30">
-            {previewUrl ? (
+      <div className="flex items-center gap-3 rounded-xl border border-line bg-surface-2 p-3">
+        <div
+          className={`relative h-14 w-14 shrink-0 overflow-hidden rounded-lg bg-well ${
+            isProcessing ? "shimmer" : ""
+          }`}
+        >
+          {previewUrl ? (
+            <motion.div
+              initial={reduced ? { opacity: 0 } : { opacity: 0, scale: 1.06 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={springMove}
+              className="h-full w-full"
+            >
               <Image
                 src={previewUrl}
-                alt={fileName ?? "Preview"}
-                width={64}
-                height={64}
+                alt={fileName ?? "Selected image"}
+                width={56}
+                height={56}
                 unoptimized
                 className="h-full w-full object-cover"
               />
+            </motion.div>
+          ) : null}
+        </div>
+        <div className="min-w-0 flex-1">
+          <p className="t-footnote truncate font-semibold text-ink">
+            {fileName ?? "No image selected"}
+          </p>
+          <p className="t-caption mt-0.5 flex items-center gap-1 text-ink-2">
+            {hash ? (
+              <>
+                <Hash size={12} className="shrink-0" />
+                <span className="truncate font-mono">{hash.slice(0, 24)}…</span>
+              </>
             ) : (
-              <div className="flex h-full w-full items-center justify-center text-xs text-white/40">
-                No Preview
-              </div>
+              "Its SHA-256 fingerprint will appear here"
             )}
-          </div>
-          <div className="flex-1">
-            <p className="text-sm font-semibold text-white">
-              {fileName ?? "Awaiting submission"}
-            </p>
-            <p className="text-xs text-white/50">
-              {hash ? `SHA-256: ${hash.slice(0, 18)}…` : "Hash will appear here"}
-            </p>
-          </div>
+          </p>
         </div>
       </div>
-    </GlassCard>
+    </Card>
   );
 }

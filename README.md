@@ -34,6 +34,18 @@ the browser — no backend, no authentication, no image ever leaves the device.
 - **Verification history** — the last 20 checks persist in `localStorage`
   with quota-safe thumbnails.
 
+## Interface
+
+- **Light and dark appearance** — follows the system by default; the toggle in
+  the navigation bar overrides it and the choice persists. Switching sweeps the
+  new theme across the page with a View Transition.
+- **Spring-based motion** — gestures and transitions use springs
+  (`lib/motion.ts`) so they stay interruptible: a sheet can be caught mid-flight,
+  thrown, and it lands where the throw was heading.
+- **Accessible by default** — `prefers-reduced-motion`, `prefers-reduced-transparency`
+  and `prefers-contrast` are each honoured, and the status palette is validated
+  for colour-vision separation and 4.5:1 text contrast in both themes.
+
 ## Getting Started
 
 ```bash
@@ -50,5 +62,25 @@ Open [http://localhost:3000](http://localhost:3000) to see the dashboard.
   fail the time/location checks and be flagged as Suspicious.
 - Missing metadata does not by itself prove misconduct — reports are decision
   support for the course lecturer, not a verdict.
+
+## Credits
+
+Two pieces of the interface are adapted from open-source work and are
+maintained here as part of this codebase:
+
+- **Theme transition** (`lib/theme-transition.ts`) — the View Transition CSS
+  generator is adapted from [Skiper UI](https://skiper-ui.com)'s "Skiper 26"
+  component by [@gurvinder-singh02](https://gxuri.me), itself inspired by
+  [rudrodip/theme-toggle-effect](https://github.com/rudrodip/theme-toggle-effect).
+  The demo scaffolding and its `next-themes` dependency were removed — this app
+  has its own theme store in `lib/useTheme.ts` — leaving only the CSS generator.
+  Skiper UI's licence requires attribution on the free version, so the original
+  notice is kept at the foot of that file.
+- **Animated background** (`components/SideRays.tsx`) — the WebGL ray field is
+  the `SideRays` component from [React Bits](https://reactbits.dev), rendered
+  through `components/ui/RaysBackground.tsx`, which tints it per theme and
+  disables it entirely under `prefers-reduced-motion`.
+
+Motion is powered by [Motion](https://motion.dev).
 
 Made with 💙 by Ebube Ezedimbu

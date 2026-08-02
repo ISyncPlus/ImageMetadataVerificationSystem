@@ -1,5 +1,11 @@
-import GlassCard from "./GlassCard";
+"use client";
+
+import { AnimatePresence, motion, useReducedMotion } from "motion/react";
+import Card from "./ui/Card";
 import StatusBadge from "./StatusBadge";
+import { Button } from "./ui/Button";
+import { Alert, Camera, Check, Clock, Copies, Doc, Pin } from "./ui/icons";
+import { springMove, stagger } from "../lib/motion";
 import type { VerificationResult } from "../lib/types";
 
 type VerificationCardProps = {
@@ -7,70 +13,104 @@ type VerificationCardProps = {
   onDownloadReport?: () => void;
 };
 
-const checks: Array<{
+const CHECKS: Array<{
   key: "timeCheck" | "locationCheck" | "deviceCheck" | "duplicateCheck";
   label: string;
+  icon: typeof Clock;
 }> = [
-  { key: "timeCheck", label: "Time Check" },
-  { key: "locationCheck", label: "Location Check" },
-  { key: "deviceCheck", label: "Device Check" },
-  { key: "duplicateCheck", label: "Duplicate Check" },
+  { key: "timeCheck", label: "Capture time", icon: Clock },
+  { key: "locationCheck", label: "Location", icon: Pin },
+  { key: "deviceCheck", label: "Device", icon: Camera },
+  { key: "duplicateCheck", label: "Not a duplicate", icon: Copies },
 ];
 
 export default function VerificationCard({
   verification,
   onDownloadReport,
 }: VerificationCardProps) {
+  const reduced = useReducedMotion();
+
   return (
-    <GlassCard
-      title="Verification Result"
-      subtitle="Authenticity assessment"
+    <Card
+      title="Verification result"
+      subtitle="Four objective checks, no visual judgement"
       actions={
         verification && onDownloadReport ? (
-          <button
-            type="button"
-            onClick={onDownloadReport}
-            className="rounded-full border border-cyan-400/40 bg-cyan-400/10 px-4 py-2 text-xs font-semibold uppercase tracking-[0.2em] text-cyan-200 transition hover:bg-cyan-400/25"
-          >
+          <Button size="sm" onClick={onDownloadReport}>
+            <Doc size={15} />
             Report
-          </button>
+          </Button>
         ) : undefined
       }
+      bodyClassName="flex flex-col"
     >
-      {verification ? (
-        <div className="flex flex-col gap-4">
-          <div className="flex items-center justify-between">
-            <StatusBadge status={verification.status} />
-            <p className="text-xs uppercase tracking-[0.3em] text-white/40">
-              {verification.reused ? "Prior submission" : "New entry"}
+      <AnimatePresence mode="wait" initial={false}>
+        {verification ? (
+          <motion.div
+            key={verification.status + verification.reason}
+            initial={reduced ? { opacity: 0 } : { opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0 }}
+            transition={springMove}
+            className="flex flex-col gap-4"
+          >
+            <div className="flex flex-wrap items-center gap-2">
+              <StatusBadge status={verification.status} size="md" />
+              <span className="t-caption text-ink-2">
+                {verification.reused ? "Seen before" : "First submission"}
+              </span>
+            </div>
+
+            <p className="t-callout text-ink-2">{verification.reason}</p>
+
+            <ul className="flex flex-col gap-1.5">
+              {CHECKS.map(({ key, label, icon: Glyph }, index) => {
+                const passed = verification[key] === "Pass";
+                return (
+                  <motion.li
+                    key={key}
+                    initial={reduced ? { opacity: 0 } : { opacity: 0, x: -6 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ ...springMove, delay: stagger(index) }}
+                    className="flex items-center gap-2.5 rounded-lg bg-well px-3 py-2"
+                  >
+                    <Glyph size={15} className="shrink-0 text-ink-3" />
+                    <span className="t-footnote flex-1 text-ink">{label}</span>
+                    <span
+                      className={`t-caption inline-flex items-center gap-1 font-semibold ${
+                        passed ? "text-good" : "text-bad"
+                      }`}
+                    >
+                      {passed ? (
+                        <Check size={13} strokeWidth={2.4} />
+                      ) : (
+                        <Alert size={13} strokeWidth={2.2} />
+                      )}
+                      {verification[key]}
+                    </span>
+                  </motion.li>
+                );
+              })}
+            </ul>
+          </motion.div>
+        ) : (
+          <motion.div
+            key="empty"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={springMove}
+            className="flex flex-1 flex-col items-center justify-center gap-2 py-8 text-center"
+          >
+            <span className="flex h-10 w-10 items-center justify-center rounded-full bg-well text-ink-3">
+              <Check size={18} />
+            </span>
+            <p className="t-footnote max-w-56 text-ink-2">
+              Submit an image and its verdict appears here.
             </p>
-          </div>
-          <p className="text-sm text-white/70">{verification.reason}</p>
-          <div className="grid gap-3 text-xs md:grid-cols-2">
-            {checks.map(({ key, label }) => (
-              <div
-                key={key}
-                className="rounded-2xl border border-white/10 bg-white/5 p-3"
-              >
-                <p className="text-white/40">{label}</p>
-                <p
-                  className={`mt-1 text-sm font-semibold ${
-                    verification[key] === "Pass"
-                      ? "text-emerald-300"
-                      : "text-rose-300"
-                  }`}
-                >
-                  {verification[key]}
-                </p>
-              </div>
-            ))}
-          </div>
-        </div>
-      ) : (
-        <div className="flex h-full flex-col items-center justify-center text-center text-sm text-white/60">
-          Upload an image to generate verification status.
-        </div>
-      )}
-    </GlassCard>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </Card>
   );
 }

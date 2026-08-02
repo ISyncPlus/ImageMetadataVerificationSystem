@@ -1,51 +1,57 @@
 "use client";
 
-import Link from "next/link";
 import PageShell from "../components/PageShell";
+import Reveal from "../components/ui/Reveal";
+import { ButtonLink } from "../components/ui/Button";
+import { Camera, Copies, Doc, ShieldCheck } from "../components/ui/icons";
 import { dashboardPathFor } from "../lib/auth";
 import { useSession } from "../lib/useSession";
 
 const features = [
   {
-    title: "Metadata Extraction",
+    icon: Camera,
+    title: "Metadata extraction",
     description:
-      "EXIF capture time, GPS coordinates, and device information are extracted directly in the browser — the image never leaves the device.",
+      "EXIF capture time, GPS coordinates, and device details are read directly in the browser. The image itself never leaves the device.",
   },
   {
-    title: "Rule-Based Verification",
+    icon: ShieldCheck,
+    title: "Rule-based verification",
     description:
-      "Four objective checks — capture time, location, device, and duplicate detection — replace subjective visual inspection.",
+      "Four objective checks — time, location, device, and duplication — replace a subjective look at the picture.",
   },
   {
-    title: "Duplicate Detection",
+    icon: Copies,
+    title: "Duplicate detection",
     description:
-      "Every file is SHA-256 hashed and compared against previous submissions to flag reused or recycled evidence.",
+      "Every file is SHA-256 hashed and compared with earlier submissions, so a recycled photo is caught even after renaming.",
   },
   {
-    title: "Verification Reports",
+    icon: Doc,
+    title: "Verification reports",
     description:
-      "Printable per-image and summary reports give lecturers a clear, auditable record for departmental assessments.",
+      "Per-image and summary reports print to PDF, giving lecturers an auditable record for departmental assessment.",
   },
 ];
 
 const steps = [
   {
     step: "01",
-    title: "Student submits",
+    title: "A student submits",
     description:
-      "A student signs in and uploads the original photo taken during practical work, fieldwork, or SIWES.",
+      "They sign in and upload the original photo taken during practical work, fieldwork, or SIWES.",
   },
   {
     step: "02",
-    title: "System verifies",
+    title: "The system checks",
     description:
-      "The prototype extracts embedded metadata, runs consistency checks, and hashes the file for reuse detection.",
+      "It reads the embedded metadata, runs the four consistency checks, and fingerprints the file for reuse.",
   },
   {
     step: "03",
-    title: "Lecturer reviews",
+    title: "A lecturer reviews",
     description:
-      "The lecturer opens the review dashboard, inspects flagged submissions, and generates verification reports.",
+      "They open the review dashboard, inspect anything flagged, and generate the verification report.",
   },
 ];
 
@@ -53,101 +59,102 @@ export default function LandingPage() {
   const session = useSession();
 
   return (
-    <PageShell>
-      {/* Hero */}
-      <section className="flex flex-col items-center gap-8 pt-6 text-center md:pt-16">
-        <div className="flex items-center gap-2 rounded-full border border-cyan-400/30 bg-cyan-400/10 px-4 py-2 text-[11px] uppercase tracking-[0.3em] text-cyan-200/90">
-          <span className="h-2 w-2 rounded-full bg-cyan-400 shadow-[0_0_10px_rgba(34,211,238,0.9)]" />
-          Prototype · Faculty of Physical Sciences, UNIZIK
-        </div>
-        <h1 className="max-w-3xl text-4xl font-semibold leading-tight text-white md:text-6xl">
-          Verify the authenticity of academic image submissions
-        </h1>
-        <p className="max-w-2xl text-sm leading-relaxed text-white/60 md:text-base">
-          The Image Metadata Verification System replaces subjective visual
-          inspection with objective metadata analysis — verifying when, where,
-          and with which device an image was captured, and detecting reuse
-          across submissions.
-        </p>
-        <div className="flex flex-wrap items-center justify-center gap-4">
+    <PageShell session={session}>
+      <section className="flex flex-col items-center gap-6 py-10 text-center sm:py-16">
+        <Reveal>
+          <span className="t-caption inline-flex items-center gap-2 rounded-full border border-line bg-surface px-3 py-1.5 font-medium text-ink-2 shadow-card">
+            <span className="h-1.5 w-1.5 rounded-full bg-good-mark" />
+            Prototype · Faculty of Physical Sciences, UNIZIK
+          </span>
+        </Reveal>
+
+        <Reveal index={1}>
+          <h1 className="t-display mx-auto max-w-3xl text-balance text-ink">
+            Proof that a photo is what it claims to be
+          </h1>
+        </Reveal>
+
+        <Reveal index={2}>
+          <p className="t-body mx-auto max-w-xl text-pretty text-ink-2">
+            The Image Metadata Verification System replaces looking at a picture
+            and guessing with reading what the file records about itself — when,
+            where, and with which device it was captured, and whether it has been
+            submitted before.
+          </p>
+        </Reveal>
+
+        <Reveal index={3} className="flex flex-wrap items-center justify-center gap-3">
           {session ? (
-            <Link
-              href={dashboardPathFor(session.role)}
-              className="rounded-full border border-cyan-400/50 bg-cyan-400/20 px-8 py-3 text-sm font-semibold uppercase tracking-[0.2em] text-cyan-100 transition hover:bg-cyan-400/30"
-            >
-              Continue as {session.name.split(" ")[0]}
-            </Link>
-          ) : null}
-          <Link
-            href="/login"
-            className={
-              session
-                ? "rounded-full border border-white/15 px-8 py-3 text-sm font-semibold uppercase tracking-[0.2em] text-white/70 transition hover:border-cyan-400/50 hover:text-cyan-200"
-                : "rounded-full border border-cyan-400/50 bg-cyan-400/20 px-8 py-3 text-sm font-semibold uppercase tracking-[0.2em] text-cyan-100 transition hover:bg-cyan-400/30"
-            }
-          >
-            {session ? "Switch account" : "Get started"}
-          </Link>
-        </div>
+            <>
+              <ButtonLink
+                href={dashboardPathFor(session.role)}
+                variant="primary"
+                size="lg"
+              >
+                Continue as {session.name.split(" ")[0]}
+              </ButtonLink>
+              <ButtonLink href="/login" size="lg">
+                Switch account
+              </ButtonLink>
+            </>
+          ) : (
+            <ButtonLink href="/login" variant="primary" size="lg">
+              Get started
+            </ButtonLink>
+          )}
+        </Reveal>
       </section>
 
-      {/* Features */}
-      <section className="grid gap-6 md:grid-cols-2">
-        {features.map((feature) => (
-          <div
-            key={feature.title}
-            className="rounded-3xl border border-white/10 bg-white/5 p-6 backdrop-blur transition hover:border-cyan-400/40"
-          >
-            <h3 className="text-lg font-semibold text-white">{feature.title}</h3>
-            <p className="mt-3 text-sm leading-relaxed text-white/60">
-              {feature.description}
-            </p>
-          </div>
+      <section className="grid gap-4 sm:grid-cols-2">
+        {features.map(({ icon: Glyph, title, description }, index) => (
+          <Reveal key={title} index={index}>
+            <article className="h-full rounded-2xl border border-line bg-surface p-6 shadow-card">
+              <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-accent-wash text-accent">
+                <Glyph size={20} />
+              </span>
+              <h2 className="t-title-3 mt-4 text-ink">{title}</h2>
+              <p className="t-footnote mt-2 text-ink-2">{description}</p>
+            </article>
+          </Reveal>
         ))}
       </section>
 
-      {/* How it works */}
-      <section className="flex flex-col gap-8">
-        <div className="text-center">
-          <p className="text-xs uppercase tracking-[0.4em] text-cyan-300/70">
-            How it works
-          </p>
-          <h2 className="mt-3 text-2xl font-semibold text-white md:text-3xl">
+      <section id="how-it-works" className="flex flex-col gap-6 py-6">
+        <Reveal className="text-center">
+          <p className="t-footnote font-medium text-accent">How it works</p>
+          <h2 className="t-title-1 mt-1.5 text-ink">
             From submission to verified report
           </h2>
-        </div>
-        <div className="grid gap-6 md:grid-cols-3">
-          {steps.map((item) => (
-            <div
-              key={item.step}
-              className="rounded-3xl border border-white/10 bg-white/5 p-6 backdrop-blur"
-            >
-              <span className="text-3xl font-semibold text-cyan-300/60">
-                {item.step}
-              </span>
-              <h3 className="mt-4 text-base font-semibold text-white">
-                {item.title}
-              </h3>
-              <p className="mt-2 text-sm leading-relaxed text-white/60">
-                {item.description}
-              </p>
-            </div>
+        </Reveal>
+
+        <div className="grid gap-4 sm:grid-cols-3">
+          {steps.map(({ step, title, description }, index) => (
+            <Reveal key={step} index={index}>
+              <article className="h-full rounded-2xl border border-line bg-surface p-6 shadow-card">
+                <span className="tabular t-footnote font-semibold text-ink-3">
+                  {step}
+                </span>
+                <h3 className="t-title-3 mt-3 text-ink">{title}</h3>
+                <p className="t-footnote mt-2 text-ink-2">{description}</p>
+              </article>
+            </Reveal>
           ))}
         </div>
       </section>
 
-      {/* Footer */}
-      <footer className="rounded-3xl border border-white/10 bg-white/5 px-6 py-8 text-center backdrop-blur">
-        <p className="text-sm text-white/60">
-          Final Year Project — Design and Implementation of an Image Metadata
-          Verification System
-        </p>
-        <p className="mt-2 text-xs text-white/40">
-          Case study: Faculty of Physical Sciences, Nnamdi Azikiwe University,
-          Awka. All verification runs locally in the browser; no image is
-          uploaded to any server.
-        </p>
-      </footer>
+      <Reveal>
+        <footer className="rounded-2xl border border-line bg-surface px-6 py-7 text-center shadow-card">
+          <p className="t-footnote text-ink-2">
+            Final year project — Design and Implementation of an Image Metadata
+            Verification System
+          </p>
+          <p className="t-caption mx-auto mt-2 max-w-2xl text-ink-3">
+            Case study: Faculty of Physical Sciences, Nnamdi Azikiwe University,
+            Awka. All verification runs locally in the browser; no image is
+            uploaded to any server.
+          </p>
+        </footer>
+      </Reveal>
     </PageShell>
   );
 }

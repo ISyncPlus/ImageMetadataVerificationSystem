@@ -1,33 +1,483 @@
 @import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
+
+@custom-variant dark (&:is(.dark *));
+
+/* ------------------------------------------------------------------
+   IMVS design foundation
+   Raw tokens live in :root and are re-declared per theme; @theme inline
+   maps them onto Tailwind utilities (bg-surface, text-ink-2, shadow-card…)
+   so the markup never has to reach for a var() by hand.
+------------------------------------------------------------------- */
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  color-scheme: light;
+
+  /* Surfaces — canvas is the page, surface is a card, well is a recessed field */
+  --canvas: #f5f5f7;
+  --surface: #ffffff;
+  --surface-2: #fbfbfd;
+  --well: rgba(0, 0, 0, 0.055);
+  --line: rgba(0, 0, 0, 0.13);
+  --line-strong: rgba(0, 0, 0, 0.24);
+
+  /* Ink — three levels of emphasis, never more */
+  --ink: #1d1d1f;
+  --ink-2: rgba(29, 29, 31, 0.68);
+  --ink-3: rgba(29, 29, 31, 0.47);
+
+  /* One accent. Status colours are used only to mean status.
+     Named --brand, not --accent: shadcn's baseline owns --accent as a neutral
+     surface token, and the two would silently overwrite each other. */
+  --brand: #0066cc;
+  --accent-ink: #ffffff;
+  --accent-wash: rgba(0, 102, 204, 0.1);
+  /* Status: `-mark` is the fill used in meters and dots, validated as a
+     categorical trio for colour-vision separation; the plain token is the text
+     weight of the same hue, at 4.5:1 or better. Light amber is the one hue that
+     cannot be both, so it splits. */
+  --good: #157f4d;
+  --good-mark: #157f4d;
+  --good-wash: rgba(21, 127, 77, 0.1);
+  --warn: #8a6100;
+  --warn-mark: #bd8400;
+  --warn-wash: rgba(138, 97, 0, 0.1);
+  --bad: #ae1f2e;
+  --bad-mark: #ae1f2e;
+  --bad-wash: rgba(174, 31, 46, 0.1);
+
+  /* Translucent chrome. Only floating layers use these — never a card. */
+  --material: rgba(255, 255, 255, 0.76);
+  --material-edge: rgba(255, 255, 255, 0.8);
+  --scrim: rgba(0, 0, 0, 0.3);
+
+  /* Bigger surfaces read as thicker: deeper blur, deeper shadow. */
+  --elev-card: 0 1px 2px rgba(0, 0, 0, 0.06), 0 6px 20px rgba(15, 23, 42, 0.07);
+  --elev-lift: 0 2px 6px rgba(0, 0, 0, 0.08), 0 14px 36px rgba(15, 23, 42, 0.12);
+  --elev-sheet: 0 -1px 2px rgba(0, 0, 0, 0.06), 0 -18px 60px rgba(15, 23, 42, 0.26);
+  --background: oklch(1 0 0);
+  --foreground: oklch(0.145 0 0);
+  --card: oklch(1 0 0);
+  --card-foreground: oklch(0.145 0 0);
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.145 0 0);
+  --primary: oklch(0.205 0 0);
+  --primary-foreground: oklch(0.985 0 0);
+  --secondary: oklch(0.97 0 0);
+  --secondary-foreground: oklch(0.205 0 0);
+  --muted: oklch(0.97 0 0);
+  --muted-foreground: oklch(0.556 0 0);
+  --accent-foreground: oklch(0.205 0 0);
+  --destructive: oklch(0.577 0.245 27.325);
+  --border: oklch(0.922 0 0);
+  --input: oklch(0.922 0 0);
+  --ring: oklch(0.708 0 0);
+  --chart-1: oklch(0.87 0 0);
+  --chart-2: oklch(0.556 0 0);
+  --chart-3: oklch(0.439 0 0);
+  --chart-4: oklch(0.371 0 0);
+  --chart-5: oklch(0.269 0 0);
+  --radius: 0.625rem;
+  --sidebar: oklch(0.985 0 0);
+  --sidebar-foreground: oklch(0.145 0 0);
+  --sidebar-primary: oklch(0.205 0 0);
+  --sidebar-primary-foreground: oklch(0.985 0 0);
+  --sidebar-accent: oklch(0.97 0 0);
+  --sidebar-accent-foreground: oklch(0.205 0 0);
+  --sidebar-border: oklch(0.922 0 0);
+  --sidebar-ring: oklch(0.708 0 0);
+}
+
+:root[data-theme="dark"] {
+  color-scheme: dark;
+
+  --canvas: #09090b;
+  --surface: #161618;
+  --surface-2: #1c1c1f;
+  --well: rgba(255, 255, 255, 0.05);
+  --line: rgba(255, 255, 255, 0.1);
+  --line-strong: rgba(255, 255, 255, 0.2);
+
+  --ink: #f5f5f7;
+  --ink-2: rgba(235, 235, 245, 0.62);
+  --ink-3: rgba(235, 235, 245, 0.38);
+
+  --brand: #2997ff;
+  --accent-ink: #04121f;
+  --accent-wash: rgba(41, 151, 255, 0.16);
+  --good: #20a173;
+  --good-mark: #20a173;
+  --good-wash: rgba(32, 161, 115, 0.16);
+  --warn: #af921f;
+  --warn-mark: #af921f;
+  --warn-wash: rgba(175, 146, 31, 0.16);
+  --bad: #e2506d;
+  --bad-mark: #e2506d;
+  --bad-wash: rgba(226, 80, 109, 0.16);
+
+  --material: rgba(28, 28, 31, 0.72);
+  --material-edge: rgba(255, 255, 255, 0.12);
+  --scrim: rgba(0, 0, 0, 0.5);
+
+  --elev-card: 0 1px 2px rgba(0, 0, 0, 0.4), 0 4px 16px rgba(0, 0, 0, 0.3);
+  --elev-lift: 0 2px 8px rgba(0, 0, 0, 0.45), 0 16px 40px rgba(0, 0, 0, 0.45);
+  --elev-sheet: 0 -1px 2px rgba(0, 0, 0, 0.5), 0 -18px 60px rgba(0, 0, 0, 0.6);
 }
 
 @theme inline {
-  --color-background: var(--background);
+  --color-canvas: var(--canvas);
+  --color-surface: var(--surface);
+  --color-surface-2: var(--surface-2);
+  --color-well: var(--well);
+  --color-line: var(--line);
+  --color-line-strong: var(--line-strong);
+  --color-ink: var(--ink);
+  --color-ink-2: var(--ink-2);
+  --color-ink-3: var(--ink-3);
+  --color-accent: var(--brand);
+  --color-accent-ink: var(--accent-ink);
+  --color-accent-wash: var(--accent-wash);
+  --color-good: var(--good);
+  --color-good-mark: var(--good-mark);
+  --color-good-wash: var(--good-wash);
+  --color-warn: var(--warn);
+  --color-warn-mark: var(--warn-mark);
+  --color-warn-wash: var(--warn-wash);
+  --color-bad: var(--bad);
+  --color-bad-mark: var(--bad-mark);
+  --color-bad-wash: var(--bad-wash);
+  --color-material: var(--material);
+  --color-material-edge: var(--material-edge);
+  --color-scrim: var(--scrim);
+
+  --shadow-card: var(--elev-card);
+  --shadow-lift: var(--elev-lift);
+  --shadow-sheet: var(--elev-sheet);
+
+  /* The app's radius scale, deliberately replacing Tailwind's defaults. */
+  --radius-sm: 0.5rem;
+  --radius-md: 0.75rem;
+  --radius-lg: 1rem;
+  --radius-xl: 1.25rem;
+  --radius-2xl: 1.5rem;
+
+  /* Inter, with the platform stack behind it so the type still resolves to a
+     properly hinted UI face if the webfont never arrives. */
+  --font-sans: var(--font-inter), -apple-system, BlinkMacSystemFont,
+    "SF Pro Text", "Segoe UI", system-ui, Roboto, sans-serif;
+  --font-mono: ui-monospace, "SF Mono", "JetBrains Mono", Menlo, monospace;
+  --font-heading: var(--font-sans);
+  --color-sidebar-ring: var(--sidebar-ring);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar: var(--sidebar);
+  --color-chart-5: var(--chart-5);
+  --color-chart-4: var(--chart-4);
+  --color-chart-3: var(--chart-3);
+  --color-chart-2: var(--chart-2);
+  --color-chart-1: var(--chart-1);
+  --color-ring: var(--ring);
+  --color-input: var(--input);
+  --color-border: var(--border);
+  --color-destructive: var(--destructive);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-muted: var(--muted);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-secondary: var(--secondary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-primary: var(--primary);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-popover: var(--popover);
+  --color-card-foreground: var(--card-foreground);
+  --color-card: var(--card);
   --color-foreground: var(--foreground);
-  --font-sans: "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
-  --font-mono: ui-monospace, "SF Mono", "Cascadia Mono", monospace;
+  --color-background: var(--background);
+  --radius-3xl: calc(var(--radius) * 2.2);
+  --radius-4xl: calc(var(--radius) * 2.6);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+/* ---------------------------------------------------------------- Base */
+
+html {
+  /* Everything sizes in rem from here, so the user's text-size setting scales
+     the layout with the type instead of breaking it. */
+  font: 100% / 1.5 var(--font-sans);
+  -webkit-text-size-adjust: 100%;
+  scrollbar-gutter: stable;
 }
 
 body {
-  background: #05070f;
-  color: #f8fafc;
-  font-family: "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
+  background: var(--canvas);
+  color: var(--ink);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  font-optical-sizing: auto;
+  /* No colour transition here: the theme flip is carried by the view
+     transition, and two overlapping animations would fight. */
 }
 
-.grid-bg {
-  background-image:
-    linear-gradient(to right, rgba(148, 163, 184, 0.08) 1px, transparent 1px),
-    linear-gradient(to bottom, rgba(148, 163, 184, 0.08) 1px, transparent 1px);
-  background-size: 40px 40px;
+::selection {
+  background: var(--accent-wash);
+}
+
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+  border-radius: 0.375rem;
+}
+
+/* --------------------------------------------------- Typography scale
+   Tracking is size-specific: negative and tight as type grows, near zero
+   for body, slightly open for the smallest labels. */
+
+.t-display {
+  font-size: clamp(2.25rem, 1.55rem + 3vw, 3.75rem);
+  line-height: 1.05;
+  letter-spacing: -0.026em;
+  font-weight: 600;
+}
+
+.t-title-1 {
+  font-size: clamp(1.6rem, 1.35rem + 1.1vw, 2.25rem);
+  line-height: 1.12;
+  letter-spacing: -0.021em;
+  font-weight: 600;
+}
+
+.t-title-2 {
+  font-size: clamp(1.25rem, 1.15rem + 0.5vw, 1.4rem);
+  line-height: 1.22;
+  letter-spacing: -0.015em;
+  font-weight: 600;
+}
+
+.t-title-3 {
+  font-size: 1.0625rem;
+  line-height: 1.3;
+  letter-spacing: -0.009em;
+  font-weight: 600;
+}
+
+.t-body {
+  font-size: 1rem;
+  line-height: 1.55;
+  letter-spacing: 0;
+}
+
+.t-callout {
+  font-size: 0.9375rem;
+  line-height: 1.5;
+  letter-spacing: 0.002em;
+}
+
+.t-footnote {
+  font-size: 0.8125rem;
+  line-height: 1.45;
+  letter-spacing: 0.006em;
+}
+
+.t-caption {
+  font-size: 0.75rem;
+  line-height: 1.35;
+  letter-spacing: 0.012em;
+}
+
+/* Numbers that change in place must not reflow their neighbours. */
+.tabular {
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum";
+}
+
+/* Text sitting on a translucent material: a touch heavier and slightly more
+   open, so it stays legible over whatever scrolls beneath it. */
+.on-material {
+  font-weight: 500;
+  letter-spacing: 0.004em;
+}
+
+/* ---------------------------------------------------------- Materials */
+
+/* The tint of a translucent surface. The blur itself is applied with Tailwind's
+   backdrop utilities at the usage site, NOT here: written as plain CSS,
+   Lightning collapses `backdrop-filter` down to the `-webkit-` alias alone,
+   which current Chrome no longer supports — so the glass silently renders flat.
+   Tailwind's utilities emit both the prefixed and standard properties. */
+.material {
+  background: var(--material);
+}
+
+/* The floating nav pill is a bigger surface than flat chrome, so it reads as
+   thicker: a deeper shadow, and a bright top edge where light catches glass. */
+.material-pill {
+  box-shadow: var(--elev-lift), inset 0 1px 0 var(--material-edge);
+}
+
+/* Fallback wash behind the WebGL rays — also what shows when the rays are
+   suppressed for reduced motion. */
+.ambient {
+  background:
+    radial-gradient(55rem 32rem at 100% -8%, var(--accent-wash), transparent 70%),
+    radial-gradient(40rem 30rem at 0% 0%, var(--well), transparent 60%);
+}
+
+/* A modal task pushes the page back and dims it; the sheet itself is
+   portalled out, so this transform never traps it. */
+[data-page-content] {
+  transition: transform 400ms cubic-bezier(0.32, 0.72, 0, 1),
+    filter 400ms ease;
+}
+
+:root[data-sheet-open="true"] [data-page-content] {
+  transform: scale(0.985);
+  filter: saturate(0.9);
+}
+
+/* ------------------------------------------------------------ Motion */
+
+/* Easing used by the theme view-transition keyframes. */
+:root {
+  --expo-out: cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+::view-transition-old(root),
+::view-transition-new(root) {
+  mix-blend-mode: normal;
+}
+
+@keyframes shimmer {
+  from { transform: translateX(-100%); }
+  to { transform: translateX(100%); }
+}
+
+.shimmer {
+  position: relative;
+  overflow: hidden;
+}
+
+.shimmer::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, transparent, var(--well), transparent);
+  animation: shimmer 1.4s ease-in-out infinite;
+}
+
+/* --------------------------------------------------- Accessibility
+   Reduced motion keeps the feedback and drops the vestibular part. */
+
+@media (prefers-reduced-motion: reduce) {
+  /* The theme still changes — it just stops sweeping across the viewport. */
+  ::view-transition-group(*),
+  ::view-transition-old(*),
+  ::view-transition-new(*) {
+    animation: none !important;
+  }
+  .shimmer::after {
+    animation: none;
+    background: var(--well);
+  }
+  [data-page-content] {
+    transition: filter 200ms ease;
+  }
+  :root[data-sheet-open="true"] [data-page-content] {
+    transform: none;
+  }
+  html {
+    scroll-behavior: auto;
+  }
+}
+
+/* Frostier and solid rather than see-through. */
+@media (prefers-reduced-transparency: reduce) {
+  :root {
+    --material: #ffffff;
+    --scrim: rgba(0, 0, 0, 0.45);
+  }
+  :root[data-theme="dark"] {
+    --material: #161618;
+  }
+  /* No rule needed to kill the blur: --material goes fully opaque above, and a
+     blur behind an opaque surface has nothing to show through it. */
+  .ambient {
+    background: none;
+  }
+}
+
+/* Near-solid backgrounds with a defined, contrasting border. */
+@media (prefers-contrast: more) {
+  :root {
+    --line: rgba(0, 0, 0, 0.35);
+    --line-strong: rgba(0, 0, 0, 0.6);
+    --ink-2: rgba(29, 29, 31, 0.85);
+    --ink-3: rgba(29, 29, 31, 0.7);
+    --material: #ffffff;
+  }
+  :root[data-theme="dark"] {
+    --line: rgba(255, 255, 255, 0.35);
+    --line-strong: rgba(255, 255, 255, 0.65);
+    --ink-2: rgba(235, 235, 245, 0.88);
+    --ink-3: rgba(235, 235, 245, 0.72);
+    --material: #161618;
+  }
+  /* No rule needed to kill the blur: --material goes fully opaque above, and a
+     blur behind an opaque surface has nothing to show through it. */
+}
+
+@media print {
+  body {
+    background: #fff;
+    color: #000;
+  }
+}
+
+.dark {
+  --background: oklch(0.145 0 0);
+  --foreground: oklch(0.985 0 0);
+  --card: oklch(0.205 0 0);
+  --card-foreground: oklch(0.985 0 0);
+  --popover: oklch(0.205 0 0);
+  --popover-foreground: oklch(0.985 0 0);
+  --primary: oklch(0.922 0 0);
+  --primary-foreground: oklch(0.205 0 0);
+  --secondary: oklch(0.269 0 0);
+  --secondary-foreground: oklch(0.985 0 0);
+  --muted: oklch(0.269 0 0);
+  --muted-foreground: oklch(0.708 0 0);
+  --accent: oklch(0.269 0 0);
+  --accent-foreground: oklch(0.985 0 0);
+  --destructive: oklch(0.704 0.191 22.216);
+  --border: oklch(1 0 0 / 10%);
+  --input: oklch(1 0 0 / 15%);
+  --ring: oklch(0.556 0 0);
+  --chart-1: oklch(0.87 0 0);
+  --chart-2: oklch(0.556 0 0);
+  --chart-3: oklch(0.439 0 0);
+  --chart-4: oklch(0.371 0 0);
+  --chart-5: oklch(0.269 0 0);
+  --sidebar: oklch(0.205 0 0);
+  --sidebar-foreground: oklch(0.985 0 0);
+  --sidebar-primary: oklch(0.488 0.243 264.376);
+  --sidebar-primary-foreground: oklch(0.985 0 0);
+  --sidebar-accent: oklch(0.269 0 0);
+  --sidebar-accent-foreground: oklch(0.985 0 0);
+  --sidebar-border: oklch(1 0 0 / 10%);
+  --sidebar-ring: oklch(0.556 0 0);
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+  html {
+    @apply font-sans;
+  }
 }

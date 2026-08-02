@@ -1,8 +1,6 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import type { ChangeEvent } from "react";
-import AppNavbar from "../../components/AppNavbar";
 import CardsGrid from "../../components/CardsGrid";
 import DashboardHeader from "../../components/DashboardHeader";
 import PageShell from "../../components/PageShell";
@@ -24,9 +22,6 @@ import { useRequireSession } from "../../lib/useSession";
 import { verifyImage } from "../../lib/verification";
 import type { HistoryEntry, MetadataResult } from "../../lib/types";
 
-const formatCoordinate = (value: number | null) =>
-  value != null && Number.isFinite(value) ? value.toFixed(5) : "Not Available";
-
 const getFileExtension = (name: string): string => {
   const match = name.toLowerCase().match(/\.([a-z0-9]+)$/i);
   return match ? match[1] : "";
@@ -38,7 +33,8 @@ const validateImageFile = (file: File): { ok: boolean; message?: string } => {
   }
 
   const extension = getFileExtension(file.name);
-  const isJpeg = file.type === "image/jpeg" || extension === "jpg" || extension === "jpeg";
+  const isJpeg =
+    file.type === "image/jpeg" || extension === "jpg" || extension === "jpeg";
   const isPng = file.type === "image/png" || extension === "png";
   const isHeic =
     file.type === "image/heic" ||
@@ -50,7 +46,7 @@ const validateImageFile = (file: File): { ok: boolean; message?: string } => {
     return {
       ok: false,
       message:
-        "HEIC/HEIF files often strip EXIF in browsers. Please upload an original JPEG or PNG.",
+        "HEIC/HEIF files often lose their EXIF data in browsers. Please upload an original JPEG or PNG.",
     };
   }
 
@@ -134,7 +130,9 @@ export default function StudentDashboard() {
 
   const stats = useMemo(() => {
     const verified = myHistory.filter((entry) => entry.status === "Verified").length;
-    const suspicious = myHistory.filter((entry) => entry.status === "Suspicious").length;
+    const suspicious = myHistory.filter(
+      (entry) => entry.status === "Suspicious"
+    ).length;
     const reused = myHistory.filter((entry) => entry.status === "Reused").length;
     return {
       total: myHistory.length,
@@ -154,10 +152,8 @@ export default function StudentDashboard() {
     }
   };
 
-  const handleFileChange = async (event: ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    event.target.value = "";
-    if (!file || !session) {
+  const handleFile = async (file: File) => {
+    if (!session) {
       return;
     }
 
@@ -229,12 +225,12 @@ export default function StudentDashboard() {
   }
 
   return (
-    <PageShell>
-      <AppNavbar session={session} />
+    <PageShell session={session}>
       <DashboardHeader
         stats={stats}
-        eyebrow="Student Dashboard"
-        subtitle={`Submit practical, laboratory, fieldwork, or SIWES images for verification, ${session.name.split(" ")[0]}.`}
+        eyebrow="Student"
+        title={`Good to see you, ${session.name.split(" ")[0]}`}
+        subtitle="Submit a practical, laboratory, fieldwork, or SIWES photo. Everything is checked on this device — the image itself is never uploaded."
       />
       <CardsGrid
         isProcessing={isProcessing}
@@ -243,11 +239,9 @@ export default function StudentDashboard() {
         fileName={fileName}
         currentEntry={currentEntry}
         history={myHistory}
-        onFileChange={handleFileChange}
-        onClearHistory={undefined}
+        onFile={handleFile}
         onEntryReport={handleEntryReport}
         onSummaryReport={handleSummaryReport}
-        formatCoordinate={formatCoordinate}
       />
     </PageShell>
   );

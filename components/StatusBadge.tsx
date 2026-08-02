@@ -1,18 +1,36 @@
 import type { VerificationStatus } from "../lib/types";
+import { Alert, Check, Copies } from "./ui/icons";
 
-const statusStyles: Record<VerificationStatus, string> = {
-  Verified: "bg-emerald-400/15 text-emerald-200 border-emerald-400/40",
-  Suspicious: "bg-amber-400/15 text-amber-200 border-amber-400/40",
-  Reused: "bg-rose-500/15 text-rose-200 border-rose-500/40",
+const STYLES: Record<VerificationStatus, string> = {
+  Verified: "bg-good-wash text-good",
+  Suspicious: "bg-warn-wash text-warn",
+  Reused: "bg-bad-wash text-bad",
 };
 
-export default function StatusBadge({ status }: { status: VerificationStatus }) {
+const ICONS: Record<VerificationStatus, typeof Check> = {
+  Verified: Check,
+  Suspicious: Alert,
+  Reused: Copies,
+};
+
+type StatusBadgeProps = {
+  status: VerificationStatus;
+  size?: "sm" | "md";
+};
+
+/** Status reads as a word, not as a shouted label — colour and icon carry the
+ *  urgency so the type doesn't have to. */
+export default function StatusBadge({ status, size = "sm" }: StatusBadgeProps) {
+  const Glyph = ICONS[status];
+  const compact = size === "sm";
+
   return (
     <span
-      className={`inline-flex shrink-0 items-center whitespace-nowrap rounded-full border px-3 py-1 text-xs font-semibold uppercase tracking-[0.25em] ${
-        statusStyles[status]
-      }`}
+      className={`inline-flex shrink-0 items-center gap-1.5 whitespace-nowrap rounded-full font-semibold ${
+        STYLES[status]
+      } ${compact ? "t-caption px-2.5 py-1" : "t-footnote px-3 py-1.5"}`}
     >
+      <Glyph size={compact ? 13 : 15} strokeWidth={2} />
       {status}
     </span>
   );

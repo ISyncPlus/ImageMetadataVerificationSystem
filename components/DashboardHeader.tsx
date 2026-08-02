@@ -1,17 +1,61 @@
+import Reveal from "./ui/Reveal";
+import StatusMeter from "./ui/StatusMeter";
+import Ticker from "./ui/Ticker";
+
+export type DashboardStats = {
+  total: number;
+  verified: number;
+  suspicious: number;
+  reused: number;
+};
+
 type DashboardHeaderProps = {
-  stats: {
-    total: number;
-    verified: number;
-    suspicious: number;
-    reused: number;
-  };
-  eyebrow?: string;
+  stats: DashboardStats;
+  eyebrow: string;
+  title: string;
   subtitle?: string;
 };
 
+type Tone = "neutral" | "good" | "warn" | "bad";
+
+const DOTS: Record<Tone, string> = {
+  neutral: "bg-ink-3",
+  good: "bg-good-mark",
+  warn: "bg-warn-mark",
+  bad: "bg-bad-mark",
+};
+
+/** The number is the point, so it wears ink; the dot beside the label carries
+ *  which status it belongs to. */
+function StatTile({
+  label,
+  value,
+  hint,
+  tone,
+}: {
+  label: string;
+  value: number;
+  hint: string;
+  tone: Tone;
+}) {
+  return (
+    <div className="rounded-xl border border-line bg-surface p-4 shadow-card">
+      <div className="flex items-center gap-1.5">
+        <span className={`h-1.5 w-1.5 shrink-0 rounded-full ${DOTS[tone]}`} />
+        <p className="t-caption truncate font-medium text-ink-2">{label}</p>
+      </div>
+      <p className="mt-2 text-[1.75rem] font-semibold leading-none tracking-[-0.02em] text-ink">
+        <Ticker value={value} />
+      </p>
+      <p className="t-caption mt-1.5 text-ink-3">{hint}</p>
+    </div>
+  );
+}
+
 export default function DashboardHeader({
   stats,
-  eyebrow = "Control Centre Dashboard",
+  eyebrow,
+  title,
   subtitle,
 }: DashboardHeaderProps) {
   const verifiedRate =
@@ -19,81 +63,62 @@ export default function DashboardHeader({
 
   return (
     <header className="flex flex-col gap-6">
-      <div className="flex items-center gap-2 text-xs uppercase tracking-[0.4em] text-cyan-300/70">
-        <span className="h-2 w-2 rounded-full bg-cyan-400 shadow-[0_0_10px_rgba(34,211,238,0.9)]" />
-        {eyebrow}
-      </div>
-      <div className="flex flex-col gap-3">
-        <h1 className="text-3xl font-semibold text-white md:text-4xl">
-          Image Metadata Verification System
-        </h1>
+      <Reveal>
+        <p className="t-footnote font-medium text-accent">{eyebrow}</p>
+        <h1 className="t-title-1 mt-1.5 text-ink">{title}</h1>
         {subtitle ? (
-          <p className="max-w-2xl text-sm text-white/60">{subtitle}</p>
+          <p className="t-body mt-2 max-w-2xl text-ink-2">{subtitle}</p>
         ) : null}
-      </div>
-      <div className="grid gap-4 md:grid-cols-6">
-        <div className="relative overflow-hidden rounded-3xl border border-cyan-400/20 bg-gradient-to-br from-cyan-500/10 via-white/5 to-transparent p-6 backdrop-blur md:col-span-3">
-          <div className="flex items-start justify-between">
-            <div>
-              <p className="text-xs uppercase tracking-[0.4em] text-cyan-200/70">
-                Control Pulse
-              </p>
-              <p className="mt-3 text-3xl font-semibold text-white">{stats.total}</p>
-              <p className="mt-2 text-xs text-white/60">
-                Total verification runs in archive · {verifiedRate}% verified
-              </p>
-            </div>
-            <div className="flex h-12 w-12 items-center justify-center rounded-2xl border border-cyan-400/30 bg-cyan-400/10 text-xs text-cyan-200">
-              LIVE
-            </div>
-          </div>
-          <div className="mt-6 h-1.5 w-full overflow-hidden rounded-full bg-white/10">
-            <div
-              className="h-full rounded-full bg-gradient-to-r from-cyan-400 via-indigo-400 to-purple-400"
-              style={{ width: stats.total ? `${Math.max(verifiedRate, 4)}%` : "0%" }}
+      </Reveal>
+
+      <Reveal index={1} className="flex flex-col gap-4">
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+          <StatTile
+            label="Submissions"
+            value={stats.total}
+            hint="Checked in total"
+            tone="neutral"
+          />
+          <StatTile
+            label="Verified"
+            value={stats.verified}
+            hint="All four checks passed"
+            tone="good"
+          />
+          <StatTile
+            label="Suspicious"
+            value={stats.suspicious}
+            hint="Missing time, place or device"
+            tone="warn"
+          />
+          <StatTile
+            label="Reused"
+            value={stats.reused}
+            hint="Matches an earlier file"
+            tone="bad"
+          />
+        </div>
+
+        {stats.total > 0 ? (
+          <div className="flex flex-col gap-2">
+            <StatusMeter
+              total={stats.total}
+              counts={{
+                Verified: stats.verified,
+                Suspicious: stats.suspicious,
+                Reused: stats.reused,
+              }}
             />
-          </div>
-        </div>
-
-        <div className="rounded-3xl border border-emerald-400/20 bg-white/5 p-5 backdrop-blur md:col-span-1">
-          <div className="flex items-center justify-between">
-            <p className="text-xs uppercase tracking-[0.35em] text-white/50">
-              Verified
+            <p className="t-caption text-ink-2">
+              <span className="tabular font-semibold text-ink">
+                {verifiedRate}%
+              </span>{" "}
+              verified across {stats.total}{" "}
+              {stats.total === 1 ? "submission" : "submissions"}
             </p>
-            <span className="h-2 w-2 rounded-full bg-emerald-400 shadow-[0_0_10px_rgba(52,211,153,0.8)]" />
           </div>
-          <p className="mt-4 text-2xl font-semibold text-emerald-300">
-            {stats.verified}
-          </p>
-          <p className="mt-2 text-[11px] text-white/50">Clean metadata signals</p>
-        </div>
-
-        <div className="rounded-3xl border border-amber-400/20 bg-white/5 p-5 backdrop-blur md:col-span-1">
-          <div className="flex items-center justify-between">
-            <p className="text-xs uppercase tracking-[0.35em] text-white/50">
-              Flagged
-            </p>
-            <span className="h-2 w-2 rounded-full bg-amber-400 shadow-[0_0_10px_rgba(251,191,36,0.8)]" />
-          </div>
-          <p className="mt-4 text-2xl font-semibold text-amber-300">
-            {stats.suspicious}
-          </p>
-          <p className="mt-2 text-[11px] text-white/50">Missing time, GPS or device</p>
-        </div>
-
-        <div className="rounded-3xl border border-rose-400/20 bg-white/5 p-5 backdrop-blur md:col-span-1">
-          <div className="flex items-center justify-between">
-            <p className="text-xs uppercase tracking-[0.35em] text-white/50">
-              Reused
-            </p>
-            <span className="h-2 w-2 rounded-full bg-rose-400 shadow-[0_0_10px_rgba(244,63,94,0.8)]" />
-          </div>
-          <p className="mt-4 text-2xl font-semibold text-rose-300">
-            {stats.reused}
-          </p>
-          <p className="mt-2 text-[11px] text-white/50">Duplicate hash hits</p>
-        </div>
-      </div>
+        ) : null}
+      </Reveal>
     </header>
   );
 }

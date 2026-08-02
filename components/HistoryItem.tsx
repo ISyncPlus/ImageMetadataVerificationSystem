@@ -1,96 +1,59 @@
+"use client";
+
 import Image from "next/image";
 import StatusBadge from "./StatusBadge";
+import { Pressable } from "./ui/Button";
+import { ChevronRight } from "./ui/icons";
+import { formatDateTime } from "../lib/format";
 import type { HistoryEntry } from "../lib/types";
 
 type HistoryItemProps = {
   entry: HistoryEntry;
-  onReport: () => void;
   showSubmitter?: boolean;
+  onOpen: () => void;
 };
 
+/** A row states only what distinguishes it; the full record lives one tap away
+ *  so the list stays scannable. */
 export default function HistoryItem({
   entry,
-  onReport,
   showSubmitter = false,
+  onOpen,
 }: HistoryItemProps) {
-  const checkedAt = new Intl.DateTimeFormat("en-GB", {
-    dateStyle: "medium",
-    timeStyle: "short",
-  }).format(new Date(entry.checkedAt));
-
-  const coordinates =
-    entry.metadata.gps.latitude != null &&
-    entry.metadata.gps.longitude != null &&
-    Number.isFinite(entry.metadata.gps.latitude) &&
-    Number.isFinite(entry.metadata.gps.longitude)
-      ? `${entry.metadata.gps.latitude.toFixed(5)}, ${entry.metadata.gps.longitude.toFixed(5)}`
-      : null;
+  const checkedAt = formatDateTime(entry.checkedAt);
+  const meta =
+    showSubmitter && entry.submittedBy
+      ? `${entry.submittedBy.name} · ${entry.submittedBy.identifier} · ${checkedAt}`
+      : checkedAt;
 
   return (
-    <div className="flex flex-col gap-4 rounded-2xl border border-white/10 bg-white/5 p-4 backdrop-blur">
-      <div className="flex flex-col items-center gap-4 text-center sm:flex-row sm:flex-wrap sm:items-center sm:text-left">
-        <div className="h-16 w-16 shrink-0 overflow-hidden rounded-xl border border-white/10 bg-black/30">
-          {entry.previewUrl ? (
-            <Image
-              src={entry.previewUrl}
-              alt={entry.fileName}
-              width={64}
-              height={64}
-              unoptimized
-              className="h-full w-full object-cover"
-            />
-          ) : (
-            <div className="flex h-full w-full items-center justify-center text-[10px] text-white/40">
-              No preview
-            </div>
-          )}
-        </div>
-        <div className="min-w-0 flex-1">
-          <p className="truncate text-sm font-semibold text-white">
-            {entry.fileName}
-          </p>
-          <p className="text-xs text-white/60">
-            {showSubmitter && entry.submittedBy
-              ? `${entry.submittedBy.name} (${entry.submittedBy.identifier}) · Checked ${checkedAt}`
-              : `Checked ${checkedAt}`}
-          </p>
-        </div>
-        <div className="flex w-full items-center justify-center gap-3 sm:ml-auto sm:w-auto">
-          <StatusBadge status={entry.status} />
-          <button
-            type="button"
-            onClick={onReport}
-            className="rounded-full border border-white/15 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.2em] text-white/70 transition hover:border-cyan-400/50 hover:text-cyan-200"
-          >
-            Report
-          </button>
-        </div>
-      </div>
-      <div className="flex flex-col gap-3 text-center text-xs text-white/70 sm:grid sm:grid-cols-3 sm:items-start sm:text-left">
-        <div>
-          <p className="text-white/40">Capture Time</p>
-          <p>{entry.metadata.captureTime ?? "Not Available"}</p>
-        </div>
-        <div>
-          <p className="text-white/40">Location</p>
-          <p>
-            {entry.metadata.locationName ? (
-              <>
-                <span className="block">{entry.metadata.locationName}</span>
-                <span className="block text-white/50">
-                  {coordinates ?? "Coordinates unavailable"}
-                </span>
-              </>
-            ) : (
-              coordinates ?? "Not Available"
-            )}
-          </p>
-        </div>
-        <div className="sm:col-span-1">
-          <p className="text-white/40">Device</p>
-          <p>{entry.metadata.device ?? "Not Available"}</p>
-        </div>
-      </div>
-    </div>
+    <Pressable
+      onClick={onOpen}
+      aria-label={`Open verification details for ${entry.fileName}`}
+      className="flex w-full items-center gap-3 rounded-xl border border-line bg-surface p-2.5 pr-3 shadow-card transition-colors duration-150 hover:border-line-strong"
+    >
+      <span className="h-11 w-11 shrink-0 overflow-hidden rounded-lg bg-well">
+        {entry.previewUrl ? (
+          <Image
+            src={entry.previewUrl}
+            alt=""
+            width={44}
+            height={44}
+            unoptimized
+            className="h-full w-full object-cover"
+          />
+        ) : null}
+      </span>
+
+      <span className="min-w-0 flex-1">
+        <span className="t-footnote block truncate font-semibold text-ink">
+          {entry.fileName}
+        </span>
+        <span className="t-caption block truncate text-ink-2">{meta}</span>
+      </span>
+
+      <StatusBadge status={entry.status} />
+      <ChevronRight size={16} className="shrink-0 text-ink-3" />
+    </Pressable>
   );
 }

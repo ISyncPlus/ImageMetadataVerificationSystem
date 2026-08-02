@@ -1,9 +1,9 @@
-import type { ChangeEvent } from "react";
-import type { HistoryEntry } from "../lib/types";
 import HistoryCard from "./HistoryCard";
 import MetadataCard from "./MetadataCard";
+import Reveal from "./ui/Reveal";
 import UploadCard from "./UploadCard";
 import VerificationCard from "./VerificationCard";
+import type { HistoryEntry } from "../lib/types";
 
 type CardsGridProps = {
   isProcessing: boolean;
@@ -12,11 +12,9 @@ type CardsGridProps = {
   fileName: string | null;
   currentEntry: HistoryEntry | null;
   history: HistoryEntry[];
-  onFileChange: (event: ChangeEvent<HTMLInputElement>) => void;
-  onClearHistory?: () => void;
+  onFile: (file: File) => void;
   onEntryReport: (entry: HistoryEntry) => void;
   onSummaryReport: () => void;
-  formatCoordinate: (value: number | null) => string;
 };
 
 export default function CardsGrid({
@@ -26,38 +24,40 @@ export default function CardsGrid({
   fileName,
   currentEntry,
   history,
-  onFileChange,
-  onClearHistory,
+  onFile,
   onEntryReport,
   onSummaryReport,
-  formatCoordinate,
 }: CardsGridProps) {
   return (
-    <div className="grid gap-6 lg:grid-cols-3">
-      <UploadCard
-        isProcessing={isProcessing}
-        error={error}
-        previewUrl={previewUrl}
-        fileName={fileName}
-        hash={currentEntry?.hash ?? null}
-        onFileChange={onFileChange}
-      />
-      <MetadataCard
-        metadata={currentEntry?.metadata ?? null}
-        formatCoordinate={formatCoordinate}
-      />
-      <VerificationCard
-        verification={currentEntry?.verification ?? null}
-        onDownloadReport={
-          currentEntry ? () => onEntryReport(currentEntry) : undefined
-        }
-      />
-      <HistoryCard
-        history={history}
-        onClear={onClearHistory}
-        onEntryReport={onEntryReport}
-        onSummaryReport={onSummaryReport}
-      />
+    <div className="grid gap-4 lg:grid-cols-3">
+      <Reveal index={0} className="flex">
+        <UploadCard
+          isProcessing={isProcessing}
+          error={error}
+          previewUrl={previewUrl}
+          fileName={fileName}
+          hash={currentEntry?.hash ?? null}
+          onFile={onFile}
+        />
+      </Reveal>
+      <Reveal index={1} className="flex">
+        <MetadataCard metadata={currentEntry?.metadata ?? null} />
+      </Reveal>
+      <Reveal index={2} className="flex">
+        <VerificationCard
+          verification={currentEntry?.verification ?? null}
+          onDownloadReport={
+            currentEntry ? () => onEntryReport(currentEntry) : undefined
+          }
+        />
+      </Reveal>
+      <Reveal index={3} className="lg:col-span-3">
+        <HistoryCard
+          history={history}
+          onEntryReport={onEntryReport}
+          onSummaryReport={onSummaryReport}
+        />
+      </Reveal>
     </div>
   );
 }

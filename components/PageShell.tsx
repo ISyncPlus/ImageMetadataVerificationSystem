@@ -1,19 +1,39 @@
 import type { ReactNode } from "react";
+import AppNavbar from "./AppNavbar";
+import RaysBackground from "./ui/RaysBackground";
+import type { Session } from "../lib/auth";
 
 type PageShellProps = {
   children: ReactNode;
+  session?: Session | null;
+  /** Narrow column for single-task pages like sign-in. */
+  width?: "wide" | "narrow";
 };
 
-export default function PageShell({ children }: PageShellProps) {
+export default function PageShell({
+  children,
+  session,
+  width = "wide",
+}: PageShellProps) {
   return (
-    <div className="relative min-h-screen overflow-hidden bg-[#05070f] text-white">
-      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(59,130,246,0.15),transparent_55%)]" />
-      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_20%_20%,rgba(139,92,246,0.12),transparent_45%)]" />
-      <div className="pointer-events-none absolute inset-0 opacity-40 grid-bg" />
+    <div className="relative min-h-dvh bg-canvas text-ink">
+      <div className="pointer-events-none fixed inset-0 z-0" aria-hidden>
+        <div className="ambient absolute inset-0" />
+        <RaysBackground />
+      </div>
 
-      <main className="relative mx-auto flex w-full max-w-6xl flex-col gap-10 px-6 py-16">
-        {children}
-      </main>
+      {/* A sheet pushes this layer back; the sheet itself is portalled out, so
+          the transform never becomes its containing block. */}
+      <div data-page-content className="relative z-10">
+        <AppNavbar session={session} />
+        <main
+          className={`mx-auto flex w-full flex-col gap-6 px-5 pb-24 pt-6 sm:gap-8 sm:px-8 ${
+            width === "narrow" ? "max-w-md" : "max-w-6xl"
+          }`}
+        >
+          {children}
+        </main>
+      </div>
     </div>
   );
 }
