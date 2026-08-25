@@ -5,7 +5,7 @@
 @custom-variant dark (&:is(.dark *));
 
 /* ------------------------------------------------------------------
-   IMVS design foundation
+   PROVENANCE design foundation
    Raw tokens live in :root and are re-declared per theme; @theme inline
    maps them onto Tailwind utilities (bg-surface, text-ink-2, shadow-card…)
    so the markup never has to reach for a var() by hand.
@@ -14,115 +14,111 @@
 :root {
   color-scheme: light;
 
-  /* Surfaces — canvas is the page, surface is a card, well is a recessed field */
-  --canvas: #f5f5f7;
+  /* Surfaces — warm off-white canvas, crisp white card, recessed warm well */
+  --canvas: #f8f7f4;
   --surface: #ffffff;
-  --surface-2: #fbfbfd;
-  --well: rgba(0, 0, 0, 0.055);
-  --line: rgba(0, 0, 0, 0.13);
-  --line-strong: rgba(0, 0, 0, 0.24);
+  --surface-2: #f2f0ec;
+  --well: rgba(20, 20, 22, 0.045);
+  --line: rgba(20, 20, 22, 0.09);
+  --line-strong: rgba(20, 20, 22, 0.22);
 
-  /* Ink — three levels of emphasis, never more */
-  --ink: #1d1d1f;
-  --ink-2: rgba(29, 29, 31, 0.68);
-  --ink-3: rgba(29, 29, 31, 0.47);
+  /* Ink — three levels of emphasis: deep obsidian charcoal */
+  --ink: #141416;
+  --ink-2: rgba(20, 20, 22, 0.65);
+  --ink-3: rgba(20, 20, 22, 0.42);
 
-  /* One accent. Status colours are used only to mean status.
-     Named --brand, not --accent: shadcn's baseline owns --accent as a neutral
-     surface token, and the two would silently overwrite each other. */
-  --brand: #0066cc;
+  /* One strong accent: Warm Vermilion. Never blue. */
+  --brand: #e04b28;
   --accent-ink: #ffffff;
-  --accent-wash: rgba(0, 102, 204, 0.1);
-  /* Status: `-mark` is the fill used in meters and dots, validated as a
-     categorical trio for colour-vision separation; the plain token is the text
-     weight of the same hue, at 4.5:1 or better. Light amber is the one hue that
-     cannot be both, so it splits. */
-  --good: #157f4d;
-  --good-mark: #157f4d;
-  --good-wash: rgba(21, 127, 77, 0.1);
-  --warn: #8a6100;
-  --warn-mark: #bd8400;
-  --warn-wash: rgba(138, 97, 0, 0.1);
-  --bad: #ae1f2e;
-  --bad-mark: #ae1f2e;
-  --bad-wash: rgba(174, 31, 46, 0.1);
+  --accent-wash: rgba(224, 75, 40, 0.1);
+
+  /* Status: validated trio for colour-vision separation and 4.5:1 contrast */
+  --good: #18794e;
+  --good-mark: #18794e;
+  --good-wash: rgba(24, 121, 78, 0.1);
+  --warn: #a85900;
+  --warn-mark: #d97706;
+  --warn-wash: rgba(217, 119, 6, 0.1);
+  --bad: #c92a2a;
+  --bad-mark: #c92a2a;
+  --bad-wash: rgba(201, 42, 42, 0.1);
 
   /* Translucent chrome. Only floating layers use these — never a card. */
-  --material: rgba(255, 255, 255, 0.76);
-  --material-edge: rgba(255, 255, 255, 0.8);
-  --scrim: rgba(0, 0, 0, 0.3);
+  --material: rgba(248, 247, 244, 0.82);
+  --material-edge: rgba(20, 20, 22, 0.08);
+  --scrim: rgba(20, 20, 22, 0.35);
 
   /* Bigger surfaces read as thicker: deeper blur, deeper shadow. */
-  --elev-card: 0 1px 2px rgba(0, 0, 0, 0.06), 0 6px 20px rgba(15, 23, 42, 0.07);
-  --elev-lift: 0 2px 6px rgba(0, 0, 0, 0.08), 0 14px 36px rgba(15, 23, 42, 0.12);
-  --elev-sheet: 0 -1px 2px rgba(0, 0, 0, 0.06), 0 -18px 60px rgba(15, 23, 42, 0.26);
-  --background: oklch(1 0 0);
-  --foreground: oklch(0.145 0 0);
+  --elev-card: 0 1px 3px rgba(20, 20, 22, 0.04), 0 4px 16px rgba(20, 20, 22, 0.06);
+  --elev-lift: 0 2px 6px rgba(20, 20, 22, 0.06), 0 14px 32px rgba(20, 20, 22, 0.1);
+  --elev-sheet: 0 -1px 2px rgba(20, 20, 22, 0.05), 0 -18px 48px rgba(20, 20, 22, 0.18);
+  --background: oklch(0.98 0.005 85);
+  --foreground: oklch(0.12 0.005 85);
   --card: oklch(1 0 0);
-  --card-foreground: oklch(0.145 0 0);
+  --card-foreground: oklch(0.12 0.005 85);
   --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.145 0 0);
-  --primary: oklch(0.205 0 0);
-  --primary-foreground: oklch(0.985 0 0);
-  --secondary: oklch(0.97 0 0);
-  --secondary-foreground: oklch(0.205 0 0);
-  --muted: oklch(0.97 0 0);
-  --muted-foreground: oklch(0.556 0 0);
-  --accent-foreground: oklch(0.205 0 0);
-  --destructive: oklch(0.577 0.245 27.325);
-  --border: oklch(0.922 0 0);
-  --input: oklch(0.922 0 0);
-  --ring: oklch(0.708 0 0);
-  --chart-1: oklch(0.87 0 0);
-  --chart-2: oklch(0.556 0 0);
-  --chart-3: oklch(0.439 0 0);
-  --chart-4: oklch(0.371 0 0);
-  --chart-5: oklch(0.269 0 0);
+  --popover-foreground: oklch(0.12 0.005 85);
+  --primary: oklch(0.55 0.2 35);
+  --primary-foreground: oklch(0.99 0 0);
+  --secondary: oklch(0.95 0.005 85);
+  --secondary-foreground: oklch(0.15 0.005 85);
+  --muted: oklch(0.95 0.005 85);
+  --muted-foreground: oklch(0.48 0.005 85);
+  --accent-foreground: oklch(0.15 0.005 85);
+  --destructive: oklch(0.55 0.22 25);
+  --border: oklch(0.9 0.005 85);
+  --input: oklch(0.9 0.005 85);
+  --ring: oklch(0.55 0.2 35);
+  --chart-1: oklch(0.55 0.2 35);
+  --chart-2: oklch(0.6 0.15 145);
+  --chart-3: oklch(0.65 0.15 75);
+  --chart-4: oklch(0.5 0.1 250);
+  --chart-5: oklch(0.45 0.1 300);
   --radius: 0.625rem;
-  --sidebar: oklch(0.985 0 0);
-  --sidebar-foreground: oklch(0.145 0 0);
-  --sidebar-primary: oklch(0.205 0 0);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.97 0 0);
-  --sidebar-accent-foreground: oklch(0.205 0 0);
-  --sidebar-border: oklch(0.922 0 0);
-  --sidebar-ring: oklch(0.708 0 0);
+  --sidebar: oklch(0.98 0.005 85);
+  --sidebar-foreground: oklch(0.12 0.005 85);
+  --sidebar-primary: oklch(0.55 0.2 35);
+  --sidebar-primary-foreground: oklch(0.99 0 0);
+  --sidebar-accent: oklch(0.95 0.005 85);
+  --sidebar-accent-foreground: oklch(0.15 0.005 85);
+  --sidebar-border: oklch(0.9 0.005 85);
+  --sidebar-ring: oklch(0.55 0.2 35);
 }
 
 :root[data-theme="dark"] {
   color-scheme: dark;
 
-  --canvas: #09090b;
-  --surface: #161618;
-  --surface-2: #1c1c1f;
-  --well: rgba(255, 255, 255, 0.05);
-  --line: rgba(255, 255, 255, 0.1);
-  --line-strong: rgba(255, 255, 255, 0.2);
+  --canvas: #0d0d0f;
+  --surface: #151518;
+  --surface-2: #1b1b1f;
+  --well: rgba(255, 255, 255, 0.045);
+  --line: rgba(255, 255, 255, 0.08);
+  --line-strong: rgba(255, 255, 255, 0.18);
 
-  --ink: #f5f5f7;
-  --ink-2: rgba(235, 235, 245, 0.62);
-  --ink-3: rgba(235, 235, 245, 0.38);
+  --ink: #f4f4f5;
+  --ink-2: rgba(244, 244, 245, 0.65);
+  --ink-3: rgba(244, 244, 245, 0.4);
 
-  --brand: #2997ff;
-  --accent-ink: #04121f;
-  --accent-wash: rgba(41, 151, 255, 0.16);
-  --good: #20a173;
-  --good-mark: #20a173;
-  --good-wash: rgba(32, 161, 115, 0.16);
-  --warn: #af921f;
-  --warn-mark: #af921f;
-  --warn-wash: rgba(175, 146, 31, 0.16);
-  --bad: #e2506d;
-  --bad-mark: #e2506d;
-  --bad-wash: rgba(226, 80, 109, 0.16);
+  --brand: #ea580c;
+  --accent-ink: #ffffff;
+  --accent-wash: rgba(234, 88, 12, 0.15);
+  --good: #2b8a3e;
+  --good-mark: #40c057;
+  --good-wash: rgba(64, 192, 87, 0.14);
+  --warn: #d97706;
+  --warn-mark: #f59f00;
+  --warn-wash: rgba(245, 159, 0, 0.14);
+  --bad: #e03131;
+  --bad-mark: #ff6b6b;
+  --bad-wash: rgba(255, 107, 107, 0.14);
 
-  --material: rgba(28, 28, 31, 0.72);
-  --material-edge: rgba(255, 255, 255, 0.12);
-  --scrim: rgba(0, 0, 0, 0.5);
+  --material: rgba(21, 21, 24, 0.82);
+  --material-edge: rgba(255, 255, 255, 0.09);
+  --scrim: rgba(0, 0, 0, 0.65);
 
-  --elev-card: 0 1px 2px rgba(0, 0, 0, 0.4), 0 4px 16px rgba(0, 0, 0, 0.3);
-  --elev-lift: 0 2px 8px rgba(0, 0, 0, 0.45), 0 16px 40px rgba(0, 0, 0, 0.45);
-  --elev-sheet: 0 -1px 2px rgba(0, 0, 0, 0.5), 0 -18px 60px rgba(0, 0, 0, 0.6);
+  --elev-card: 0 1px 3px rgba(0, 0, 0, 0.35), 0 4px 16px rgba(0, 0, 0, 0.28);
+  --elev-lift: 0 2px 8px rgba(0, 0, 0, 0.4), 0 16px 36px rgba(0, 0, 0, 0.4);
+  --elev-sheet: 0 -1px 2px rgba(0, 0, 0, 0.45), 0 -18px 56px rgba(0, 0, 0, 0.55);
 }
 
 @theme inline {
@@ -210,6 +206,13 @@ html {
   font: 100% / 1.5 var(--font-sans);
   -webkit-text-size-adjust: 100%;
   scrollbar-gutter: stable;
+  scroll-behavior: smooth;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
 }
 
 body {

@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 import AppNavbar from "./AppNavbar";
 import RaysBackground from "./ui/RaysBackground";
+import ScrollControls from "./ui/ScrollControls";
 import type { Session } from "../lib/auth";
 
 type PageShellProps = {
@@ -34,6 +35,8 @@ export default function PageShell({
           {children}
         </main>
       </div>
+
+      <ScrollControls />
     </div>
   );
 }

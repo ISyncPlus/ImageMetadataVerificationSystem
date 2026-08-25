@@ -4,7 +4,7 @@ import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import Card from "./ui/Card";
 import StatusBadge from "./StatusBadge";
 import { Button } from "./ui/Button";
-import { Alert, Camera, Check, Clock, Copies, Doc, Pin } from "./ui/icons";
+import { Alert, Camera, Check, Clock, Copies, Doc, Pin, ShieldCheck } from "./ui/icons";
 import { springMove, stagger } from "../lib/motion";
 import type { VerificationResult } from "../lib/types";
 
@@ -16,12 +16,13 @@ type VerificationCardProps = {
 const CHECKS: Array<{
   key: "timeCheck" | "locationCheck" | "deviceCheck" | "duplicateCheck";
   label: string;
+  sublabel: string;
   icon: typeof Clock;
 }> = [
-  { key: "timeCheck", label: "Capture time", icon: Clock },
-  { key: "locationCheck", label: "Location", icon: Pin },
-  { key: "deviceCheck", label: "Device", icon: Camera },
-  { key: "duplicateCheck", label: "Not a duplicate", icon: Copies },
+  { key: "timeCheck", label: "Capture Time", sublabel: "Within lab schedule", icon: Clock },
+  { key: "locationCheck", label: "GPS Coordinates", sublabel: "Valid physical coordinates", icon: Pin },
+  { key: "deviceCheck", label: "Hardware EXIF", sublabel: "Camera make & model", icon: Camera },
+  { key: "duplicateCheck", label: "Duplicate Check", sublabel: "SHA-256 originality", icon: Copies },
 ];
 
 export default function VerificationCard({
@@ -32,13 +33,13 @@ export default function VerificationCard({
 
   return (
     <Card
-      title="Verification result"
-      subtitle="Four objective checks, no visual judgement"
+      title="Verification Audit"
+      subtitle="Four automated cryptographic and telemetry checks"
       actions={
         verification && onDownloadReport ? (
-          <Button size="sm" onClick={onDownloadReport}>
-            <Doc size={15} />
-            Report
+          <Button size="sm" variant="primary" onClick={onDownloadReport}>
+            <Doc size={14} />
+            Print Report
           </Button>
         ) : undefined
       }
@@ -54,17 +55,24 @@ export default function VerificationCard({
             transition={springMove}
             className="flex flex-col gap-4"
           >
-            <div className="flex flex-wrap items-center gap-2">
-              <StatusBadge status={verification.status} size="md" />
-              <span className="t-caption text-ink-2">
-                {verification.reused ? "Seen before" : "First submission"}
+            <div className="flex flex-wrap items-center justify-between gap-2 border-b border-line pb-3.5">
+              <div className="flex items-center gap-2.5">
+                <StatusBadge status={verification.status} size="md" />
+                <span className="t-caption font-medium text-ink-2">
+                  {verification.reused ? "Duplicate Match" : "Unique Submission"}
+                </span>
+              </div>
+              <span className="t-caption font-mono text-ink-3">
+                {verification.status === "Verified" ? "4/4 PASS" : "FLAGGED"}
               </span>
             </div>
 
-            <p className="t-callout text-ink-2">{verification.reason}</p>
+            <p className="t-footnote font-medium text-ink-2 bg-well p-3 rounded-xl border border-line">
+              {verification.reason}
+            </p>
 
-            <ul className="flex flex-col gap-1.5">
-              {CHECKS.map(({ key, label, icon: Glyph }, index) => {
+            <ul className="flex flex-col gap-2">
+              {CHECKS.map(({ key, label, sublabel, icon: Glyph }, index) => {
                 const passed = verification[key] === "Pass";
                 return (
                   <motion.li
@@ -72,21 +80,33 @@ export default function VerificationCard({
                     initial={reduced ? { opacity: 0 } : { opacity: 0, x: -6 }}
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ ...springMove, delay: stagger(index) }}
-                    className="flex items-center gap-2.5 rounded-lg bg-well px-3 py-2"
+                    className="flex items-center justify-between rounded-xl bg-surface-2 px-3.5 py-2.5 border border-line"
                   >
-                    <Glyph size={15} className="shrink-0 text-ink-3" />
-                    <span className="t-footnote flex-1 text-ink">{label}</span>
+                    <div className="flex items-center gap-2.5">
+                      <div
+                        className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-lg ${
+                          passed ? "bg-good-wash text-good" : "bg-bad-wash text-bad"
+                        }`}
+                      >
+                        <Glyph size={14} />
+                      </div>
+                      <div>
+                        <p className="t-footnote font-semibold text-ink">{label}</p>
+                        <p className="t-caption text-ink-3">{sublabel}</p>
+                      </div>
+                    </div>
+
                     <span
-                      className={`t-caption inline-flex items-center gap-1 font-semibold ${
-                        passed ? "text-good" : "text-bad"
+                      className={`t-caption inline-flex items-center gap-1 font-bold px-2 py-0.5 rounded-md ${
+                        passed ? "bg-good-wash text-good" : "bg-bad-wash text-bad"
                       }`}
                     >
                       {passed ? (
-                        <Check size={13} strokeWidth={2.4} />
+                        <Check size={12} strokeWidth={2.6} />
                       ) : (
-                        <Alert size={13} strokeWidth={2.2} />
+                        <Alert size={12} strokeWidth={2.4} />
                       )}
-                      {verification[key]}
+                      {verification[key].toUpperCase()}
                     </span>
                   </motion.li>
                 );
@@ -100,14 +120,17 @@ export default function VerificationCard({
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={springMove}
-            className="flex flex-1 flex-col items-center justify-center gap-2 py-8 text-center"
+            className="flex flex-1 flex-col items-center justify-center gap-3 py-10 text-center"
           >
-            <span className="flex h-10 w-10 items-center justify-center rounded-full bg-well text-ink-3">
-              <Check size={18} />
+            <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-well text-ink-3 border border-line">
+              <ShieldCheck size={24} />
             </span>
-            <p className="t-footnote max-w-56 text-ink-2">
-              Submit an image and its verdict appears here.
-            </p>
+            <div>
+              <p className="t-callout font-semibold text-ink">Awaiting Submission</p>
+              <p className="t-caption max-w-xs text-ink-2 mt-0.5">
+                Drop an image file to trigger the automatic 4-rule provenance audit.
+              </p>
+            </div>
           </motion.div>
         )}
       </AnimatePresence>

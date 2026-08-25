@@ -8,18 +8,18 @@ import { useTheme } from "../../lib/useTheme";
  *  carry more of them. Hues follow the brand accent rather than the demo's. */
 const PALETTE = {
   light: {
-    rayColor1: "#7fb0ff",
-    rayColor2: "#c3b2ff",
-    intensity: 0.8,
-    saturation: 1,
-    opacity: 0.32,
+    rayColor1: "#e04b28",
+    rayColor2: "#d97706",
+    intensity: 0.55,
+    saturation: 0.85,
+    opacity: 0.18,
   },
   dark: {
-    rayColor1: "#2997ff",
-    rayColor2: "#7d5cff",
-    intensity: 1.45,
-    saturation: 1.25,
-    opacity: 0.5,
+    rayColor1: "#e04b28",
+    rayColor2: "#b45309",
+    intensity: 1.1,
+    saturation: 1.05,
+    opacity: 0.35,
   },
 } as const;
 

@@ -5,7 +5,7 @@ import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import { useRef, useState } from "react";
 import type { ChangeEvent, DragEvent } from "react";
 import Card from "./ui/Card";
-import { Alert, Hash, Upload } from "./ui/icons";
+import { Alert, Copies, Hash, Upload } from "./ui/icons";
 import { fade, springMove, springSnappy } from "../lib/motion";
 
 type UploadCardProps = {
@@ -27,7 +27,6 @@ export default function UploadCard({
 }: UploadCardProps) {
   const reduced = useReducedMotion();
   const [isOver, setIsOver] = useState(false);
-  /* dragenter/leave fire for every child, so nesting has to be counted. */
   const depth = useRef(0);
 
   const handleInput = (event: ChangeEvent<HTMLInputElement>) => {
@@ -46,20 +45,28 @@ export default function UploadCard({
 
   return (
     <Card
-      title="Submit an image"
-      subtitle="Hashing and EXIF inspection run on this device"
+      title="Upload Coursework Image"
+      subtitle="Submit original uncompressed JPEG or PNG camera file"
       actions={
         <span
-          className={`t-caption inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 font-medium ${
-            isProcessing ? "bg-accent-wash text-accent" : "bg-well text-ink-2"
+          className={`t-caption inline-flex items-center gap-1.5 rounded-full px-3 py-1 font-semibold ${
+            isProcessing
+              ? "bg-accent-wash text-accent"
+              : previewUrl
+              ? "bg-good-wash text-good"
+              : "bg-well text-ink-2"
           }`}
         >
           <span
             className={`h-1.5 w-1.5 rounded-full ${
-              isProcessing ? "bg-accent" : "bg-ink-3"
+              isProcessing
+                ? "bg-accent animate-pulse"
+                : previewUrl
+                ? "bg-good-mark"
+                : "bg-ink-3"
             }`}
           />
-          {isProcessing ? "Reading" : "Ready"}
+          {isProcessing ? "Inspecting EXIF…" : previewUrl ? "Loaded" : "Ready"}
         </span>
       }
       bodyClassName="flex flex-col gap-4"
@@ -76,15 +83,13 @@ export default function UploadCard({
           if (depth.current === 0) setIsOver(false);
         }}
         onDrop={handleDrop}
-        /* The zone answers the pointer throughout the drag, not only when the
-           file lands. */
-        animate={reduced ? {} : { scale: isOver ? 1.015 : 1 }}
+        animate={reduced ? {} : { scale: isOver ? 1.01 : 1 }}
         whileTap={reduced ? {} : { scale: 0.99 }}
         transition={springSnappy}
-        className={`flex cursor-pointer flex-col items-center justify-center gap-3 rounded-xl border border-dashed px-6 py-9 text-center transition-colors duration-150 ${
+        className={`flex cursor-pointer flex-col items-center justify-center gap-3.5 rounded-xl border border-dashed px-6 py-9 text-center transition-colors duration-150 ${
           isOver
             ? "border-accent bg-accent-wash"
-            : "border-line-strong bg-well hover:border-accent"
+            : "border-line-strong bg-well hover:border-accent hover:bg-surface-2"
         }`}
       >
         <input
@@ -94,50 +99,53 @@ export default function UploadCard({
           className="sr-only"
         />
         <span
-          className={`flex h-11 w-11 items-center justify-center rounded-full transition-colors duration-150 ${
+          className={`flex h-12 w-12 items-center justify-center rounded-xl transition-colors duration-150 ${
             isOver
               ? "bg-accent text-accent-ink"
-              : "bg-surface text-accent shadow-card"
+              : "bg-surface text-accent shadow-card border border-line"
           }`}
         >
-          <Upload size={20} />
+          <Upload size={22} />
         </span>
-        <span>
+        <div>
           <span className="t-callout block font-semibold text-ink">
-            {isOver ? "Release to verify" : "Drag an image here"}
+            {isOver ? "Drop image to verify" : "Drag & drop camera image here"}
           </span>
-          <span className="t-footnote mt-0.5 block text-ink-2">
-            or click to choose a JPEG or PNG
+          <span className="t-footnote mt-1 block text-ink-2">
+            or browse local files (JPEG / PNG from camera)
           </span>
-        </span>
+        </div>
       </motion.label>
 
       <AnimatePresence initial={false}>
         {error ? (
-          <motion.p
+          <motion.div
             key="error"
             initial={reduced ? { opacity: 0 } : { opacity: 0, y: -6 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0 }}
             transition={fade}
             role="alert"
-            className="t-footnote flex items-start gap-2 rounded-xl bg-bad-wash px-3.5 py-3 text-bad"
+            className="t-footnote flex items-start gap-2.5 rounded-xl bg-bad-wash px-3.5 py-3 text-bad border border-bad/20"
           >
-            <Alert size={16} strokeWidth={1.8} className="mt-px shrink-0" />
-            {error}
-          </motion.p>
+            <Alert size={16} strokeWidth={2} className="mt-0.5 shrink-0" />
+            <div>
+              <p className="font-semibold">Inspection Note</p>
+              <p className="mt-0.5 opacity-90">{error}</p>
+            </div>
+          </motion.div>
         ) : null}
       </AnimatePresence>
 
-      <div className="flex items-center gap-3 rounded-xl border border-line bg-surface-2 p-3">
+      <div className="flex items-center gap-3.5 rounded-xl border border-line bg-surface-2 p-3.5">
         <div
-          className={`relative h-14 w-14 shrink-0 overflow-hidden rounded-lg bg-well ${
+          className={`relative h-14 w-14 shrink-0 overflow-hidden rounded-lg bg-well border border-line ${
             isProcessing ? "shimmer" : ""
           }`}
         >
           {previewUrl ? (
             <motion.div
-              initial={reduced ? { opacity: 0 } : { opacity: 0, scale: 1.06 }}
+              initial={reduced ? { opacity: 0 } : { opacity: 0, scale: 1.05 }}
               animate={{ opacity: 1, scale: 1 }}
               transition={springMove}
               className="h-full w-full"
@@ -151,22 +159,28 @@ export default function UploadCard({
                 className="h-full w-full object-cover"
               />
             </motion.div>
-          ) : null}
+          ) : (
+            <div className="flex h-full w-full items-center justify-center text-ink-3">
+              <Upload size={18} />
+            </div>
+          )}
         </div>
         <div className="min-w-0 flex-1">
           <p className="t-footnote truncate font-semibold text-ink">
-            {fileName ?? "No image selected"}
+            {fileName ?? "No file selected"}
           </p>
-          <p className="t-caption mt-0.5 flex items-center gap-1 text-ink-2">
+          <div className="t-caption mt-0.5 flex items-center gap-1.5 text-ink-2">
             {hash ? (
               <>
-                <Hash size={12} className="shrink-0" />
-                <span className="truncate font-mono">{hash.slice(0, 24)}…</span>
+                <Hash size={12} className="shrink-0 text-accent" />
+                <span className="truncate font-mono font-medium text-ink-2">
+                  {hash.slice(0, 20)}…{hash.slice(-8)}
+                </span>
               </>
             ) : (
-              "Its SHA-256 fingerprint will appear here"
+              <span className="text-ink-3">SHA-256 fingerprint computed on drop</span>
             )}
-          </p>
+          </div>
         </div>
       </div>
     </Card>

@@ -228,9 +228,9 @@ export default function StudentDashboard() {
     <PageShell session={session}>
       <DashboardHeader
         stats={stats}
-        eyebrow="Student"
-        title={`Good to see you, ${session.name.split(" ")[0]}`}
-        subtitle="Submit a practical, laboratory, fieldwork, or SIWES photo. Everything is checked on this device — the image itself is never uploaded."
+        eyebrow="Student Inspector"
+        title={`Welcome, ${session.name.split(" ")[0]}`}
+        subtitle="Submit your original practical, laboratory, fieldwork, or SIWES photo. Cryptographic auditing and EXIF inspection execute client-side — your files never leave your device."
       />
       <CardsGrid
         isProcessing={isProcessing}

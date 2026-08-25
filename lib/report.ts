@@ -41,21 +41,23 @@ const checkBadge = (result: "Pass" | "Fail" | undefined): string => {
 const REPORT_STYLES = `
   * { box-sizing: border-box; }
   body {
-    font-family: Georgia, 'Times New Roman', serif;
-    color: #1a1a1a;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    color: #141416;
     margin: 40px auto;
-    max-width: 720px;
-    line-height: 1.5;
+    max-width: 760px;
+    line-height: 1.55;
+    background: #ffffff;
   }
-  h1 { font-size: 20px; margin: 0 0 2px; }
-  h2 { font-size: 15px; margin: 24px 0 8px; border-bottom: 1px solid #ccc; padding-bottom: 4px; }
+  .brand-tag { font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em; font-weight: 700; color: #e04b28; margin-bottom: 4px; }
+  h1 { font-size: 22px; font-weight: 700; margin: 0 0 4px; color: #141416; }
+  h2 { font-size: 14px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; margin: 26px 0 10px; border-bottom: 1.5px solid #141416; padding-bottom: 4px; color: #141416; }
   .subtitle { color: #555; font-size: 12px; margin-bottom: 24px; }
-  table { width: 100%; border-collapse: collapse; font-size: 13px; }
-  th, td { border: 1px solid #ccc; padding: 7px 10px; text-align: left; vertical-align: top; }
-  th { background: #f2f2f2; font-weight: bold; }
-  .status { font-size: 15px; font-weight: bold; }
-  .meta { font-size: 11px; color: #777; margin-top: 32px; border-top: 1px solid #ddd; padding-top: 8px; }
-  .hash { font-family: 'Courier New', monospace; font-size: 11px; word-break: break-all; }
+  table { width: 100%; border-collapse: collapse; font-size: 13px; margin-top: 6px; }
+  th, td { border: 1px solid #e0e0e0; padding: 8px 12px; text-align: left; vertical-align: top; }
+  th { background: #f8f7f4; font-weight: 600; color: #333; }
+  .status { font-size: 16px; font-weight: 700; letter-spacing: 0.04em; }
+  .meta { font-size: 11px; color: #666; margin-top: 36px; border-top: 1px solid #e0e0e0; padding-top: 12px; line-height: 1.6; }
+  .hash { font-family: ui-monospace, Menlo, Monaco, Consolas, monospace; font-size: 11px; word-break: break-all; color: #333; }
   @media print { body { margin: 0.4in; } }
 `;
 
