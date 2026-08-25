@@ -60,19 +60,18 @@ const REPORT_STYLES = `
 `;
 
 const reportHeader = (title: string): string => `
-  <h1>Image Metadata Verification System</h1>
+  <h1>Provenance — Image Metadata &amp; Verification Report</h1>
   <div class="subtitle">
     ${title}<br/>
-    Faculty of Physical Sciences, Nnamdi Azikiwe University — prototype case study
+    Faculty of Physical Sciences, Nnamdi Azikiwe University — Case Study
   </div>
 `;
 
 const reportFooter = (): string => `
   <div class="meta">
-    Generated ${formatDateTime(new Date().toISOString())} by the Image Metadata
-    Verification System prototype. Verification is based on embedded EXIF
-    metadata and SHA-256 duplicate detection; absence of metadata does not by
-    itself prove misconduct, and results should be interpreted by the course
+    Generated ${formatDateTime(new Date().toISOString())} by Provenance (Image Metadata &amp; Verification System). Verification is based on embedded EXIF
+    metadata, GPS geocoding, device signatures, and SHA-256 duplicate detection; absence of metadata does not by
+    itself prove misconduct, and results should be interpreted in context by the course
     lecturer.
   </div>
 `;

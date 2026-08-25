@@ -9,9 +9,44 @@ import { cn } from "@/lib/utils";
 const inter = Inter({ subsets: ["latin"], variable: "--font-inter" });
 
 export const metadata: Metadata = {
-  title: "Image Metadata Verification System",
+  title: {
+    default: "Provenance — Image Metadata & Verification System",
+    template: "%s | Provenance",
+  },
   description:
-    "Prototype for verifying capture time, location, and device metadata of student image submissions — Faculty of Physical Sciences, Nnamdi Azikiwe University.",
+    "Browser-native image provenance and metadata verification system for academic submissions, laboratory fieldwork, and SIWES reports — Faculty of Physical Sciences, Nnamdi Azikiwe University.",
+  applicationName: "Provenance",
+  authors: [{ name: "Ebube Ezedimbu" }],
+  keywords: [
+    "Image Metadata Verification",
+    "EXIF Verification",
+    "Provenance",
+    "Academic Integrity",
+    "SIWES Image Verification",
+    "UNIZIK Faculty of Physical Sciences",
+    "Digital Provenance",
+  ],
+  creator: "Ebube Ezedimbu",
+  publisher: "Faculty of Physical Sciences, Nnamdi Azikiwe University",
+  icons: {
+    icon: "/icon.svg",
+    shortcut: "/icon.svg",
+    apple: "/apple-icon.png",
+  },
+  openGraph: {
+    title: "Provenance — Image Metadata & Verification System",
+    description:
+      "Proof that a photo is what it claims to be. Browser-native EXIF extraction, timestamp auditing, GPS geocoding, and cryptographic duplicate detection.",
+    siteName: "Provenance",
+    locale: "en_US",
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Provenance — Image Metadata & Verification System",
+    description:
+      "Proof that a photo is what it claims to be. Academic image provenance and metadata verification.",
+  },
 };
 
 export const viewport: Viewport = {

@@ -4,6 +4,7 @@ import PageShell from "../components/PageShell";
 import Reveal from "../components/ui/Reveal";
 import { ButtonLink } from "../components/ui/Button";
 import { Camera, Copies, Doc, ShieldCheck } from "../components/ui/icons";
+import { BrandMark } from "../components/ui/BrandLogo";
 import { dashboardPathFor } from "../lib/auth";
 import { useSession } from "../lib/useSession";
 
@@ -62,10 +63,13 @@ export default function LandingPage() {
     <PageShell session={session}>
       <section className="flex flex-col items-center gap-6 py-10 text-center sm:py-16">
         <Reveal>
-          <span className="t-caption inline-flex items-center gap-2 rounded-full border border-line bg-surface px-3 py-1.5 font-medium text-ink-2 shadow-card">
-            <span className="h-1.5 w-1.5 rounded-full bg-good-mark" />
-            Prototype · Faculty of Physical Sciences, UNIZIK
-          </span>
+          <div className="flex flex-col items-center gap-4">
+            <BrandMark size={56} />
+            <span className="t-caption inline-flex items-center gap-2 rounded-full border border-line bg-surface px-3.5 py-1.5 font-medium text-ink-2 shadow-card">
+              <span className="h-1.5 w-1.5 rounded-full bg-good-mark" />
+              Provenance · Faculty of Physical Sciences, UNIZIK
+            </span>
+          </div>
         </Reveal>
 
         <Reveal index={1}>
@@ -76,10 +80,9 @@ export default function LandingPage() {
 
         <Reveal index={2}>
           <p className="t-body mx-auto max-w-xl text-pretty text-ink-2">
-            The Image Metadata Verification System replaces looking at a picture
-            and guessing with reading what the file records about itself — when,
-            where, and with which device it was captured, and whether it has been
-            submitted before.
+            Provenance replaces looking at a picture and guessing with reading
+            what the file records about itself — when, where, and with which
+            device it was captured, and whether it has been submitted before.
           </p>
         </Reveal>
 
@@ -144,9 +147,8 @@ export default function LandingPage() {
 
       <Reveal>
         <footer className="rounded-2xl border border-line bg-surface px-6 py-7 text-center shadow-card">
-          <p className="t-footnote text-ink-2">
-            Final year project — Design and Implementation of an Image Metadata
-            Verification System
+          <p className="t-footnote font-medium text-ink-2">
+            Provenance — Design and Implementation of an Image Metadata &amp; Verification System
           </p>
           <p className="t-caption mx-auto mt-2 max-w-2xl text-ink-3">
             Case study: Faculty of Physical Sciences, Nnamdi Azikiwe University,

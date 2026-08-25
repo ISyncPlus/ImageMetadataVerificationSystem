@@ -8,7 +8,8 @@ import Card from "../../components/ui/Card";
 import Reveal from "../../components/ui/Reveal";
 import SegmentedControl from "../../components/ui/SegmentedControl";
 import { Button } from "../../components/ui/Button";
-import { Alert, ShieldCheck } from "../../components/ui/icons";
+import { Alert } from "../../components/ui/icons";
+import { BrandMark } from "../../components/ui/BrandLogo";
 import { dashboardPathFor, loadSession, saveSession } from "../../lib/auth";
 import type { UserRole } from "../../lib/auth";
 
@@ -85,10 +86,8 @@ export default function LoginPage() {
       <Reveal className="pt-4">
         <Card>
           <div className="flex flex-col items-center text-center">
-            <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-accent text-accent-ink">
-              <ShieldCheck size={24} strokeWidth={1.7} />
-            </span>
-            <h1 className="t-title-2 mt-4 text-ink">Sign in to IMVS</h1>
+            <BrandMark size={48} />
+            <h1 className="t-title-2 mt-4 text-ink">Sign in to Provenance</h1>
             <p className="t-footnote mt-1.5 text-ink-2">
               Faculty of Physical Sciences, Nnamdi Azikiwe University
             </p>

@@ -8,7 +8,8 @@ import { clearSession } from "../lib/auth";
 import type { Session } from "../lib/auth";
 import { ButtonLink } from "./ui/Button";
 import ThemeToggle from "./ui/ThemeToggle";
-import { ShieldCheck, SignOut } from "./ui/icons";
+import { SignOut } from "./ui/icons";
+import { BrandMark } from "./ui/BrandLogo";
 import { fade, springMove } from "../lib/motion";
 
 type AppNavbarProps = {
@@ -92,14 +93,12 @@ export default function AppNavbar({ session }: AppNavbarProps) {
 
         <Link
           href="/"
-          className="relative flex min-w-0 items-center gap-2.5 rounded-full py-1 pr-2"
+          className="relative flex min-w-0 items-center gap-2.5 rounded-full py-1 pr-2 transition-transform duration-150 active:scale-[0.98]"
         >
-          <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-[0.7rem] bg-accent text-accent-ink">
-            <ShieldCheck size={18} strokeWidth={1.8} />
-          </span>
+          <BrandMark size={32} />
           <span className="min-w-0">
-            <span className="t-callout on-material block font-semibold text-ink">
-              IMVS
+            <span className="t-callout on-material block font-semibold tracking-tight text-ink">
+              Provenance
             </span>
             <AnimatePresence initial={false}>
               {!condensed ? (
@@ -110,7 +109,7 @@ export default function AppNavbar({ session }: AppNavbarProps) {
                   transition={fade}
                   className="t-caption hidden truncate text-ink-2 sm:block"
                 >
-                  Image Metadata Verification
+                  Image Metadata &amp; Verification
                 </motion.span>
               ) : null}
             </AnimatePresence>

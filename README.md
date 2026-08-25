@@ -1,4 +1,4 @@
-# Image Metadata Verification System (IMVS)
+# Provenance — Image Metadata & Verification System
 
 A prototype web application for verifying the authenticity of image submissions
 in practical coursework, laboratory work, fieldwork, and SIWES reports.
