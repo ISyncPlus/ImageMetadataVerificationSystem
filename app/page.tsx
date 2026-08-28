@@ -16,8 +16,8 @@ import {
   Pin,
   ShieldCheck,
 } from "../components/ui/icons";
-import { dashboardPathFor } from "../lib/auth";
-import { useSession } from "../lib/useSession";
+import { dashboardPathFor } from "../lib/auth-client";
+import { useProfile } from "../lib/useProfile";
 import { fade, springMove } from "../lib/motion";
 
 const PILLARS = [
@@ -93,7 +93,7 @@ const SPECIMENS = {
 };
 
 export default function LandingPage() {
-  const session = useSession();
+  const { profile: session } = useProfile();
   const [specimenKey, setSpecimenKey] = useState<"authentic" | "tampered">("authentic");
   const specimen = SPECIMENS[specimenKey];
 

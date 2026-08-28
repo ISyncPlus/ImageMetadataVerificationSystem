@@ -1,347 +1,399 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import Image from "next/image";
+import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import DashboardHeader from "../../components/DashboardHeader";
-import HistoryList from "../../components/HistoryList";
 import HistoryDetail from "../../components/HistoryDetail";
-import StatusBadge from "../../components/StatusBadge";
+import HistoryList from "../../components/HistoryList";
 import PageShell from "../../components/PageShell";
+import StatusBadge from "../../components/StatusBadge";
 import Card from "../../components/ui/Card";
+import Reveal from "../../components/ui/Reveal";
 import SegmentedControl from "../../components/ui/SegmentedControl";
 import Sheet from "../../components/ui/Sheet";
 import { Button } from "../../components/ui/Button";
-import {
-  Alert,
-  Camera,
-  Check,
-  Clock,
-  Doc,
-  Hash,
-  Pin,
-  Search,
-} from "../../components/ui/icons";
+import { Alert, Doc, Search } from "../../components/ui/icons";
 import {
   buildEntryReportHtml,
   buildSummaryReportHtml,
   openPrintableReport,
 } from "../../lib/report";
-import { clearHistory } from "../../lib/storage";
-import { useHistory } from "../../lib/useHistory";
-import { useRequireSession } from "../../lib/useSession";
+import { ApiError, deleteSubmission } from "../../lib/api";
+import { useRequireProfile } from "../../lib/useProfile";
+import { useDebounced, useSubmissions } from "../../lib/useSubmissions";
 import { formatCoordinates, formatDateTime } from "../../lib/format";
+import { fade, springMove, stagger } from "../../lib/motion";
 import type { HistoryEntry, VerificationStatus } from "../../lib/types";
 
 type StatusFilter = "All" | VerificationStatus;
 type ViewMode = "table" | "cards";
 
-const FILTERS: readonly StatusFilter[] = [
-  "All",
-  "Verified",
-  "Suspicious",
-  "Reused",
-];
-
+const FILTERS: readonly StatusFilter[] = ["All", "Verified", "Suspicious", "Reused"];
 const VIEW_MODES: readonly ViewMode[] = ["table", "cards"];
 
+const initials = (name: string) =>
+  name
+    .split(" ")
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((part) => part[0]?.toUpperCase() ?? "")
+    .join("") || "S";
+
 export default function LecturerDashboard() {
-  const session = useRequireSession("lecturer");
-  const history = useHistory();
+  const reduced = useReducedMotion();
+  const { profile, loading: profileLoading } = useRequireProfile("lecturer");
+
   const [query, setQuery] = useState("");
   const [filter, setFilter] = useState<StatusFilter>("All");
   const [viewMode, setViewMode] = useState<ViewMode>("table");
-  const [selectedEntry, setSelectedEntry] = useState<HistoryEntry | null>(null);
-  const [confirmingClear, setConfirmingClear] = useState(false);
+  const [selected, setSelected] = useState<HistoryEntry | null>(null);
+  const [pendingDelete, setPendingDelete] = useState<HistoryEntry | null>(null);
+  const [actionError, setActionError] = useState<string | null>(null);
 
-  const stats = useMemo(() => {
-    const verified = history.filter((entry) => entry.status === "Verified").length;
-    const suspicious = history.filter(
-      (entry) => entry.status === "Suspicious"
-    ).length;
-    const reused = history.filter((entry) => entry.status === "Reused").length;
-    return {
-      total: history.length,
-      verified,
-      suspicious,
-      reused,
-    };
-  }, [history]);
+  // Search hits the database, so it waits for a pause in typing.
+  const debouncedQuery = useDebounced(query, 300);
 
-  const filtered = useMemo(() => {
-    const lowered = query.trim().toLowerCase();
-    return history.filter((entry) => {
-      if (filter !== "All" && entry.status !== filter) {
-        return false;
-      }
-      if (!lowered) {
-        return true;
-      }
-      return (
-        entry.fileName.toLowerCase().includes(lowered) ||
-        (entry.submittedBy?.name.toLowerCase().includes(lowered) ?? false) ||
-        (entry.submittedBy?.identifier.toLowerCase().includes(lowered) ?? false) ||
-        entry.hash.toLowerCase().includes(lowered)
-      );
+  const { submissions, stats, initialLoading, loading, error, remove } =
+    useSubmissions({
+      take: 100,
+      ...(filter === "All" ? {} : { status: filter }),
+      ...(debouncedQuery.trim() ? { q: debouncedQuery.trim() } : {}),
     });
-  }, [history, query, filter]);
 
-  const handleEntryReport = (entry: HistoryEntry) => {
-    openPrintableReport(buildEntryReportHtml(entry));
-  };
-
-  const handleSummaryReport = () => {
-    if (filtered.length > 0) {
-      openPrintableReport(buildSummaryReportHtml(filtered));
+  const confirmDelete = async () => {
+    if (!pendingDelete) return;
+    const target = pendingDelete;
+    setPendingDelete(null);
+    try {
+      await deleteSubmission(target.id);
+      remove(target.id);
+      if (selected?.id === target.id) setSelected(null);
+    } catch (caught) {
+      setActionError(
+        caught instanceof ApiError ? caught.message : "Could not remove that record."
+      );
     }
   };
 
-  if (!session) {
-    return null;
+  if (profileLoading || !profile) {
+    return (
+      <PageShell>
+        <div className="flex flex-col gap-4 pt-4">
+          <div className="shimmer h-8 w-72 rounded-lg bg-well" />
+          <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+            {[0, 1, 2, 3].map((index) => (
+              <div key={index} className="shimmer h-24 rounded-xl bg-well" />
+            ))}
+          </div>
+          <div className="shimmer h-96 rounded-2xl bg-well" />
+        </div>
+      </PageShell>
+    );
   }
 
+  const isFiltered = filter !== "All" || debouncedQuery.trim().length > 0;
+
   return (
-    <PageShell session={session}>
+    <PageShell session={profile}>
       <DashboardHeader
         stats={stats}
-        eyebrow="Departmental Reviewer"
-        title="Coursework Audit Ledger"
-        subtitle="Review student submission telemetry, inspect consistency checks, flag duplicate hashes, and generate formal grading reports."
+        eyebrow="Departmental reviewer"
+        title="Coursework audit ledger"
+        subtitle={`Every submission filed by the department${
+          stats.students > 0
+            ? ` — ${stats.students} ${stats.students === 1 ? "student" : "students"} so far`
+            : ""
+        }. Duplicate detection runs across all students, not just each student's own history.`}
       />
 
-      <Card
-        title="Departmental Submissions"
-        subtitle={
-          filtered.length === history.length
-            ? `${history.length} records on device`
-            : `${filtered.length} of ${history.length} records match filter`
-        }
-        actions={
-          <div className="flex flex-wrap items-center gap-2">
-            <Button
-              size="sm"
-              variant="primary"
-              onClick={handleSummaryReport}
-              disabled={filtered.length === 0}
-            >
-              <Doc size={15} />
-              Print Summary PDF
-            </Button>
-            <Button
-              size="sm"
-              variant="danger"
-              onClick={() => setConfirmingClear(true)}
-              disabled={history.length === 0}
-            >
-              Clear Ledger
-            </Button>
-          </div>
-        }
-        bodyClassName="flex flex-col gap-4"
-      >
-        {/* Search & Filter Toolbar */}
-        <div className="flex flex-col gap-3 lg:flex-row lg:items-center">
-          <div className="relative flex-1">
-            <Search
-              size={16}
-              className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-ink-3"
-            />
-            <input
-              type="search"
-              value={query}
-              onChange={(event) => setQuery(event.target.value)}
-              placeholder="Search student name, registration number, file, or hash…"
-              aria-label="Search submissions"
-              className="t-footnote min-h-10 w-full rounded-xl border border-line bg-well py-2 pl-9 pr-4 text-ink outline-none transition-colors duration-150 placeholder:text-ink-3 focus:border-accent"
-            />
-          </div>
-
-          <div className="flex flex-wrap items-center gap-2 lg:ml-auto">
-            <SegmentedControl
-              options={FILTERS}
-              value={filter}
-              onChange={setFilter}
-              label="Filter by status"
-            />
-
-            <div className="hidden sm:block">
-              <SegmentedControl
-                options={VIEW_MODES}
-                value={viewMode}
-                onChange={setViewMode}
-                label="View layout"
-                render={(mode) => (
-                  <span className="capitalize">{mode}</span>
-                )}
+      <Reveal index={2}>
+        <Card
+          title="Submissions"
+          subtitle={
+            isFiltered
+              ? `${submissions.length} matching of ${stats.total}`
+              : `${stats.total} ${stats.total === 1 ? "record" : "records"}`
+          }
+          actions={
+            <div className="flex flex-wrap items-center gap-2">
+              <Button
+                size="sm"
+                variant="primary"
+                onClick={() =>
+                  openPrintableReport(buildSummaryReportHtml(submissions))
+                }
+                disabled={submissions.length === 0}
+              >
+                <Doc size={14} />
+                Print summary
+              </Button>
+            </div>
+          }
+          bodyClassName="flex flex-col gap-4"
+        >
+          {/* Toolbar */}
+          <div className="flex flex-col gap-3 lg:flex-row lg:items-center">
+            <div className="relative flex-1">
+              <Search
+                size={16}
+                className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-ink-3"
               />
+              <input
+                type="search"
+                value={query}
+                onChange={(event) => setQuery(event.target.value)}
+                placeholder="Search student, registration number, file or hash…"
+                aria-label="Search submissions"
+                className="t-footnote min-h-10 w-full rounded-xl border border-line bg-well py-2 pl-9 pr-9 text-ink outline-none transition-colors duration-150 placeholder:text-ink-3 focus:border-accent"
+              />
+              {/* Only appears while a query is genuinely in flight. */}
+              <AnimatePresence>
+                {loading && !initialLoading ? (
+                  <motion.span
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    transition={fade}
+                    className="absolute right-3.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 animate-spin rounded-full border-2 border-line border-t-accent"
+                  />
+                ) : null}
+              </AnimatePresence>
+            </div>
+
+            <div className="flex flex-wrap items-center gap-2 lg:ml-auto">
+              <SegmentedControl
+                options={FILTERS}
+                value={filter}
+                onChange={setFilter}
+                label="Filter by status"
+              />
+              <div className="hidden sm:block">
+                <SegmentedControl
+                  options={VIEW_MODES}
+                  value={viewMode}
+                  onChange={setViewMode}
+                  label="View layout"
+                  render={(mode) => <span className="capitalize">{mode}</span>}
+                />
+              </div>
             </div>
           </div>
-        </div>
 
-        {/* Dynamic Ledger: Table View or Cards View */}
-        {filtered.length === 0 ? (
-          <div className="flex flex-col items-center gap-2 rounded-xl border border-dashed border-line py-12 text-center">
-            <span className="flex h-10 w-10 items-center justify-center rounded-full bg-well text-ink-3">
-              <Doc size={18} />
-            </span>
-            <p className="t-footnote max-w-sm text-ink-2">
-              {history.length === 0
-                ? "No student submissions recorded yet. Verification records will appear here as students submit coursework photos."
-                : "No submissions matched your search query or filter criteria."}
+          {(error || actionError) ? (
+            <p className="t-footnote flex items-start gap-2 rounded-xl border border-bad/30 bg-bad-wash px-3.5 py-2.5 text-bad">
+              <Alert size={14} className="mt-0.5 shrink-0" />
+              {error ?? actionError}
             </p>
-          </div>
-        ) : viewMode === "table" ? (
-          <div className="overflow-x-auto rounded-xl border border-line">
-            <table className="w-full text-left border-collapse text-ink">
-              <thead>
-                <tr className="border-b border-line bg-surface-2">
-                  <th className="py-3 px-3.5 t-caption font-semibold text-ink-2">Student</th>
-                  <th className="py-3 px-3.5 t-caption font-semibold text-ink-2">File</th>
-                  <th className="py-3 px-3.5 t-caption font-semibold text-ink-2">Capture Time</th>
-                  <th className="py-3 px-3.5 t-caption font-semibold text-ink-2">Location</th>
-                  <th className="py-3 px-3.5 t-caption font-semibold text-ink-2">Device</th>
-                  <th className="py-3 px-3.5 t-caption font-semibold text-ink-2">Status</th>
-                  <th className="py-3 px-3.5 t-caption font-semibold text-ink-2 text-right">Action</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-line bg-surface">
-                {filtered.map((entry) => {
-                  const coords = formatCoordinates(entry.metadata.gps);
-                  return (
-                    <tr
-                      key={entry.id}
-                      onClick={() => setSelectedEntry(entry)}
-                      className="cursor-pointer transition-colors duration-100 hover:bg-surface-2/80"
-                    >
-                      <td className="py-3 px-3.5">
-                        <div className="flex items-center gap-2.5">
-                          <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-well font-semibold text-accent t-caption">
-                            {entry.submittedBy?.name?.[0]?.toUpperCase() ?? "S"}
-                          </span>
-                          <div>
-                            <p className="t-footnote font-semibold text-ink">
-                              {entry.submittedBy?.name ?? "Anonymous"}
-                            </p>
-                            <p className="t-caption font-mono text-ink-3">
-                              {entry.submittedBy?.identifier ?? "No ID"}
-                            </p>
-                          </div>
-                        </div>
-                      </td>
+          ) : null}
 
-                      <td className="py-3 px-3.5 max-w-[180px]">
-                        <p className="t-footnote truncate font-medium text-ink">
-                          {entry.fileName}
-                        </p>
-                        <p className="t-caption font-mono text-ink-3 truncate">
-                          {entry.hash.slice(0, 12)}…
-                        </p>
-                      </td>
-
-                      <td className="py-3 px-3.5 whitespace-nowrap">
-                        <p className="t-footnote text-ink">
-                          {entry.metadata.captureTime ?? "Unavailable"}
-                        </p>
-                        <p className="t-caption text-ink-3">
-                          {formatDateTime(entry.checkedAt)}
-                        </p>
-                      </td>
-
-                      <td className="py-3 px-3.5 max-w-[180px]">
-                        <p className="t-footnote truncate text-ink">
-                          {entry.metadata.locationName ?? (coords ? "GPS Available" : "None")}
-                        </p>
-                        {coords ? (
-                          <p className="t-caption font-mono text-ink-3 truncate">
-                            {coords}
-                          </p>
-                        ) : null}
-                      </td>
-
-                      <td className="py-3 px-3.5 max-w-[150px]">
-                        <p className="t-footnote truncate text-ink">
-                          {entry.metadata.device ?? "None recorded"}
-                        </p>
-                      </td>
-
-                      <td className="py-3 px-3.5 whitespace-nowrap">
-                        <StatusBadge status={entry.status} />
-                      </td>
-
-                      <td className="py-3 px-3.5 text-right whitespace-nowrap">
-                        <button
-                          type="button"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            setSelectedEntry(entry);
-                          }}
-                          className="t-caption font-semibold text-accent hover:underline px-2 py-1 rounded-md"
+          {initialLoading ? (
+            <div className="flex flex-col gap-2">
+              {[0, 1, 2, 3, 4].map((index) => (
+                <div key={index} className="shimmer h-16 rounded-xl bg-well" />
+              ))}
+            </div>
+          ) : submissions.length === 0 ? (
+            <div className="flex flex-col items-center gap-2 rounded-xl border border-dashed border-line py-14 text-center">
+              <span className="flex h-10 w-10 items-center justify-center rounded-full bg-well text-ink-3">
+                <Doc size={18} />
+              </span>
+              <p className="t-footnote max-w-sm text-ink-2">
+                {stats.total === 0
+                  ? "No submissions yet. Records appear here as students check their coursework photos."
+                  : "Nothing matches that search or filter."}
+              </p>
+            </div>
+          ) : viewMode === "table" ? (
+            <div className="-mx-1 overflow-x-auto px-1">
+              <table className="w-full border-collapse text-left">
+                <thead>
+                  <tr className="border-b border-line">
+                    {["Student", "File", "Captured", "Location", "Device", "Status", ""].map(
+                      (heading) => (
+                        <th
+                          key={heading}
+                          scope="col"
+                          className="t-caption whitespace-nowrap px-3 py-2.5 font-semibold text-ink-2"
                         >
-                          Inspect
-                        </button>
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
-        ) : (
-          <HistoryList
-            entries={filtered}
-            showSubmitter
-            onEntryReport={handleEntryReport}
-            emptyMessage="Nothing matches that filter."
-          />
-        )}
-      </Card>
+                          {heading}
+                        </th>
+                      )
+                    )}
+                  </tr>
+                </thead>
+                <tbody>
+                  <AnimatePresence initial={false} mode="popLayout">
+                    {submissions.map((entry, index) => {
+                      const coords = formatCoordinates(entry.metadata.gps);
+                      return (
+                        <motion.tr
+                          key={entry.id}
+                          layout={!reduced}
+                          initial={
+                            reduced ? { opacity: 0 } : { opacity: 0, y: 6 }
+                          }
+                          animate={{ opacity: 1, y: 0 }}
+                          exit={reduced ? { opacity: 0 } : { opacity: 0, scale: 0.98 }}
+                          transition={{
+                            ...springMove,
+                            delay: stagger(Math.min(index, 8), 0.02, 0.16),
+                          }}
+                          onClick={() => setSelected(entry)}
+                          className="cursor-pointer border-b border-line transition-colors duration-100 last:border-0 hover:bg-well"
+                        >
+                          <td className="px-3 py-3">
+                            <div className="flex items-center gap-2.5">
+                              <span className="t-caption flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-accent-wash font-semibold text-accent">
+                                {initials(entry.submittedBy?.name ?? "")}
+                              </span>
+                              <span className="min-w-0">
+                                <span className="t-footnote block truncate font-medium text-ink">
+                                  {entry.submittedBy?.name ?? "Unknown"}
+                                </span>
+                                <span className="t-caption block truncate font-mono text-ink-3">
+                                  {entry.submittedBy?.identifier || "—"}
+                                </span>
+                              </span>
+                            </div>
+                          </td>
 
-      {/* Slide-over Inspection Sheet */}
+                          <td className="max-w-[11rem] px-3 py-3">
+                            <div className="flex items-center gap-2.5">
+                              <span className="relative h-9 w-9 shrink-0 overflow-hidden rounded-lg border border-line bg-well">
+                                {entry.previewUrl ? (
+                                  <Image
+                                    src={entry.previewUrl}
+                                    alt=""
+                                    fill
+                                    unoptimized
+                                    className="object-cover"
+                                  />
+                                ) : null}
+                              </span>
+                              <span className="min-w-0">
+                                <span className="t-footnote block truncate text-ink">
+                                  {entry.fileName}
+                                </span>
+                                <span className="t-caption block truncate font-mono text-ink-3">
+                                  {entry.hash.slice(0, 10)}…
+                                </span>
+                              </span>
+                            </div>
+                          </td>
+
+                          <td className="whitespace-nowrap px-3 py-3">
+                            <span className="t-footnote block text-ink">
+                              {entry.metadata.captureTime ?? "—"}
+                            </span>
+                            <span className="t-caption block text-ink-3">
+                              filed {formatDateTime(entry.checkedAt)}
+                            </span>
+                          </td>
+
+                          <td className="max-w-[12rem] px-3 py-3">
+                            <span className="t-footnote block truncate text-ink">
+                              {entry.metadata.locationName ??
+                                (coords ? "Coordinates only" : "—")}
+                            </span>
+                            {coords ? (
+                              <span className="t-caption block truncate font-mono text-ink-3">
+                                {coords}
+                              </span>
+                            ) : null}
+                          </td>
+
+                          <td className="max-w-[9rem] px-3 py-3">
+                            <span className="t-footnote block truncate text-ink">
+                              {entry.metadata.device ?? "—"}
+                            </span>
+                          </td>
+
+                          <td className="whitespace-nowrap px-3 py-3">
+                            <StatusBadge status={entry.status} size="sm" />
+                          </td>
+
+                          <td className="whitespace-nowrap px-3 py-3 text-right">
+                            <span className="t-caption font-semibold text-accent">
+                              Inspect
+                            </span>
+                          </td>
+                        </motion.tr>
+                      );
+                    })}
+                  </AnimatePresence>
+                </tbody>
+              </table>
+            </div>
+          ) : (
+            <HistoryList
+              entries={submissions}
+              showSubmitter
+              onEntryReport={(entry) =>
+                openPrintableReport(buildEntryReportHtml(entry))
+              }
+              emptyMessage="Nothing matches that filter."
+            />
+          )}
+        </Card>
+      </Reveal>
+
+      {/* Inspection */}
       <Sheet
-        open={Boolean(selectedEntry)}
-        onClose={() => setSelectedEntry(null)}
-        title={selectedEntry?.fileName ?? "Submission Details"}
+        open={Boolean(selected)}
+        onClose={() => setSelected(null)}
+        title={selected?.fileName ?? "Submission"}
         subtitle={
-          selectedEntry?.submittedBy
-            ? `${selectedEntry.submittedBy.name} · ${selectedEntry.submittedBy.identifier}`
+          selected?.submittedBy
+            ? `${selected.submittedBy.name} · ${selected.submittedBy.identifier}`
             : undefined
         }
       >
-        {selectedEntry ? (
-          <HistoryDetail
-            entry={selectedEntry}
-            onReport={() => handleEntryReport(selectedEntry)}
-          />
+        {selected ? (
+          <div className="flex flex-col gap-5">
+            <HistoryDetail
+              entry={selected}
+              onReport={() =>
+                openPrintableReport(buildEntryReportHtml(selected))
+              }
+            />
+            <Button
+              variant="danger"
+              onClick={() => setPendingDelete(selected)}
+              className="w-full"
+            >
+              Remove from ledger
+            </Button>
+          </div>
         ) : null}
       </Sheet>
 
-      {/* Clear Confirmation Sheet */}
+      {/* Destructive actions are confirmed; nothing else is. */}
       <Sheet
-        open={confirmingClear}
-        onClose={() => setConfirmingClear(false)}
-        title="Clear verification records?"
-        subtitle={`${history.length} stored ${
-          history.length === 1 ? "record" : "records"
-        }`}
+        open={Boolean(pendingDelete)}
+        onClose={() => setPendingDelete(null)}
+        title="Remove this record?"
+        subtitle={pendingDelete?.fileName}
       >
         <div className="flex flex-col gap-5">
           <p className="t-callout text-ink-2">
-            This action will remove all {history.length} verification records from
-            this local browser session. Stored cryptographic hashes used for duplicate
-            detection will also be cleared.
+            This permanently deletes the verification record for{" "}
+            <span className="font-medium text-ink">
+              {pendingDelete?.submittedBy?.name ?? "this student"}
+            </span>
+            . Its hash will no longer be matched by duplicate detection, so the
+            same file could later be submitted as new.
           </p>
           <div className="flex flex-col gap-2 sm:flex-row-reverse">
             <Button
               variant="danger"
               className="sm:flex-1"
-              onClick={() => {
-                clearHistory();
-                setConfirmingClear(false);
-              }}
+              onClick={() => void confirmDelete()}
             >
-              Clear all records
+              Remove record
             </Button>
-            <Button className="sm:flex-1" onClick={() => setConfirmingClear(false)}>
-              Keep records
+            <Button className="sm:flex-1" onClick={() => setPendingDelete(null)}>
+              Keep it
             </Button>
           </div>
         </div>

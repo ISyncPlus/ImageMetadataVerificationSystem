@@ -4,8 +4,8 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import { useSyncExternalStore } from "react";
-import { clearSession } from "../lib/auth";
-import type { Session } from "../lib/auth";
+import { signOut } from "../lib/auth-client";
+import type { Profile } from "../lib/api";
 import { ButtonLink } from "./ui/Button";
 import ThemeToggle from "./ui/ThemeToggle";
 import { SignOut } from "./ui/icons";
@@ -13,7 +13,7 @@ import { BrandMark } from "./ui/BrandLogo";
 import { fade, springMove } from "../lib/motion";
 
 type AppNavbarProps = {
-  session?: Session | null;
+  session?: Profile | null;
 };
 
 /* Scroll position is browser state, so it is read as an external store rather
@@ -61,8 +61,8 @@ export default function AppNavbar({ session }: AppNavbarProps) {
     getServerCondensed
   );
 
-  const handleSignOut = () => {
-    clearSession();
+  const handleSignOut = async () => {
+    await signOut();
     router.replace("/login");
   };
 
@@ -132,14 +132,15 @@ export default function AppNavbar({ session }: AppNavbarProps) {
                       {session.name}
                     </span>
                     <span className="t-caption block truncate capitalize text-ink-2">
-                      {session.role} · {session.identifier}
+                      {session.role}
+                      {session.identifier ? ` · ${session.identifier}` : ""}
                     </span>
                   </motion.span>
                 ) : null}
               </AnimatePresence>
 
               <span
-                title={`${session.name} · ${session.identifier}`}
+                title={`${session.name}${session.identifier ? ` · ${session.identifier}` : ""}`}
                 className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-accent-wash"
               >
                 <span className="t-caption font-semibold text-accent">
@@ -151,7 +152,7 @@ export default function AppNavbar({ session }: AppNavbarProps) {
 
               <motion.button
                 type="button"
-                onClick={handleSignOut}
+                onClick={() => void handleSignOut()}
                 aria-label="Sign out"
                 whileTap={reduced ? { opacity: 0.7 } : { scale: 0.92 }}
                 transition={springMove}

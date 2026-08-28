@@ -2,11 +2,11 @@ import type { ReactNode } from "react";
 import AppNavbar from "./AppNavbar";
 import RaysBackground from "./ui/RaysBackground";
 import ScrollControls from "./ui/ScrollControls";
-import type { Session } from "../lib/auth";
+import type { Profile } from "../lib/api";
 
 type PageShellProps = {
   children: ReactNode;
-  session?: Session | null;
+  session?: Profile | null;
   /** Narrow column for single-task pages like sign-in. */
   width?: "wide" | "narrow";
 };
