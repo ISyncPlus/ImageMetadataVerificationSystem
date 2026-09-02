@@ -18,6 +18,7 @@ import {
   buildSummaryReportHtml,
   openPrintableReport,
 } from "../../lib/report";
+import Breadcrumbs from "../../components/ui/Breadcrumbs";
 import { ApiError, createSubmission } from "../../lib/api";
 import { useRequireProfile } from "../../lib/useProfile";
 import { useSubmissions } from "../../lib/useSubmissions";
@@ -227,6 +228,15 @@ export default function StudentDashboard() {
 
   return (
     <PageShell session={profile}>
+      <div className="py-2">
+        <Breadcrumbs
+          items={[
+            { label: "Home", href: "/" },
+            { label: "Student Inspector" },
+          ]}
+        />
+      </div>
+
       <DashboardHeader
         stats={stats}
         eyebrow="Student"

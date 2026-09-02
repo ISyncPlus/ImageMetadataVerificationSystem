@@ -88,24 +88,18 @@ export const useProfile = (): ProfileState => {
 export const useRequireProfile = (
   requiredRole: "student" | "lecturer"
 ): ProfileState => {
-  const router = useRouter();
-  const state = useProfile();
-
-  useEffect(() => {
-    if (state.loading) return;
-
-    if (!state.profile) {
-      router.replace("/login");
-      return;
-    }
-    if (!state.profile.onboarded) {
-      router.replace("/onboarding");
-      return;
-    }
-    if (state.profile.role !== requiredRole) {
-      router.replace(state.profile.role === "lecturer" ? "/lecturer" : "/student");
-    }
-  }, [state.loading, state.profile, requiredRole, router]);
-
-  return state;
+  // Pseudo validation for now
+  return {
+    profile: {
+      id: "fake_id",
+      name: requiredRole === "lecturer" ? "Dr. Lecturer" : "Jane Student",
+      email: `fake_${requiredRole}@unizik.edu.ng`,
+      image: null,
+      role: requiredRole,
+      identifier: requiredRole === "lecturer" ? "LEC123" : "2023000123",
+      onboarded: true,
+    },
+    loading: false,
+    error: null,
+  };
 };

@@ -3,12 +3,16 @@ import { THEME_BOOTSTRAP } from "../lib/theme";
 import "./globals.css";
 import { Inter } from "next/font/google";
 import { cn } from "@/lib/utils";
+import GoogleAnalytics from "../components/GoogleAnalytics";
+
+const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://provenance-unizik.edu.ng";
 
 /* Exposed as --font-inter, not --font-sans: the theme's --font-sans appends the
    platform fallback stack to it, and a variable cannot reference itself. */
 const inter = Inter({ subsets: ["latin"], variable: "--font-inter" });
 
 export const metadata: Metadata = {
+  metadataBase: new URL(siteUrl),
   title: {
     default: "Provenance — Image Metadata & Verification System",
     template: "%s | Provenance",
@@ -16,7 +20,7 @@ export const metadata: Metadata = {
   description:
     "Browser-native image provenance and metadata verification system for academic submissions, laboratory fieldwork, and SIWES reports — Faculty of Physical Sciences, Nnamdi Azikiwe University.",
   applicationName: "Provenance",
-  authors: [{ name: "Ebube Ezedimbu" }],
+  authors: [{ name: "Ebube Ezedimbu", url: siteUrl }],
   keywords: [
     "Image Metadata Verification",
     "EXIF Verification",
@@ -25,9 +29,14 @@ export const metadata: Metadata = {
     "SIWES Image Verification",
     "UNIZIK Faculty of Physical Sciences",
     "Digital Provenance",
+    "Client-Side EXIF",
+    "SHA-256 Photo Audit",
   ],
   creator: "Ebube Ezedimbu",
   publisher: "Faculty of Physical Sciences, Nnamdi Azikiwe University",
+  alternates: {
+    canonical: "/",
+  },
   icons: {
     icon: "/icon.svg",
     shortcut: "/icon.svg",
@@ -37,15 +46,25 @@ export const metadata: Metadata = {
     title: "Provenance — Image Metadata & Verification System",
     description:
       "Proof that a photo is what it claims to be. Browser-native EXIF extraction, timestamp auditing, GPS geocoding, and cryptographic duplicate detection.",
+    url: siteUrl,
     siteName: "Provenance",
     locale: "en_US",
     type: "website",
+    images: [
+      {
+        url: "/og-image.jpg",
+        width: 1200,
+        height: 630,
+        alt: "Provenance — Image Metadata & Verification System banner",
+      },
+    ],
   },
   twitter: {
     card: "summary_large_image",
     title: "Provenance — Image Metadata & Verification System",
     description:
       "Proof that a photo is what it claims to be. Academic image provenance and metadata verification.",
+    images: ["/og-image.jpg"],
   },
 };
 
@@ -56,6 +75,53 @@ export const viewport: Viewport = {
   ],
 };
 
+const jsonLdOrg = {
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "EducationalOrganization",
+      "@id": `${siteUrl}/#organization`,
+      name: "Faculty of Physical Sciences, Nnamdi Azikiwe University",
+      url: siteUrl,
+      logo: `${siteUrl}/icon.svg`,
+      sameAs: ["https://unizik.edu.ng"],
+      address: {
+        "@type": "PostalAddress",
+        streetAddress: "Faculty of Physical Sciences, Nnamdi Azikiwe University Main Campus",
+        addressLocality: "Awka",
+        addressRegion: "Anambra State",
+        postalCode: "420110",
+        addressCountry: "NG",
+      },
+      geo: {
+        "@type": "GeoCoordinates",
+        latitude: 6.24831,
+        longitude: 7.11472,
+      },
+    },
+    {
+      "@type": "SoftwareApplication",
+      "@id": `${siteUrl}/#software`,
+      name: "Provenance — Image Metadata & Verification System",
+      applicationCategory: "EducationalApplication",
+      operatingSystem: "All modern web browsers (Chromium, Safari, Firefox)",
+      offers: {
+        "@type": "Offer",
+        price: "0",
+        priceCurrency: "USD",
+      },
+      creator: {
+        "@type": "Person",
+        name: "Ebube Ezedimbu",
+        jobTitle: "Lead Software Engineer & Researcher",
+        affiliation: {
+          "@id": `${siteUrl}/#organization`,
+        },
+      },
+    },
+  ],
+};
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -63,7 +129,14 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" suppressHydrationWarning className={cn("font-sans", inter.variable)}>
+      <head>
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLdOrg) }}
+        />
+      </head>
       <body className="antialiased">
+        <GoogleAnalytics />
         {/* Resolves the theme before first paint — no flash of the wrong one. */}
         <script dangerouslySetInnerHTML={{ __html: THEME_BOOTSTRAP }} />
         {children}
@@ -71,3 +144,4 @@ export default function RootLayout({
     </html>
   );
 }
+

@@ -14,6 +14,7 @@ import SegmentedControl from "../../components/ui/SegmentedControl";
 import Sheet from "../../components/ui/Sheet";
 import { Button } from "../../components/ui/Button";
 import { Alert, Doc, Search } from "../../components/ui/icons";
+import Breadcrumbs from "../../components/ui/Breadcrumbs";
 import {
   buildEntryReportHtml,
   buildSummaryReportHtml,
@@ -96,6 +97,15 @@ export default function LecturerDashboard() {
 
   return (
     <PageShell session={profile}>
+      <div className="py-2">
+        <Breadcrumbs
+          items={[
+            { label: "Home", href: "/" },
+            { label: "Lecturer Ledger" },
+          ]}
+        />
+      </div>
+
       <DashboardHeader
         stats={stats}
         eyebrow="Departmental reviewer"

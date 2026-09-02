@@ -13,6 +13,7 @@ import { BrandMark } from "../../components/ui/BrandLogo";
 import { ApiError, completeOnboarding } from "../../lib/api";
 import { useProfile } from "../../lib/useProfile";
 import { fade, springMove } from "../../lib/motion";
+import Breadcrumbs from "../../components/ui/Breadcrumbs";
 
 /**
  * Claims a registration number or staff ID after sign-in.
@@ -96,7 +97,16 @@ export default function OnboardingPage() {
 
   return (
     <PageShell width="narrow">
-      <Reveal className="pt-4">
+      <div className="py-2">
+        <Breadcrumbs
+          items={[
+            { label: "Home", href: "/" },
+            { label: "Onboarding" },
+          ]}
+        />
+      </div>
+
+      <Reveal className="pt-2">
         <Card>
           <div className="flex flex-col items-center text-center">
             <BrandMark size={44} />

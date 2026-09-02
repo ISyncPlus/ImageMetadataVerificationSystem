@@ -116,6 +116,39 @@ export default function AppNavbar({ session }: AppNavbarProps) {
           </span>
         </Link>
 
+        <div className="hidden items-center gap-1 md:flex lg:gap-2 ml-4">
+          <Link
+            href="/#interactive-demo"
+            className="t-caption rounded-full px-3 py-1 font-medium text-ink-2 transition-colors hover:text-ink hover:bg-surface-2"
+          >
+            Demo
+          </Link>
+          <Link
+            href="/case-studies"
+            className="t-caption rounded-full px-3 py-1 font-medium text-ink-2 transition-colors hover:text-ink hover:bg-surface-2"
+          >
+            Case Studies
+          </Link>
+          <Link
+            href="/#faq"
+            className="t-caption rounded-full px-3 py-1 font-medium text-ink-2 transition-colors hover:text-ink hover:bg-surface-2"
+          >
+            FAQ
+          </Link>
+          <Link
+            href="/#team"
+            className="t-caption rounded-full px-3 py-1 font-medium text-ink-2 transition-colors hover:text-ink hover:bg-surface-2"
+          >
+            Team
+          </Link>
+          <Link
+            href="/#location"
+            className="t-caption rounded-full px-3 py-1 font-medium text-ink-2 transition-colors hover:text-ink hover:bg-surface-2"
+          >
+            Location
+          </Link>
+        </div>
+
         <div className="relative ml-auto flex items-center gap-2">
           {session ? (
             <>

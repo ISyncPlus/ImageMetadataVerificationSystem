@@ -2,6 +2,7 @@ import type { ReactNode } from "react";
 import AppNavbar from "./AppNavbar";
 import RaysBackground from "./ui/RaysBackground";
 import ScrollControls from "./ui/ScrollControls";
+import StickyMobileCta from "./StickyMobileCta";
 import type { Profile } from "../lib/api";
 
 type PageShellProps = {
@@ -36,7 +37,9 @@ export default function PageShell({
         </main>
       </div>
 
+      <StickyMobileCta />
       <ScrollControls />
     </div>
   );
 }
+

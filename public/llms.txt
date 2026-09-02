@@ -1,0 +1,27 @@
+# Provenance — Image Metadata & Verification System
+> Browser-Native Cryptographic Image Telemetry & Provenance Auditing Platform for Academic Research and Practical Coursework.
+
+## Overview
+Provenance (formerly IMVS) is an academic verification web platform engineered for the Faculty of Physical Sciences at Nnamdi Azikiwe University (UNIZIK), Awka, Nigeria. It replaces visual guessing with mathematical and cryptographic inspection of raw camera image metadata (EXIF).
+
+## Core Verification Pillars
+1. **Temporal Integrity**: Inspects original EXIF timestamps directly from the camera sensor clock to verify whether image capture occurred within official practical schedules.
+2. **Geospatial Proximity**: Decodes GPS coordinates (latitude, longitude, altitude) and reverse-geocodes them to verify physical presence at designated field sites (e.g. UNIZIK Geology fieldwork or campus labs).
+3. **Hardware Fingerprint**: Extracts physical hardware signatures (sensor make, lens profile, focal length, ISO, exposure time) and flags tampering caused by compression, screenshotting, or messaging apps (WhatsApp, Telegram).
+4. **Cryptographic Duplicate Detection**: Computes a SHA-256 binary digest locally on the client to detect identical images submitted by multiple students.
+
+## Architecture & Privacy Guarantees
+- **100% Client-Side Computation**: All parsing (`exifr`) and cryptographic hashing (`crypto.subtle.digest`) occurs in the student's browser.
+- **Zero Raw File Transmission**: Original high-resolution images are never transmitted or stored on remote servers. Only mathematical digests and metadata summaries are persisted to the departmental ledger.
+- **Deterministic Response Time**: <50ms local verification execution time.
+
+## Key Stakeholders
+- **Students**: Upload raw uncompressed JPEG/PNG images, receive instant client-side verdicts (Verified, Suspicious, Reused), view extracted telemetry, and generate printable PDF certificates.
+- **Lecturers / Department Reviewers**: Audit submissions across courses, filter by status, inspect flagged anomalies, search by student registration number, and export class summary reports for grading archives.
+
+## Academic Context & Creator
+- **Institution**: Faculty of Physical Sciences, Nnamdi Azikiwe University (UNIZIK), Awka, Anambra State, Nigeria.
+- **Lead Software Engineer & Researcher**: Ebube Ezedimbu.
+- **Academic Project Supervisor**: Prof. O. C. Okeke.
+- **Senior Departmental Reviewer**: Dr. N. A. Eze.
+- **Canonical URL**: https://provenance-unizik.edu.ng

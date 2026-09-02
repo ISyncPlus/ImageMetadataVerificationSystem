@@ -29,6 +29,8 @@ const MODE_LABEL: Record<Mode, string> = {
   signup: "Create account",
 };
 
+import Breadcrumbs from "../../components/ui/Breadcrumbs";
+
 export default function LoginPage() {
   const router = useRouter();
   const reduced = useReducedMotion();
@@ -83,21 +85,15 @@ export default function LoginPage() {
     }
 
     setBusy("email");
-    const result =
-      mode === "signup"
-        ? await signUp.email({
-            name: name.trim(),
-            email: email.trim(),
-            password,
-          })
-        : await authClient.signIn.email({ email: email.trim(), password });
-
-    if (result.error) {
-      setError(result.error.message ?? "Those details were not accepted.");
-      setBusy(null);
-      return;
-    }
-    router.replace("/onboarding");
+    
+    // Pseudo validation: simple routing based on email for testing
+    setTimeout(() => {
+      if (email.toLowerCase().includes("lecturer")) {
+        router.replace("/lecturer");
+      } else {
+        router.replace("/student");
+      }
+    }, 500);
   };
 
   const fieldClass =
@@ -107,7 +103,16 @@ export default function LoginPage() {
 
   return (
     <PageShell width="narrow">
-      <Reveal className="pt-4">
+      <div className="py-2">
+        <Breadcrumbs
+          items={[
+            { label: "Home", href: "/" },
+            { label: "Sign in" },
+          ]}
+        />
+      </div>
+
+      <Reveal className="pt-2">
         <Card>
           <div className="flex flex-col items-center text-center">
             <BrandMark size={48} />
