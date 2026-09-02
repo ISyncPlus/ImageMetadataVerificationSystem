@@ -237,10 +237,20 @@ export default function LecturerDashboard() {
             </div>
           </div>
 
-          {error || actionError ? (
+          {actionError ? (
             <p className="t-footnote mt-4 flex items-start gap-2 rounded-sm border-l-2 border-bad bg-bad-wash px-3.5 py-2.5 text-bad">
               <Alert size={14} className="mt-0.5 shrink-0" />
-              {error ?? actionError}
+              {actionError}
+            </p>
+          ) : error && submissions.length === 0 ? (
+            <p className="t-footnote mt-4 flex items-start gap-2 rounded-sm border-l-2 border-bad bg-bad-wash px-3.5 py-2.5 text-bad">
+              <Alert size={14} className="mt-0.5 shrink-0" />
+              {error}
+            </p>
+          ) : error && submissions.length > 0 ? (
+            <p className="t-caption text-ink-3 mt-3 flex items-center gap-1.5 px-1">
+              <Alert size={12} className="text-warn shrink-0" />
+              Showing offline cached ledger
             </p>
           ) : null}
 

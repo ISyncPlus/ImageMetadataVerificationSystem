@@ -829,7 +829,7 @@ export default function LandingPage() {
           action={
             <Link
               href="/case-studies"
-              className="t-mark group -my-2 inline-flex items-center gap-2 py-2 text-accent-deep"
+              className="t-mark group -my-3 inline-flex min-h-11 items-center gap-2 py-3 text-accent-deep"
             >
               All cases
               <ArrowRight

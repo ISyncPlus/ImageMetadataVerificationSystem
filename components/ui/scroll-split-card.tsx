@@ -120,7 +120,7 @@ export function ScrollSplitCard({
         {/* 3D Splitting & Flipping Deck */}
         <motion.div
           style={{ scale, y: cardsY, transformStyle: "preserve-3d" }}
-          className="relative z-0 flex h-[30rem] w-full max-w-4xl flex-col px-4 sm:h-[420px] sm:flex-row"
+          className="relative z-0 mt-14 flex h-[28rem] w-full max-w-4xl flex-col px-4 sm:mt-0 sm:h-[420px] sm:flex-row"
         >
           {cards.slice(0, 3).map((card, i) => (
             <motion.div
@@ -206,7 +206,7 @@ export function ScrollSplitCard({
 
         {/* Ending Text in Sticky Viewport */}
         <motion.div
-          className="pointer-events-none absolute bottom-[7%] left-0 right-0 z-10 px-4 text-center sm:bottom-[16%]"
+          className="pointer-events-none absolute bottom-[15%] left-0 right-0 z-10 px-4 text-center sm:bottom-[16%]"
           style={{
             opacity: textOpacity,
             y: textY,

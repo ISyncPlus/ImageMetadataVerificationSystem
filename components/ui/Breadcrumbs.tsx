@@ -36,13 +36,13 @@ export default function Breadcrumbs({ items, className = "" }: BreadcrumbsProps)
             <li key={item.label} className="flex items-center gap-1.5">
               {index > 0 && <ChevronRight size={11} className="shrink-0 text-ink-3" />}
               {isLast || !item.href ? (
-                <span className="t-mark -my-2 inline-flex max-w-[200px] items-center truncate py-2 text-ink" aria-current={isLast ? "page" : undefined}>
+                <span className="t-mark -my-3 inline-flex min-h-11 max-w-[200px] items-center truncate py-3 text-ink" aria-current={isLast ? "page" : undefined}>
                   {item.label}
                 </span>
               ) : (
                 <Link
                   href={item.href}
-                  className="t-mark -my-2 inline-flex items-center py-2 text-ink-3 transition-colors hover:text-accent-deep"
+                  className="t-mark -my-3 inline-flex min-h-11 items-center py-3 text-ink-3 transition-colors hover:text-accent-deep"
                 >
                   {item.label}
                 </Link>
