@@ -4,35 +4,138 @@
 
 @custom-variant dark (&:is(.dark *));
 
-/* ------------------------------------------------------------------
-   PROVENANCE design foundation
-   Raw tokens live in :root and are re-declared per theme; @theme inline
-   maps them onto Tailwind utilities (bg-surface, text-ink-2, shadow-card…)
-   so the markup never has to reach for a var() by hand.
-------------------------------------------------------------------- */
+/* ==================================================================
+   PROVENANCE — "Evidence Dossier" design foundation
+   ------------------------------------------------------------------
+   The interface is built like a physical forensic case file: an index
+   rail down the margin, hairline rules instead of boxes, numbered
+   exhibits, and full-bleed FIELDS that invert the entire palette.
+
+   Three layers, in order:
+     1. Faces      — self-hosted variable type, no network at runtime.
+     2. Tokens     — raw values in :root, re-declared per theme AND per
+                     field, then mapped onto Tailwind by @theme inline.
+     3. Primitives — the dossier's structural vocabulary.
+   ================================================================== */
+
+/* ------------------------------------------------------------ 1. Faces
+   Three variable faces, each with a job. Bricolage Grotesque carries the
+   voice: optical-size and width axes let display type be set condensed and
+   tightly tracked while small headings stay open. Inter carries the reading,
+   where it is better hinted than any display face. JetBrains Mono carries the
+   evidence — hashes, coordinates, timestamps — where distinguishing 0 from O
+   and 1 from l is a correctness requirement, not a preference.
+
+   All three are served from /public rather than a font CDN. A system whose
+   entire promise is that the photograph never leaves the device should not
+   announce every page view to a third party either — and it means the app
+   renders correctly with no network at all. */
+
+@font-face {
+  font-family: "Inter";
+  font-style: normal;
+  font-weight: 100 900;
+  font-display: swap;
+  src: url("/fonts/inter-latin.woff2") format("woff2");
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6,
+    U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122,
+    U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+@font-face {
+  font-family: "Inter";
+  font-style: normal;
+  font-weight: 100 900;
+  font-display: swap;
+  src: url("/fonts/inter-latin-ext.woff2") format("woff2");
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7,
+    U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F,
+    U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F,
+    U+A720-A7FF;
+}
+
+@font-face {
+  font-family: "Bricolage Grotesque";
+  font-style: normal;
+  font-weight: 200 800;
+  font-stretch: 75% 100%;
+  font-display: swap;
+  src: url("/fonts/bricolage-grotesque-latin.woff2") format("woff2");
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6,
+    U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122,
+    U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+@font-face {
+  font-family: "Bricolage Grotesque";
+  font-style: normal;
+  font-weight: 200 800;
+  font-stretch: 75% 100%;
+  font-display: swap;
+  src: url("/fonts/bricolage-grotesque-latin-ext.woff2") format("woff2");
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7,
+    U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F,
+    U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F,
+    U+A720-A7FF;
+}
+
+@font-face {
+  font-family: "JetBrains Mono";
+  font-style: normal;
+  font-weight: 100 800;
+  font-display: swap;
+  src: url("/fonts/jetbrains-mono-latin.woff2") format("woff2");
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6,
+    U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122,
+    U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+@font-face {
+  font-family: "JetBrains Mono";
+  font-style: normal;
+  font-weight: 100 800;
+  font-display: swap;
+  src: url("/fonts/jetbrains-mono-latin-ext.woff2") format("woff2");
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7,
+    U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F,
+    U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F,
+    U+A720-A7FF;
+}
+
+/* ----------------------------------------------------------- 2. Tokens */
 
 :root {
   color-scheme: light;
 
-  /* Surfaces — warm off-white canvas, crisp white card, recessed warm well */
-  --canvas: #f8f7f4;
+  /* Surfaces — warm pressed paper, crisp card, recessed well. */
+  --canvas: #f7f5f1;
   --surface: #ffffff;
-  --surface-2: #f2f0ec;
-  --well: rgba(20, 20, 22, 0.045);
-  --line: rgba(20, 20, 22, 0.09);
-  --line-strong: rgba(20, 20, 22, 0.22);
+  --surface-2: #efece6;
+  --well: rgba(24, 20, 16, 0.05);
 
-  /* Ink — three levels of emphasis: deep obsidian charcoal */
-  --ink: #141416;
-  --ink-2: rgba(20, 20, 22, 0.65);
-  --ink-3: rgba(20, 20, 22, 0.42);
+  /* Three weights of line. --rule is the dossier's structural hairline:
+     stronger than --line, because it does the work a border-box used to. */
+  --line: rgba(24, 20, 16, 0.1);
+  --rule: rgba(24, 20, 16, 0.15);
+  --line-strong: rgba(24, 20, 16, 0.26);
 
-  /* One strong accent: Warm Vermilion. Never blue. */
+  /* Ink — warm near-black, three levels of emphasis. */
+  --ink: #14110f;
+  --ink-2: rgba(20, 17, 15, 0.66);
+  --ink-3: rgba(20, 17, 15, 0.42);
+
+  /* One accent, now with a tonal ramp so it can build structure instead of
+     only underlining it. --accent-deep is the text-safe step: it clears
+     4.5:1 on the wash, which the raw brand does not. */
   --brand: #e04b28;
+  --accent-deep: #b0331a;
+  --accent-hi: #f2704f;
   --accent-ink: #ffffff;
-  --accent-wash: rgba(224, 75, 40, 0.1);
+  --accent-wash: rgba(224, 75, 40, 0.09);
+  --accent-veil: rgba(224, 75, 40, 0.16);
+  --accent-edge: rgba(224, 75, 40, 0.32);
 
-  /* Status: validated trio for colour-vision separation and 4.5:1 contrast */
+  /* Status: validated trio for colour-vision separation and 4.5:1. */
   --good: #18794e;
   --good-mark: #18794e;
   --good-wash: rgba(24, 121, 78, 0.1);
@@ -44,64 +147,75 @@
   --bad-wash: rgba(201, 42, 42, 0.1);
 
   /* Translucent chrome. Only floating layers use these — never a card. */
-  --material: rgba(248, 247, 244, 0.82);
-  --material-edge: rgba(20, 20, 22, 0.08);
-  --scrim: rgba(20, 20, 22, 0.35);
+  --material: rgba(247, 245, 241, 0.78);
+  --material-edge: rgba(24, 20, 16, 0.09);
+  --scrim: rgba(20, 17, 15, 0.38);
 
-  /* Bigger surfaces read as thicker: deeper blur, deeper shadow. */
-  --elev-card: 0 1px 3px rgba(20, 20, 22, 0.04), 0 4px 16px rgba(20, 20, 22, 0.06);
-  --elev-lift: 0 2px 6px rgba(20, 20, 22, 0.06), 0 14px 32px rgba(20, 20, 22, 0.1);
-  --elev-sheet: 0 -1px 2px rgba(20, 20, 22, 0.05), 0 -18px 48px rgba(20, 20, 22, 0.18);
-  --background: oklch(0.98 0.005 85);
-  --foreground: oklch(0.12 0.005 85);
+  /* Shadows are tinted toward the paper's warmth, never neutral black —
+     a grey shadow on a warm ground is the tell of an unconsidered theme. */
+  --elev-card: 0 1px 2px rgba(62, 32, 20, 0.05), 0 6px 20px rgba(62, 32, 20, 0.06);
+  --elev-lift: 0 2px 6px rgba(62, 32, 20, 0.07), 0 18px 44px rgba(62, 32, 20, 0.12);
+  --elev-sheet: 0 -1px 2px rgba(62, 32, 20, 0.06), 0 -20px 56px rgba(62, 32, 20, 0.2);
+  --elev-accent: 0 8px 28px -10px rgba(224, 75, 40, 0.45);
+
+  /* shadcn compatibility layer, tuned to the palette above. */
+  --background: oklch(0.97 0.006 70);
+  --foreground: oklch(0.15 0.008 60);
   --card: oklch(1 0 0);
-  --card-foreground: oklch(0.12 0.005 85);
+  --card-foreground: oklch(0.15 0.008 60);
   --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.12 0.005 85);
-  --primary: oklch(0.55 0.2 35);
+  --popover-foreground: oklch(0.15 0.008 60);
+  --primary: oklch(0.58 0.19 34);
   --primary-foreground: oklch(0.99 0 0);
-  --secondary: oklch(0.95 0.005 85);
-  --secondary-foreground: oklch(0.15 0.005 85);
-  --muted: oklch(0.95 0.005 85);
-  --muted-foreground: oklch(0.48 0.005 85);
-  --accent-foreground: oklch(0.15 0.005 85);
+  --secondary: oklch(0.94 0.008 70);
+  --secondary-foreground: oklch(0.18 0.008 60);
+  --muted: oklch(0.94 0.008 70);
+  --muted-foreground: oklch(0.5 0.008 60);
+  --accent-foreground: oklch(0.18 0.008 60);
   --destructive: oklch(0.55 0.22 25);
-  --border: oklch(0.9 0.005 85);
-  --input: oklch(0.9 0.005 85);
-  --ring: oklch(0.55 0.2 35);
-  --chart-1: oklch(0.55 0.2 35);
+  --border: oklch(0.89 0.008 70);
+  --input: oklch(0.89 0.008 70);
+  --ring: oklch(0.58 0.19 34);
+  --chart-1: oklch(0.58 0.19 34);
   --chart-2: oklch(0.6 0.15 145);
   --chart-3: oklch(0.65 0.15 75);
-  --chart-4: oklch(0.5 0.1 250);
-  --chart-5: oklch(0.45 0.1 300);
+  --chart-4: oklch(0.45 0.02 60);
+  --chart-5: oklch(0.72 0.12 45);
   --radius: 0.625rem;
-  --sidebar: oklch(0.98 0.005 85);
-  --sidebar-foreground: oklch(0.12 0.005 85);
-  --sidebar-primary: oklch(0.55 0.2 35);
+  --sidebar: oklch(0.97 0.006 70);
+  --sidebar-foreground: oklch(0.15 0.008 60);
+  --sidebar-primary: oklch(0.58 0.19 34);
   --sidebar-primary-foreground: oklch(0.99 0 0);
-  --sidebar-accent: oklch(0.95 0.005 85);
-  --sidebar-accent-foreground: oklch(0.15 0.005 85);
-  --sidebar-border: oklch(0.9 0.005 85);
-  --sidebar-ring: oklch(0.55 0.2 35);
+  --sidebar-accent: oklch(0.94 0.008 70);
+  --sidebar-accent-foreground: oklch(0.18 0.008 60);
+  --sidebar-border: oklch(0.89 0.008 70);
+  --sidebar-ring: oklch(0.58 0.19 34);
 }
 
 :root[data-theme="dark"] {
   color-scheme: dark;
 
-  --canvas: #0d0d0f;
-  --surface: #151518;
-  --surface-2: #1b1b1f;
-  --well: rgba(255, 255, 255, 0.045);
-  --line: rgba(255, 255, 255, 0.08);
-  --line-strong: rgba(255, 255, 255, 0.18);
+  --canvas: #0b0a0c;
+  --surface: #131215;
+  --surface-2: #1a181c;
+  --well: rgba(255, 255, 255, 0.05);
 
-  --ink: #f4f4f5;
-  --ink-2: rgba(244, 244, 245, 0.65);
-  --ink-3: rgba(244, 244, 245, 0.4);
+  --line: rgba(255, 255, 255, 0.09);
+  --rule: rgba(255, 255, 255, 0.13);
+  --line-strong: rgba(255, 255, 255, 0.2);
+
+  --ink: #f5f3f0;
+  --ink-2: rgba(245, 243, 240, 0.66);
+  --ink-3: rgba(245, 243, 240, 0.41);
 
   --brand: #ea580c;
+  --accent-deep: #fb8a4c;
+  --accent-hi: #fda069;
   --accent-ink: #ffffff;
-  --accent-wash: rgba(234, 88, 12, 0.15);
+  --accent-wash: rgba(234, 88, 12, 0.14);
+  --accent-veil: rgba(234, 88, 12, 0.22);
+  --accent-edge: rgba(234, 88, 12, 0.42);
+
   --good: #2b8a3e;
   --good-mark: #40c057;
   --good-wash: rgba(64, 192, 87, 0.14);
@@ -112,14 +226,124 @@
   --bad-mark: #ff6b6b;
   --bad-wash: rgba(255, 107, 107, 0.14);
 
-  --material: rgba(21, 21, 24, 0.82);
-  --material-edge: rgba(255, 255, 255, 0.09);
-  --scrim: rgba(0, 0, 0, 0.65);
+  --material: rgba(19, 18, 21, 0.8);
+  --material-edge: rgba(255, 255, 255, 0.1);
+  --scrim: rgba(0, 0, 0, 0.68);
 
-  --elev-card: 0 1px 3px rgba(0, 0, 0, 0.35), 0 4px 16px rgba(0, 0, 0, 0.28);
-  --elev-lift: 0 2px 8px rgba(0, 0, 0, 0.4), 0 16px 36px rgba(0, 0, 0, 0.4);
-  --elev-sheet: 0 -1px 2px rgba(0, 0, 0, 0.45), 0 -18px 56px rgba(0, 0, 0, 0.55);
+  --elev-card: 0 1px 3px rgba(0, 0, 0, 0.4), 0 6px 20px rgba(0, 0, 0, 0.3);
+  --elev-lift: 0 2px 8px rgba(0, 0, 0, 0.45), 0 18px 44px rgba(0, 0, 0, 0.42);
+  --elev-sheet: 0 -1px 2px rgba(0, 0, 0, 0.5), 0 -20px 60px rgba(0, 0, 0, 0.58);
+  --elev-accent: 0 8px 30px -10px rgba(234, 88, 12, 0.55);
 }
+
+/* ------------------------------------------------------------- 3. Fields
+   A field re-declares the raw tokens for everything inside it. Because the
+   whole app addresses colour through tokens — bg-surface, text-ink,
+   border-rule — any component dropped into a field inverts itself with no
+   variant prop, no dark: duplication, and no per-component override. This
+   is what lets the accent stop being a highlight and start being
+   architecture: a section can BE vermilion, and the cards, badges, meters
+   and tables inside it simply come along. */
+
+[data-field="ink"] {
+  color-scheme: dark;
+
+  --canvas: #100e11;
+  --surface: rgba(255, 255, 255, 0.045);
+  --surface-2: rgba(255, 255, 255, 0.075);
+  --well: rgba(255, 255, 255, 0.05);
+
+  --line: rgba(255, 255, 255, 0.11);
+  --rule: rgba(255, 255, 255, 0.15);
+  --line-strong: rgba(255, 255, 255, 0.28);
+
+  --ink: #f6f4f1;
+  --ink-2: rgba(246, 244, 241, 0.68);
+  --ink-3: rgba(246, 244, 241, 0.44);
+
+  --brand: #ff6b3d;
+  --accent-deep: #ff8a63;
+  --accent-hi: #ffa585;
+  --accent-ink: #14110f;
+  --accent-wash: rgba(255, 107, 61, 0.14);
+  --accent-veil: rgba(255, 107, 61, 0.22);
+  --accent-edge: rgba(255, 107, 61, 0.42);
+
+  --good: #86efac;
+  --good-mark: #4ade80;
+  --good-wash: rgba(74, 222, 128, 0.14);
+  --warn: #fcd34d;
+  --warn-mark: #fbbf24;
+  --warn-wash: rgba(251, 191, 36, 0.14);
+  --bad: #fda4af;
+  --bad-mark: #fb7185;
+  --bad-wash: rgba(251, 113, 133, 0.14);
+
+  --material: rgba(16, 14, 17, 0.8);
+  --material-edge: rgba(255, 255, 255, 0.12);
+
+  --elev-card: 0 1px 3px rgba(0, 0, 0, 0.45), 0 6px 20px rgba(0, 0, 0, 0.35);
+  --elev-lift: 0 2px 8px rgba(0, 0, 0, 0.5), 0 18px 44px rgba(0, 0, 0, 0.45);
+  --elev-accent: 0 8px 30px -10px rgba(255, 107, 61, 0.5);
+
+  background-color: var(--canvas);
+  color: var(--ink);
+}
+
+[data-field="accent"] {
+  color-scheme: dark;
+
+  /* A shade under the brand, so a brand-coloured chip still separates from
+     the ground it sits on. */
+  --canvas: #cf3f1d;
+  --surface: rgba(0, 0, 0, 0.17);
+  --surface-2: rgba(0, 0, 0, 0.26);
+  --well: rgba(0, 0, 0, 0.14);
+
+  --line: rgba(255, 255, 255, 0.24);
+  --rule: rgba(255, 255, 255, 0.3);
+  --line-strong: rgba(255, 255, 255, 0.5);
+
+  --ink: #fff8f5;
+  --ink-2: rgba(255, 248, 245, 0.82);
+  --ink-3: rgba(255, 248, 245, 0.6);
+
+  /* On a vermilion ground the accent role passes to white: "the emphatic
+     colour" is a role, not a hue. */
+  --brand: #ffffff;
+  --accent-deep: #ffffff;
+  --accent-hi: #ffffff;
+  --accent-ink: #a82f16;
+  --accent-wash: rgba(255, 255, 255, 0.17);
+  --accent-veil: rgba(255, 255, 255, 0.26);
+  --accent-edge: rgba(255, 255, 255, 0.45);
+
+  --good: #dcfce7;
+  --good-mark: #bbf7d0;
+  --good-wash: rgba(255, 255, 255, 0.18);
+  --warn: #fef3c7;
+  --warn-mark: #fde68a;
+  --warn-wash: rgba(255, 255, 255, 0.18);
+  --bad: #fee2e2;
+  --bad-mark: #fecaca;
+  --bad-wash: rgba(0, 0, 0, 0.2);
+
+  --material: rgba(207, 63, 29, 0.82);
+  --material-edge: rgba(255, 255, 255, 0.28);
+
+  --elev-card: 0 1px 2px rgba(80, 20, 6, 0.2), 0 6px 20px rgba(80, 20, 6, 0.18);
+  --elev-lift: 0 2px 8px rgba(80, 20, 6, 0.24), 0 18px 44px rgba(80, 20, 6, 0.28);
+  --elev-accent: 0 8px 30px -10px rgba(0, 0, 0, 0.4);
+
+  background-color: var(--canvas);
+  color: var(--ink);
+}
+
+:root[data-theme="dark"] [data-field="accent"] {
+  --canvas: #b83a1a;
+}
+
+/* ------------------------------------------------------- Tailwind mapping */
 
 @theme inline {
   --color-canvas: var(--canvas);
@@ -127,13 +351,18 @@
   --color-surface-2: var(--surface-2);
   --color-well: var(--well);
   --color-line: var(--line);
+  --color-rule: var(--rule);
   --color-line-strong: var(--line-strong);
   --color-ink: var(--ink);
   --color-ink-2: var(--ink-2);
   --color-ink-3: var(--ink-3);
   --color-accent: var(--brand);
+  --color-accent-deep: var(--accent-deep);
+  --color-accent-hi: var(--accent-hi);
   --color-accent-ink: var(--accent-ink);
   --color-accent-wash: var(--accent-wash);
+  --color-accent-veil: var(--accent-veil);
+  --color-accent-edge: var(--accent-edge);
   --color-good: var(--good);
   --color-good-mark: var(--good-mark);
   --color-good-wash: var(--good-wash);
@@ -150,20 +379,25 @@
   --shadow-card: var(--elev-card);
   --shadow-lift: var(--elev-lift);
   --shadow-sheet: var(--elev-sheet);
+  --shadow-accent: var(--elev-accent);
 
-  /* The app's radius scale, deliberately replacing Tailwind's defaults. */
-  --radius-sm: 0.5rem;
-  --radius-md: 0.75rem;
-  --radius-lg: 1rem;
-  --radius-xl: 1.25rem;
-  --radius-2xl: 1.5rem;
+  /* The app's radius scale, deliberately replacing Tailwind's defaults.
+     The dossier is squarer than the old design: paper has corners. */
+  --radius-sm: 0.25rem;
+  --radius-md: 0.375rem;
+  --radius-lg: 0.5rem;
+  --radius-xl: 0.75rem;
+  --radius-2xl: 1rem;
+  --radius-3xl: 1.5rem;
+  --radius-4xl: 2rem;
 
-  /* Inter, with the platform stack behind it so the type still resolves to a
-     properly hinted UI face if the webfont never arrives. */
-  --font-sans: var(--font-inter), -apple-system, BlinkMacSystemFont,
-    "SF Pro Text", "Segoe UI", system-ui, Roboto, sans-serif;
-  --font-mono: ui-monospace, "SF Mono", "JetBrains Mono", Menlo, monospace;
-  --font-heading: var(--font-sans);
+  --font-sans: "Inter", -apple-system, BlinkMacSystemFont, "SF Pro Text",
+    "Segoe UI", system-ui, Roboto, sans-serif;
+  --font-display: "Bricolage Grotesque", "Inter", -apple-system,
+    BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, "SF Mono", Menlo, monospace;
+  --font-heading: var(--font-display);
+
   --color-sidebar-ring: var(--sidebar-ring);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
@@ -194,15 +428,13 @@
   --color-card: var(--card);
   --color-foreground: var(--foreground);
   --color-background: var(--background);
-  --radius-3xl: calc(var(--radius) * 2.2);
-  --radius-4xl: calc(var(--radius) * 2.6);
 }
 
 /* ---------------------------------------------------------------- Base */
 
 html {
-  /* Everything sizes in rem from here, so the user's text-size setting scales
-     the layout with the type instead of breaking it. */
+  /* Everything sizes in rem from here, so the user's text-size setting
+     scales the layout with the type instead of breaking it. */
   font: 100% / 1.5 var(--font-sans);
   -webkit-text-size-adjust: 100%;
   scrollbar-gutter: stable;
@@ -210,9 +442,7 @@ html {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  html {
-    scroll-behavior: auto;
-  }
+  html { scroll-behavior: auto; }
 }
 
 body {
@@ -221,77 +451,100 @@ body {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   font-optical-sizing: auto;
-  /* No colour transition here: the theme flip is carried by the view
-     transition, and two overlapping animations would fight. */
+  /* A safety net for decorative layers that deliberately overhang the page
+     (rotated marks, oversized numerals). `clip` rather than `hidden` so it
+     never becomes a scroll container and breaks position: sticky inside it. */
+  overflow-x: clip;
 }
 
 ::selection {
-  background: var(--accent-wash);
+  background: var(--accent-veil);
+  color: var(--ink);
 }
 
 :focus-visible {
-  outline: 2px solid var(--accent);
+  outline: 2px solid var(--brand);
   outline-offset: 2px;
-  border-radius: 0.375rem;
+  border-radius: 2px;
 }
 
 /* --------------------------------------------------- Typography scale
-   Tracking is size-specific: negative and tight as type grows, near zero
-   for body, slightly open for the smallest labels. */
+   Display sizes are set in Bricolage, condensed and tightly tracked; body
+   copy stays in the UI face, which is better hinted at small sizes. The
+   width axis does the work a second font would otherwise do. */
 
 .t-display {
-  font-size: clamp(2.25rem, 1.55rem + 3vw, 3.75rem);
-  line-height: 1.05;
-  letter-spacing: -0.026em;
-  font-weight: 600;
+  font-family: var(--font-display);
+  font-size: clamp(2.75rem, 1.5rem + 5.4vw, 6rem);
+  font-stretch: 82%;
+  font-weight: 500;
+  line-height: 0.92;
+  letter-spacing: -0.035em;
+  font-optical-sizing: auto;
+}
+
+.t-headline {
+  font-family: var(--font-display);
+  font-size: clamp(1.95rem, 1.35rem + 2.6vw, 3.5rem);
+  font-stretch: 86%;
+  font-weight: 500;
+  line-height: 0.98;
+  letter-spacing: -0.028em;
 }
 
 .t-title-1 {
-  font-size: clamp(1.6rem, 1.35rem + 1.1vw, 2.25rem);
-  line-height: 1.12;
-  letter-spacing: -0.021em;
-  font-weight: 600;
+  font-family: var(--font-display);
+  font-size: clamp(1.6rem, 1.3rem + 1.35vw, 2.4rem);
+  font-stretch: 90%;
+  font-weight: 550;
+  line-height: 1.08;
+  letter-spacing: -0.022em;
 }
 
 .t-title-2 {
-  font-size: clamp(1.25rem, 1.15rem + 0.5vw, 1.4rem);
-  line-height: 1.22;
-  letter-spacing: -0.015em;
+  font-family: var(--font-display);
+  font-size: clamp(1.25rem, 1.13rem + 0.6vw, 1.5rem);
+  font-stretch: 94%;
   font-weight: 600;
+  line-height: 1.18;
+  letter-spacing: -0.016em;
 }
 
 .t-title-3 {
+  font-family: var(--font-display);
   font-size: 1.0625rem;
-  line-height: 1.3;
-  letter-spacing: -0.009em;
   font-weight: 600;
+  line-height: 1.28;
+  letter-spacing: -0.011em;
 }
 
-.t-body {
-  font-size: 1rem;
-  line-height: 1.55;
-  letter-spacing: 0;
+.t-body { font-size: 1rem; line-height: 1.58; letter-spacing: 0; }
+.t-callout { font-size: 0.9375rem; line-height: 1.5; letter-spacing: 0.002em; }
+.t-footnote { font-size: 0.8125rem; line-height: 1.45; letter-spacing: 0.006em; }
+.t-caption { font-size: 0.75rem; line-height: 1.35; letter-spacing: 0.012em; }
+
+/* The dossier's index mark: the small mono stamp that labels an exhibit,
+   a column, a rail position. Wide tracking is what makes four characters
+   read as a filing code rather than a word. */
+.t-mark {
+  font-family: var(--font-mono);
+  font-size: 0.6875rem;
+  font-weight: 500;
+  line-height: 1;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  font-variant-numeric: tabular-nums;
 }
 
-.t-callout {
-  font-size: 0.9375rem;
-  line-height: 1.5;
-  letter-spacing: 0.002em;
+/* A measured figure — always mono, always tabular, so a column of numbers
+   is a column and a changing value doesn't shove its neighbours. */
+.t-num {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum";
+  letter-spacing: -0.02em;
 }
 
-.t-footnote {
-  font-size: 0.8125rem;
-  line-height: 1.45;
-  letter-spacing: 0.006em;
-}
-
-.t-caption {
-  font-size: 0.75rem;
-  line-height: 1.35;
-  letter-spacing: 0.012em;
-}
-
-/* Numbers that change in place must not reflow their neighbours. */
 .tabular {
   font-variant-numeric: tabular-nums;
   font-feature-settings: "tnum";
@@ -299,24 +552,93 @@ body {
 
 /* Text sitting on a translucent material: a touch heavier and slightly more
    open, so it stays legible over whatever scrolls beneath it. */
-.on-material {
-  font-weight: 500;
-  letter-spacing: 0.004em;
+.on-material { font-weight: 500; letter-spacing: 0.004em; }
+
+/* --------------------------------------------------- Dossier primitives */
+
+/* The page grid. Named lines let a section opt into the full width of the
+   document without any viewport-unit arithmetic — which is what keeps a
+   full-bleed band exactly as wide as the page, scrollbar and all, on every
+   browser. The rail column is reserved space, never content: the rail
+   itself is fixed to the viewport so it survives scrolling. */
+.dossier {
+  --rail-w: 0px;
+  --gutter: 1.25rem;
+  --measure: 72rem;
+  display: grid;
+  align-content: start;
+  grid-template-columns:
+    [page-start] var(--rail-w)
+    [full-start] minmax(var(--gutter), 1fr)
+    [content-start] minmax(0, var(--measure))
+    [content-end] minmax(var(--gutter), 1fr)
+    [full-end page-end];
+}
+
+.dossier > * {
+  grid-column: content;
+  min-width: 0;
+}
+
+.dossier > .bleed {
+  grid-column: full;
+}
+
+/* Aligns content inside a bled band back onto the reading column. */
+.bleed-inner {
+  margin-inline: auto;
+  width: 100%;
+  max-width: var(--measure, 72rem);
+  padding-inline: var(--gutter, 1.25rem);
+}
+
+@media (min-width: 1024px) {
+  .dossier {
+    --rail-w: 4.75rem;
+    --gutter: 2rem;
+  }
+}
+
+/* The ruled ledger: rows separated by hairlines rather than boxed in cards.
+   Used wherever data is a list of facts and elevation would be a lie. */
+.ruled > * + * { border-top: 1px solid var(--rule); }
+.ruled-x > * + * { border-left: 1px solid var(--rule); }
+
+/* An outlined numeral, for the oversized index figures in the margin. They
+   need to be present without competing with content for ink. */
+.numeral-ghost {
+  -webkit-text-stroke: 1.25px var(--rule);
+  color: transparent;
+  font-family: var(--font-display);
+  font-stretch: 78%;
+  font-weight: 600;
+  line-height: 0.8;
+}
+
+/* The vertical stamp running down the index rail. */
+.rail-stamp {
+  writing-mode: vertical-rl;
+  text-orientation: mixed;
+}
+
+/* Graph-paper ground for recessed wells — the lab-notebook reference. */
+.grid-paper {
+  background-image:
+    linear-gradient(to right, var(--line) 1px, transparent 1px),
+    linear-gradient(to bottom, var(--line) 1px, transparent 1px);
+  background-size: 22px 22px;
+}
+
+/* A single hairline that draws itself in when its section arrives. */
+.rule-draw {
+  transform-origin: left center;
+  animation: rule-draw 900ms var(--ease-out-expo) both;
 }
 
 /* ---------------------------------------------------------- Materials */
 
-/* The tint of a translucent surface. The blur itself is applied with Tailwind's
-   backdrop utilities at the usage site, NOT here: written as plain CSS,
-   Lightning collapses `backdrop-filter` down to the `-webkit-` alias alone,
-   which current Chrome no longer supports — so the glass silently renders flat.
-   Tailwind's utilities emit both the prefixed and standard properties. */
-.material {
-  background: var(--material);
-}
+.material { background: var(--material); }
 
-/* The floating nav pill is a bigger surface than flat chrome, so it reads as
-   thicker: a deeper shadow, and a bright top edge where light catches glass. */
 .material-pill {
   box-shadow: var(--elev-lift), inset 0 1px 0 var(--material-edge);
 }
@@ -325,15 +647,26 @@ body {
    suppressed for reduced motion. */
 .ambient {
   background:
-    radial-gradient(55rem 32rem at 100% -8%, var(--accent-wash), transparent 70%),
-    radial-gradient(40rem 30rem at 0% 0%, var(--well), transparent 60%);
+    radial-gradient(58rem 34rem at 100% -10%, var(--accent-wash), transparent 68%),
+    radial-gradient(42rem 32rem at -5% 4%, var(--well), transparent 62%);
+}
+
+/* Film grain. Fixed and pointer-events-none, so it never forces a repaint
+   on a scrolling layer. */
+.grain::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  pointer-events: none;
+  opacity: 0.035;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3'/%3E%3C/filter%3E%3Crect width='140' height='140' filter='url(%23n)'/%3E%3C/svg%3E");
 }
 
 /* A modal task pushes the page back and dims it; the sheet itself is
    portalled out, so this transform never traps it. */
 [data-page-content] {
-  transition: transform 400ms cubic-bezier(0.32, 0.72, 0, 1),
-    filter 400ms ease;
+  transition: transform 400ms var(--ease-spring), filter 400ms ease;
 }
 
 :root[data-sheet-open="true"] [data-page-content] {
@@ -343,25 +676,42 @@ body {
 
 /* ------------------------------------------------------------ Motion */
 
-/* Easing used by the theme view-transition keyframes. */
 :root {
-  --expo-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-out-quint: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-spring: cubic-bezier(0.32, 0.72, 0, 1);
+  --expo-out: var(--ease-out-expo);
 }
 
 ::view-transition-old(root),
-::view-transition-new(root) {
-  mix-blend-mode: normal;
-}
+::view-transition-new(root) { mix-blend-mode: normal; }
 
 @keyframes shimmer {
   from { transform: translateX(-100%); }
   to { transform: translateX(100%); }
 }
 
-.shimmer {
-  position: relative;
-  overflow: hidden;
+@keyframes rule-draw {
+  from { transform: scaleX(0); }
+  to { transform: scaleX(1); }
 }
+
+@keyframes marquee {
+  from { transform: translateX(0); }
+  to { transform: translateX(-50%); }
+}
+
+@keyframes drift {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-6px); }
+}
+
+@keyframes blink {
+  0%, 45% { opacity: 1; }
+  55%, 100% { opacity: 0.15; }
+}
+
+.shimmer { position: relative; overflow: hidden; }
 
 .shimmer::after {
   content: "";
@@ -371,72 +721,84 @@ body {
   animation: shimmer 1.4s ease-in-out infinite;
 }
 
+.marquee-track {
+  display: flex;
+  width: max-content;
+  animation: marquee var(--marquee-duration, 42s) linear infinite;
+}
+
+.marquee-host:hover .marquee-track { animation-play-state: paused; }
+
+.drift { animation: drift 6s ease-in-out infinite; }
+.blink { animation: blink 1.6s steps(1, end) infinite; }
+
 /* --------------------------------------------------- Accessibility
    Reduced motion keeps the feedback and drops the vestibular part. */
 
 @media (prefers-reduced-motion: reduce) {
-  /* The theme still changes — it just stops sweeping across the viewport. */
   ::view-transition-group(*),
   ::view-transition-old(*),
-  ::view-transition-new(*) {
-    animation: none !important;
-  }
-  .shimmer::after {
-    animation: none;
-    background: var(--well);
-  }
-  [data-page-content] {
-    transition: filter 200ms ease;
-  }
-  :root[data-sheet-open="true"] [data-page-content] {
-    transform: none;
-  }
-  html {
-    scroll-behavior: auto;
-  }
+  ::view-transition-new(*) { animation: none !important; }
+
+  .shimmer::after { animation: none; background: var(--well); }
+  .marquee-track,
+  .drift,
+  .blink,
+  .rule-draw { animation: none; }
+  .rule-draw { transform: none; }
+
+  [data-page-content] { transition: filter 200ms ease; }
+  :root[data-sheet-open="true"] [data-page-content] { transform: none; }
+  html { scroll-behavior: auto; }
 }
 
 /* Frostier and solid rather than see-through. */
 @media (prefers-reduced-transparency: reduce) {
-  :root {
-    --material: #ffffff;
-    --scrim: rgba(0, 0, 0, 0.45);
-  }
-  :root[data-theme="dark"] {
-    --material: #161618;
-  }
-  /* No rule needed to kill the blur: --material goes fully opaque above, and a
-     blur behind an opaque surface has nothing to show through it. */
-  .ambient {
-    background: none;
-  }
+  :root { --material: #ffffff; --scrim: rgba(0, 0, 0, 0.45); }
+  :root[data-theme="dark"] { --material: #141316; }
+  [data-field="ink"] { --material: #100e11; }
+  [data-field="accent"] { --material: #cf3f1d; }
+  .ambient { background: none; }
+  .grain::after { display: none; }
 }
 
 /* Near-solid backgrounds with a defined, contrasting border. */
 @media (prefers-contrast: more) {
   :root {
     --line: rgba(0, 0, 0, 0.35);
+    --rule: rgba(0, 0, 0, 0.45);
     --line-strong: rgba(0, 0, 0, 0.6);
-    --ink-2: rgba(29, 29, 31, 0.85);
-    --ink-3: rgba(29, 29, 31, 0.7);
+    --ink-2: rgba(20, 17, 15, 0.86);
+    --ink-3: rgba(20, 17, 15, 0.72);
     --material: #ffffff;
   }
   :root[data-theme="dark"] {
     --line: rgba(255, 255, 255, 0.35);
+    --rule: rgba(255, 255, 255, 0.45);
     --line-strong: rgba(255, 255, 255, 0.65);
-    --ink-2: rgba(235, 235, 245, 0.88);
-    --ink-3: rgba(235, 235, 245, 0.72);
-    --material: #161618;
+    --ink-2: rgba(245, 243, 240, 0.88);
+    --ink-3: rgba(245, 243, 240, 0.74);
+    --material: #141316;
   }
-  /* No rule needed to kill the blur: --material goes fully opaque above, and a
-     blur behind an opaque surface has nothing to show through it. */
+  [data-field="ink"] {
+    --line: rgba(255, 255, 255, 0.38);
+    --rule: rgba(255, 255, 255, 0.48);
+    --ink-2: rgba(246, 244, 241, 0.9);
+  }
+  [data-field="accent"] {
+    --line: rgba(255, 255, 255, 0.5);
+    --rule: rgba(255, 255, 255, 0.6);
+    --ink-2: rgba(255, 248, 245, 0.94);
+  }
+  .grain::after { display: none; }
 }
 
 @media print {
-  body {
-    background: #fff;
-    color: #000;
-  }
+  body { background: #fff; color: #000; overflow-x: visible; }
+  .dossier { --rail-w: 0px; }
+  [data-field="ink"],
+  [data-field="accent"] { background: #fff !important; color: #000 !important; }
+  .grain::after { display: none; }
 }
 
 .dark {
@@ -446,8 +808,8 @@ body {
   --card-foreground: oklch(0.985 0 0);
   --popover: oklch(0.205 0 0);
   --popover-foreground: oklch(0.985 0 0);
-  --primary: oklch(0.922 0 0);
-  --primary-foreground: oklch(0.205 0 0);
+  --primary: oklch(0.65 0.2 40);
+  --primary-foreground: oklch(0.99 0 0);
   --secondary: oklch(0.269 0 0);
   --secondary-foreground: oklch(0.985 0 0);
   --muted: oklch(0.269 0 0);
@@ -457,30 +819,24 @@ body {
   --destructive: oklch(0.704 0.191 22.216);
   --border: oklch(1 0 0 / 10%);
   --input: oklch(1 0 0 / 15%);
-  --ring: oklch(0.556 0 0);
-  --chart-1: oklch(0.87 0 0);
-  --chart-2: oklch(0.556 0 0);
-  --chart-3: oklch(0.439 0 0);
-  --chart-4: oklch(0.371 0 0);
-  --chart-5: oklch(0.269 0 0);
+  --ring: oklch(0.65 0.2 40);
+  --chart-1: oklch(0.65 0.2 40);
+  --chart-2: oklch(0.6 0.15 145);
+  --chart-3: oklch(0.7 0.15 75);
+  --chart-4: oklch(0.55 0.02 60);
+  --chart-5: oklch(0.75 0.12 45);
   --sidebar: oklch(0.205 0 0);
   --sidebar-foreground: oklch(0.985 0 0);
-  --sidebar-primary: oklch(0.488 0.243 264.376);
+  --sidebar-primary: oklch(0.65 0.2 40);
   --sidebar-primary-foreground: oklch(0.985 0 0);
   --sidebar-accent: oklch(0.269 0 0);
   --sidebar-accent-foreground: oklch(0.985 0 0);
   --sidebar-border: oklch(1 0 0 / 10%);
-  --sidebar-ring: oklch(0.556 0 0);
+  --sidebar-ring: oklch(0.65 0.2 40);
 }
 
 @layer base {
-  * {
-    @apply border-border outline-ring/50;
-  }
-  body {
-    @apply bg-background text-foreground;
-  }
-  html {
-    @apply font-sans;
-  }
+  * { @apply border-border outline-ring/50; }
+  body { @apply bg-background text-foreground; }
+  html { @apply font-sans; }
 }

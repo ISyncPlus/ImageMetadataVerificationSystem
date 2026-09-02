@@ -1,16 +1,15 @@
 "use client";
 
-import { useEffect, useState, useSyncExternalStore } from "react";
+import { useCallback, useEffect, useState, useSyncExternalStore } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import { signOut } from "../lib/auth-client";
 import type { Profile } from "../lib/api";
-import { ButtonLink } from "./ui/Button";
 import ThemeToggle from "./ui/ThemeToggle";
-import { Close, Menu, SignOut } from "./ui/icons";
+import { ArrowRight, SignOut } from "./ui/icons";
 import { BrandMark } from "./ui/BrandLogo";
-import { fade, springMove } from "../lib/motion";
+import { fade, springMove, springSnappy } from "../lib/motion";
 
 type AppNavbarProps = {
   session?: Profile | null;
@@ -42,20 +41,38 @@ const initials = (name: string) =>
     .map((part) => part[0]?.toUpperCase() ?? "")
     .join("");
 
-const NAV_LINKS = [
+type NavLink = {
+  label: string;
+  href: string;
+  /** Present when the link scrolls to a section of the landing page. */
+  targetId?: string;
+};
+
+const NAV_LINKS: readonly NavLink[] = [
   { label: "Demo", href: "/#interactive-demo", targetId: "interactive-demo" },
-  { label: "Case Studies", href: "/case-studies" },
-  { label: "FAQ", href: "/#faq", targetId: "faq" },
+  { label: "Method", href: "/#method", targetId: "method" },
+  { label: "Cases", href: "/case-studies" },
   { label: "Team", href: "/#team", targetId: "team" },
-  { label: "Location", href: "/#location", targetId: "location" },
-  { label: "Privacy", href: "/privacy" },
+  { label: "FAQ", href: "/#faq", targetId: "faq" },
 ];
 
+/* One glass recipe, so the three islands read as pieces of the same pane
+   rather than three separately-styled bars. */
+const ISLAND =
+  "material material-pill rounded-full border border-material-edge backdrop-blur-[18px] backdrop-saturate-[180%]";
+
+/**
+ * The navigation splits into three floating islands — identity, route, action —
+ * rather than one bar glued to the top edge. Detaching it lets the page scroll
+ * visibly beneath the chrome on all four sides, which is what makes the glass
+ * read as a layer above the document instead of a strip cut out of it.
+ */
 export default function AppNavbar({ session }: AppNavbarProps) {
   const router = useRouter();
   const pathname = usePathname();
   const reduced = useReducedMotion();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [hash, setHash] = useState("");
 
   const condensed = useSyncExternalStore(
     subscribeToScroll,
@@ -63,216 +80,329 @@ export default function AppNavbar({ session }: AppNavbarProps) {
     getServerCondensed
   );
 
-  // Close mobile menu on route change
+  /* Read in an effect, never during render: the server has no hash, so using
+     it to pick the active link would mismatch on hydration. */
+  useEffect(() => {
+    const sync = () => setHash(window.location.hash);
+    sync();
+    window.addEventListener("hashchange", sync);
+    return () => window.removeEventListener("hashchange", sync);
+  }, [pathname]);
+
   useEffect(() => {
     setMobileMenuOpen(false);
   }, [pathname]);
+
+  /* An open full-screen menu owns the viewport; the page behind it must not
+     scroll away underneath. */
+  useEffect(() => {
+    if (!mobileMenuOpen) return;
+    const previous = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+
+    const onKey = (event: KeyboardEvent) => {
+      if (event.key === "Escape") setMobileMenuOpen(false);
+    };
+    window.addEventListener("keydown", onKey);
+
+    return () => {
+      document.body.style.overflow = previous;
+      window.removeEventListener("keydown", onKey);
+    };
+  }, [mobileMenuOpen]);
 
   const handleSignOut = async () => {
     await signOut();
     router.replace("/login");
   };
 
-  const handleNavClick = (
-    e: React.MouseEvent<HTMLAnchorElement>,
-    href: string,
-    targetId?: string
-  ) => {
-    if (targetId && pathname === "/") {
-      e.preventDefault();
-      const elem = document.getElementById(targetId);
-      if (elem) {
-        elem.scrollIntoView({ behavior: "smooth" });
-        window.history.pushState(null, "", `#${targetId}`);
-      }
+  const handleNavClick = useCallback(
+    (
+      event: React.MouseEvent<HTMLAnchorElement>,
+      targetId?: string
+    ) => {
+      if (!targetId || pathname !== "/") return;
+      const element = document.getElementById(targetId);
+      if (!element) return;
+
+      event.preventDefault();
+      element.scrollIntoView({ behavior: reduced ? "auto" : "smooth" });
+      window.history.pushState(null, "", `#${targetId}`);
+      setHash(`#${targetId}`);
       setMobileMenuOpen(false);
-    }
-  };
+    },
+    [pathname, reduced]
+  );
+
+  const isActive = (link: NavLink) =>
+    link.href === pathname ||
+    (Boolean(link.targetId) && hash === `#${link.targetId}`);
 
   return (
-    <header className="sticky top-0 z-40 flex justify-center px-3 sm:px-4">
-      <motion.nav
-        animate={{
-          maxWidth: condensed ? 1040 : 1152,
-          marginTop: condensed ? 12 : 0,
-          borderRadius: condensed ? 999 : 16,
-          paddingLeft: condensed ? 14 : 16,
-          paddingRight: condensed ? 14 : 16,
-        }}
-        initial={false}
-        transition={reduced ? { duration: 0 } : springMove}
-        className="relative mx-auto flex w-full items-center justify-between gap-2 py-2 sm:gap-3"
-      >
-        {/* The glass material background */}
-        <motion.span
-          aria-hidden
+    <>
+      <header className="sticky top-0 z-40 px-3 pt-3 sm:px-5 sm:pt-4">
+        <motion.div
           initial={false}
-          animate={{ opacity: condensed ? 1 : 0.6 }}
-          transition={reduced ? { duration: 0 } : fade}
-          className="material material-pill absolute inset-0 rounded-[inherit] border border-material-edge backdrop-blur-[16px] backdrop-saturate-[190%]"
-        />
-
-        {/* Brand Logo & Title */}
-        <Link
-          href="/"
-          className="relative z-10 flex min-w-0 items-center gap-2.5 rounded-full py-1 pr-2 transition-transform duration-150 active:scale-[0.98]"
+          animate={{ paddingTop: condensed ? 0 : 4 }}
+          transition={reduced ? { duration: 0 } : springMove}
+          className="mx-auto flex w-full max-w-[86rem] items-center justify-between gap-3"
         >
-          <BrandMark size={30} />
-          <span className="min-w-0">
-            <span className="t-callout on-material block font-bold tracking-tight text-ink">
-              Provenance
+          {/* ------------------------------------------- Island 1: identity */}
+          <Link
+            href="/"
+            className={`${ISLAND} group relative z-10 flex min-w-0 items-center gap-2.5 py-2 pl-3 pr-4 transition-transform duration-150 active:scale-[0.98]`}
+          >
+            <span className="text-ink transition-transform duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:rotate-90">
+              <BrandMark size={22} />
             </span>
-            <AnimatePresence initial={false}>
-              {!condensed ? (
-                <motion.span
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  exit={{ opacity: 0 }}
-                  transition={fade}
-                  className="t-caption hidden truncate text-ink-2 xl:block"
-                >
-                  Image Metadata &amp; Verification
-                </motion.span>
-              ) : null}
-            </AnimatePresence>
-          </span>
-        </Link>
-
-        {/* Desktop Navigation Links — always present and styled */}
-        <div className="relative z-10 hidden items-center gap-1 md:flex lg:gap-1.5">
-          {NAV_LINKS.map((link) => {
-            const isActive =
-              link.href === pathname ||
-              (link.targetId && typeof window !== "undefined" && window.location.hash === `#${link.targetId}`);
-
-            return (
-              <Link
-                key={link.label}
-                href={link.href}
-                onClick={(e) => handleNavClick(e, link.href, link.targetId)}
-                className={`t-caption rounded-full px-2.5 py-1 text-xs font-semibold transition-all lg:px-3 lg:text-sm ${
-                  isActive
-                    ? "bg-accent text-accent-ink shadow-sm"
-                    : "text-ink-2 hover:bg-surface/80 hover:text-ink active:scale-95"
-                }`}
-              >
-                {link.label}
-              </Link>
-            );
-          })}
-        </div>
-
-        {/* Right Side User / CTA Actions */}
-        <div className="relative z-10 flex items-center gap-2">
-          {session ? (
-            <>
+            <span className="min-w-0">
+              <span className="t-mark on-material block text-ink">
+                Provenance
+              </span>
               <AnimatePresence initial={false}>
                 {!condensed ? (
                   <motion.span
-                    initial={{ opacity: 0, width: 0 }}
-                    animate={{ opacity: 1, width: "auto" }}
-                    exit={{ opacity: 0, width: 0 }}
-                    transition={reduced ? { duration: 0 } : springMove}
-                    className="hidden overflow-hidden whitespace-nowrap text-right lg:block"
+                    initial={{ opacity: 0, height: 0 }}
+                    animate={{ opacity: 1, height: "auto" }}
+                    exit={{ opacity: 0, height: 0 }}
+                    transition={fade}
+                    className="t-mark block overflow-hidden text-[0.5625rem] text-ink-3 xl:whitespace-nowrap"
                   >
-                    <span className="t-footnote on-material block truncate font-semibold text-ink">
-                      {session.name}
-                    </span>
-                    <span className="t-caption block truncate capitalize text-ink-2">
-                      {session.role}
-                      {session.identifier ? ` · ${session.identifier}` : ""}
-                    </span>
+                    IMVS · UNIZIK
                   </motion.span>
                 ) : null}
               </AnimatePresence>
+            </span>
+          </Link>
 
-              <span
-                title={`${session.name}${session.identifier ? ` · ${session.identifier}` : ""}`}
-                className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-accent-wash sm:h-9 sm:w-9"
-              >
-                <span className="t-caption font-semibold text-accent">
-                  {initials(session.name)}
-                </span>
-              </span>
-
-              <ThemeToggle />
-
-              <motion.button
-                type="button"
-                onClick={() => void handleSignOut()}
-                aria-label="Sign out"
-                whileTap={reduced ? { opacity: 0.7 } : { scale: 0.92 }}
-                transition={springMove}
-                className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-line text-ink-2 transition-colors duration-150 hover:border-bad hover:text-bad sm:h-9 sm:w-9"
-              >
-                <SignOut size={16} />
-              </motion.button>
-            </>
-          ) : (
-            <>
-              <ThemeToggle />
-              <ButtonLink href="/login" variant="primary" size="sm" className="hidden xs:inline-flex">
-                Sign in
-              </ButtonLink>
-            </>
-          )}
-
-          {/* Mobile Menu Hamburger Button */}
-          <button
-            type="button"
-            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            aria-label={mobileMenuOpen ? "Close menu" : "Open navigation menu"}
-            className="flex h-8 w-8 items-center justify-center rounded-full border border-line bg-surface text-ink transition-colors hover:bg-surface-2 md:hidden sm:h-9 sm:w-9"
+          {/* ---------------------------------------------- Island 2: route */}
+          <nav
+            aria-label="Sections"
+            className={`${ISLAND} relative z-10 hidden items-center gap-0.5 p-1 md:flex`}
           >
-            {mobileMenuOpen ? <Close size={18} /> : <Menu size={18} />}
-          </button>
-        </div>
-      </motion.nav>
-
-      {/* Mobile Menu Overlay Dropdown */}
-      <AnimatePresence>
-        {mobileMenuOpen && (
-          <motion.div
-            initial={{ opacity: 0, y: -8, scale: 0.98 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: -8, scale: 0.98 }}
-            transition={{ duration: 0.15 }}
-            className="absolute left-4 right-4 top-16 z-50 overflow-hidden rounded-2xl border border-material-edge bg-surface/95 p-4 shadow-2xl backdrop-blur-2xl md:hidden"
-          >
-            <div className="flex flex-col gap-1">
-              {NAV_LINKS.map((link) => (
+            {NAV_LINKS.map((link) => {
+              const active = isActive(link);
+              return (
                 <Link
                   key={link.label}
                   href={link.href}
-                  onClick={(e) => handleNavClick(e, link.href, link.targetId)}
-                  className="flex items-center justify-between rounded-xl px-3.5 py-2.5 text-sm font-semibold text-ink transition-colors hover:bg-surface-2 active:bg-accent active:text-accent-ink"
+                  onClick={(event) => handleNavClick(event, link.targetId)}
+                  aria-current={active ? "page" : undefined}
+                  className="relative rounded-full px-3 py-1.5 lg:px-3.5"
                 >
-                  <span>{link.label}</span>
-                  <span className="text-xs text-ink-3">&rarr;</span>
+                  {/* One thumb that travels, rather than a highlight that
+                      blinks from one link to the next. */}
+                  {active ? (
+                    reduced ? (
+                      <span className="absolute inset-0 rounded-full bg-accent" />
+                    ) : (
+                      <motion.span
+                        layoutId="nav-thumb"
+                        transition={springSnappy}
+                        className="absolute inset-0 rounded-full bg-accent shadow-accent"
+                      />
+                    )
+                  ) : null}
+                  <span
+                    className={`t-mark relative z-10 transition-colors duration-150 ${
+                      active
+                        ? "text-accent-ink"
+                        : "text-ink-2 hover:text-ink"
+                    }`}
+                  >
+                    {link.label}
+                  </span>
                 </Link>
-              ))}
+              );
+            })}
+          </nav>
 
-              <div className="mt-2 flex flex-col gap-2 border-t border-line pt-3">
-                {session ? (
+          {/* --------------------------------------------- Island 3: action */}
+          <div className={`${ISLAND} relative z-10 flex items-center gap-1.5 p-1.5`}>
+            {session ? (
+              <>
+                <AnimatePresence initial={false}>
+                  {!condensed ? (
+                    <motion.span
+                      initial={{ opacity: 0, width: 0 }}
+                      animate={{ opacity: 1, width: "auto" }}
+                      exit={{ opacity: 0, width: 0 }}
+                      transition={reduced ? { duration: 0 } : springMove}
+                      className="hidden overflow-hidden whitespace-nowrap pl-2 text-right lg:block"
+                    >
+                      <span className="t-footnote on-material block truncate font-semibold text-ink">
+                        {session.name}
+                      </span>
+                      <span className="t-mark block truncate text-[0.5625rem] text-ink-3">
+                        {session.role}
+                        {session.identifier ? ` · ${session.identifier}` : ""}
+                      </span>
+                    </motion.span>
+                  ) : null}
+                </AnimatePresence>
+
+                <span
+                  title={`${session.name}${
+                    session.identifier ? ` · ${session.identifier}` : ""
+                  }`}
+                  className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-accent-wash ring-1 ring-accent-edge"
+                >
+                  <span className="t-mark text-[0.625rem] text-accent-deep">
+                    {initials(session.name)}
+                  </span>
+                </span>
+
+                <ThemeToggle />
+
+                <motion.button
+                  type="button"
+                  onClick={() => void handleSignOut()}
+                  aria-label="Sign out"
+                  whileTap={reduced ? { opacity: 0.7 } : { scale: 0.92 }}
+                  transition={springMove}
+                  className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-line text-ink-2 transition-colors duration-150 hover:border-bad hover:text-bad"
+                >
+                  <SignOut size={15} />
+                </motion.button>
+              </>
+            ) : (
+              <>
+                <ThemeToggle />
+                {/* Button-in-button: the arrow lives in its own well, flush
+                    with the inner padding, and drifts on hover. */}
+                <Link
+                  href="/login"
+                  className="group hidden items-center gap-2 rounded-full bg-accent py-1 pl-4 pr-1 text-accent-ink shadow-accent transition-transform duration-200 active:scale-[0.97] xs:inline-flex"
+                >
+                  <span className="t-mark">Sign in</span>
+                  <span className="flex h-7 w-7 items-center justify-center rounded-full bg-black/15 transition-transform duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:translate-x-0.5 group-hover:scale-105">
+                    <ArrowRight size={13} strokeWidth={2.2} />
+                  </span>
+                </Link>
+              </>
+            )}
+
+            {/* -------------------------------------- Hamburger, morphing */}
+            <button
+              type="button"
+              onClick={() => setMobileMenuOpen((open) => !open)}
+              aria-label={mobileMenuOpen ? "Close menu" : "Open navigation menu"}
+              aria-expanded={mobileMenuOpen}
+              className="relative flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-line text-ink transition-colors hover:bg-well md:hidden"
+            >
+              <span className="relative block h-3 w-4">
+                <motion.span
+                  animate={
+                    mobileMenuOpen
+                      ? { rotate: 45, y: 5.5 }
+                      : { rotate: 0, y: 0 }
+                  }
+                  transition={reduced ? { duration: 0 } : springSnappy}
+                  className="absolute left-0 top-0 block h-[1.5px] w-4 rounded-full bg-current"
+                />
+                <motion.span
+                  animate={
+                    mobileMenuOpen
+                      ? { rotate: -45, y: -5.5 }
+                      : { rotate: 0, y: 0 }
+                  }
+                  transition={reduced ? { duration: 0 } : springSnappy}
+                  className="absolute bottom-0 left-0 block h-[1.5px] w-4 rounded-full bg-current"
+                />
+              </span>
+            </button>
+          </div>
+        </motion.div>
+      </header>
+
+      {/* ------------------------------------------ Full-screen menu overlay */}
+      <AnimatePresence>
+        {mobileMenuOpen ? (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
+            className="fixed inset-0 z-[45] flex flex-col justify-end bg-canvas/85 px-5 pb-8 pt-24 backdrop-blur-2xl md:hidden"
+          >
+            <motion.nav
+              aria-label="Site"
+              initial="hidden"
+              animate="shown"
+              exit="hidden"
+              variants={{
+                shown: { transition: { staggerChildren: 0.05, delayChildren: 0.06 } },
+                hidden: { transition: { staggerChildren: 0.02, staggerDirection: -1 } },
+              }}
+              className="ruled border-t border-rule"
+            >
+              {NAV_LINKS.map((link, index) => (
+                <motion.div
+                  key={link.label}
+                  variants={{
+                    /* The link rises out of an invisible box rather than
+                       fading in place — a mask reveal, staggered. */
+                    hidden: reduced
+                      ? { opacity: 0 }
+                      : { opacity: 0, y: 26, filter: "blur(5px)" },
+                    shown: reduced
+                      ? { opacity: 1 }
+                      : { opacity: 1, y: 0, filter: "blur(0px)" },
+                  }}
+                  transition={{ type: "spring", bounce: 0, duration: 0.5 }}
+                >
                   <Link
-                    href={session.role === "lecturer" ? "/lecturer" : "/student"}
-                    className="flex w-full items-center justify-center rounded-xl bg-accent px-4 py-2.5 text-sm font-semibold text-accent-ink"
+                    href={link.href}
+                    onClick={(event) => handleNavClick(event, link.targetId)}
+                    className="group flex items-baseline justify-between gap-4 py-4"
                   >
-                    Open {session.role === "lecturer" ? "Lecturer Ledger" : "Inspector"}
+                    <span className="t-title-1 text-ink transition-colors group-active:text-accent">
+                      {link.label}
+                    </span>
+                    <span className="t-mark text-ink-3">
+                      {String(index + 1).padStart(2, "0")}
+                    </span>
                   </Link>
-                ) : (
-                  <Link
-                    href="/login"
-                    className="flex w-full items-center justify-center rounded-xl bg-accent px-4 py-2.5 text-sm font-semibold text-accent-ink"
-                  >
-                    Sign in to Provenance
-                  </Link>
-                )}
-              </div>
-            </div>
+                </motion.div>
+              ))}
+            </motion.nav>
+
+            <motion.div
+              initial={{ opacity: 0, y: 16 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: 8 }}
+              transition={{ delay: 0.2, duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
+              className="mt-8 flex flex-col gap-2"
+            >
+              <Link
+                href={
+                  session
+                    ? session.role === "lecturer"
+                      ? "/lecturer"
+                      : "/student"
+                    : "/login"
+                }
+                className="group flex items-center justify-between rounded-full bg-accent py-2 pl-6 pr-2 text-accent-ink shadow-accent"
+              >
+                <span className="t-callout font-semibold">
+                  {session
+                    ? `Open ${session.role === "lecturer" ? "the ledger" : "the inspector"}`
+                    : "Sign in to Provenance"}
+                </span>
+                <span className="flex h-9 w-9 items-center justify-center rounded-full bg-black/15 transition-transform duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] group-active:translate-x-1">
+                  <ArrowRight size={16} strokeWidth={2.2} />
+                </span>
+              </Link>
+              <Link
+                href="/privacy"
+                className="t-mark py-3 text-center text-ink-3"
+              >
+                Privacy &amp; data policy
+              </Link>
+            </motion.div>
           </motion.div>
-        )}
+        ) : null}
       </AnimatePresence>
-    </header>
+    </>
   );
 }

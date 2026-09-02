@@ -1,15 +1,9 @@
 import type { Metadata, Viewport } from "next";
 import { THEME_BOOTSTRAP } from "../lib/theme";
 import "./globals.css";
-import { Inter } from "next/font/google";
-import { cn } from "@/lib/utils";
 import GoogleAnalytics from "../components/GoogleAnalytics";
 
 const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://provenance-unizik.edu.ng";
-
-/* Exposed as --font-inter, not --font-sans: the theme's --font-sans appends the
-   platform fallback stack to it, and a variable cannot reference itself. */
-const inter = Inter({ subsets: ["latin"], variable: "--font-inter" });
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
@@ -70,8 +64,8 @@ export const metadata: Metadata = {
 
 export const viewport: Viewport = {
   themeColor: [
-    { media: "(prefers-color-scheme: light)", color: "#f5f5f7" },
-    { media: "(prefers-color-scheme: dark)", color: "#09090b" },
+    { media: "(prefers-color-scheme: light)", color: "#f7f5f1" },
+    { media: "(prefers-color-scheme: dark)", color: "#0b0a0c" },
   ],
 };
 
@@ -128,14 +122,31 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" suppressHydrationWarning className={cn("font-sans", inter.variable)}>
+    <html lang="en" suppressHydrationWarning className="font-sans">
       <head>
+        {/*
+          The three faces the first screen is set in. They live in /public and
+          are declared with @font-face in globals.css, so nothing is preloaded
+          by the framework on our behalf — these links are what stop the type
+          from arriving a beat after the layout does. Only the latin subsets
+          are preloaded; latin-ext loads on demand.
+        */}
+        {["inter", "bricolage-grotesque", "jetbrains-mono"].map((face) => (
+          <link
+            key={face}
+            rel="preload"
+            as="font"
+            type="font/woff2"
+            href={`/fonts/${face}-latin.woff2`}
+            crossOrigin="anonymous"
+          />
+        ))}
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLdOrg) }}
         />
       </head>
-      <body className="antialiased">
+      <body className="grain antialiased">
         <GoogleAnalytics />
         {/* Resolves the theme before first paint — no flash of the wrong one. */}
         <script dangerouslySetInnerHTML={{ __html: THEME_BOOTSTRAP }} />

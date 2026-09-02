@@ -61,3 +61,36 @@ export const rubberband = (
 /** Cascade delay for a list entrance. Capped so long lists never crawl. */
 export const stagger = (index: number, step = 0.045, max = 0.3): number =>
   Math.min(index * step, max);
+
+/** Section-scale arrival: heavier, slower, with room for a focus pull. */
+export const springArrive: Transition = {
+  type: "spring",
+  bounce: 0,
+  duration: 0.7,
+};
+
+/**
+ * CSS easing curves, mirrored from globals.css so a Motion transition and a
+ * plain CSS transition on the same element cannot drift apart.
+ */
+export const easeOutExpo = [0.16, 1, 0.3, 1] as const;
+export const easeOutQuint = [0.22, 1, 0.36, 1] as const;
+export const easeSpring = [0.32, 0.72, 0, 1] as const;
+
+/**
+ * Parent/child pair for a coordinated cascade. Both must live in the same
+ * client component tree for `staggerChildren` to reach the children at all.
+ */
+export const listParent = {
+  hidden: {},
+  shown: { transition: { staggerChildren: 0.055, delayChildren: 0.04 } },
+};
+
+export const listChild = {
+  hidden: { opacity: 0, y: 14 },
+  shown: {
+    opacity: 1,
+    y: 0,
+    transition: { type: "spring", bounce: 0, duration: 0.55 },
+  },
+};
