@@ -93,11 +93,11 @@ export const useSubmissions = (query: SubmissionQuery = {}): SubmissionsState =>
   const prepend = useCallback((entry: HistoryEntry) => {
     setSubmissions((current) => [entry, ...current]);
     setStats((current) => ({
-      ...current,
-      total: current.total + 1,
-      verified: current.verified + (entry.status === "Verified" ? 1 : 0),
-      suspicious: current.suspicious + (entry.status === "Suspicious" ? 1 : 0),
-      reused: current.reused + (entry.status === "Reused" ? 1 : 0),
+      total: (current?.total ?? 0) + 1,
+      verified: (current?.verified ?? 0) + (entry.status === "Verified" ? 1 : 0),
+      suspicious: (current?.suspicious ?? 0) + (entry.status === "Suspicious" ? 1 : 0),
+      reused: (current?.reused ?? 0) + (entry.status === "Reused" ? 1 : 0),
+      students: current?.students ?? 0,
     }));
   }, []);
 
@@ -107,11 +107,10 @@ export const useSubmissions = (query: SubmissionQuery = {}): SubmissionsState =>
       if (target) {
         setStats((counts) => ({
           ...counts,
-          total: Math.max(0, counts.total - 1),
-          verified: counts.verified - (target.status === "Verified" ? 1 : 0),
-          suspicious:
-            counts.suspicious - (target.status === "Suspicious" ? 1 : 0),
-          reused: counts.reused - (target.status === "Reused" ? 1 : 0),
+          total: Math.max(0, (counts?.total ?? 0) - 1),
+          verified: Math.max(0, (counts?.verified ?? 0) - (target.status === "Verified" ? 1 : 0)),
+          suspicious: Math.max(0, (counts?.suspicious ?? 0) - (target.status === "Suspicious" ? 1 : 0)),
+          reused: Math.max(0, (counts?.reused ?? 0) - (target.status === "Reused" ? 1 : 0)),
         }));
       }
       return current.filter((entry) => entry.id !== id);

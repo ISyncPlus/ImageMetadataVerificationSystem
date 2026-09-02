@@ -62,10 +62,10 @@ const REPORT_STYLES = `
 `;
 
 const reportHeader = (title: string): string => `
-  <h1>Provenance — Image Metadata &amp; Verification Report</h1>
+  <h1>Provenance - Image Metadata &amp; Verification Report</h1>
   <div class="subtitle">
     ${title}<br/>
-    Faculty of Physical Sciences, Nnamdi Azikiwe University — Case Study
+    Faculty of Physical Sciences, Nnamdi Azikiwe University: Practical Case Study
   </div>
 `;
 
@@ -86,7 +86,7 @@ export const buildEntryReportHtml = (entry: HistoryEntry): string => {
 <html lang="en">
 <head>
 <meta charset="utf-8"/>
-<title>Verification Report — ${escapeHtml(entry.fileName)}</title>
+<title>Verification Report: ${escapeHtml(entry.fileName)}</title>
 <style>${REPORT_STYLES}</style>
 </head>
 <body>
@@ -140,12 +140,12 @@ export const buildSummaryReportHtml = (entries: HistoryEntry[]): string => {
       (entry) => `
     <tr>
       <td>${escapeHtml(entry.fileName)}</td>
-      <td>${entry.submittedBy ? escapeHtml(entry.submittedBy.name) : "—"}</td>
+      <td>${entry.submittedBy ? escapeHtml(entry.submittedBy.name) : "-"}</td>
       <td>${formatDateTime(entry.checkedAt)}</td>
       <td style="color:${statusColor[entry.status] ?? "#1a1a1a"};font-weight:bold;">${entry.status}</td>
-      <td>${escapeHtml(entry.metadata.captureTime ?? "—")}</td>
+      <td>${escapeHtml(entry.metadata.captureTime ?? "-")}</td>
       <td>${formatCoordinates(entry)}</td>
-      <td>${escapeHtml(entry.metadata.device ?? "—")}</td>
+      <td>${escapeHtml(entry.metadata.device ?? "-")}</td>
     </tr>`
     )
     .join("");
@@ -182,18 +182,49 @@ export const buildSummaryReportHtml = (entries: HistoryEntry[]): string => {
 </html>`;
 };
 
-/** Opens the report in a new tab and triggers the browser's print dialog,
- * from which the lecturer can save it as a PDF. */
+/** Opens the report in a reliable new window or iframe with auto-print. */
 export const openPrintableReport = (html: string) => {
-  const reportWindow = window.open("", "_blank", "noopener,width=900,height=700");
-  if (!reportWindow) {
-    return;
+  try {
+    const blob = new Blob([html], { type: "text/html;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const win = window.open(url, "_blank");
+
+    if (win) {
+      win.focus();
+      win.onload = () => {
+        setTimeout(() => {
+          try {
+            win.print();
+          } catch {
+            // print fallback
+          }
+        }, 300);
+      };
+      return;
+    }
+
+    // If popup blocked, create an invisible iframe to invoke print directly
+    const iframe = document.createElement("iframe");
+    iframe.style.position = "fixed";
+    iframe.style.right = "0";
+    iframe.style.bottom = "0";
+    iframe.style.width = "0";
+    iframe.style.height = "0";
+    iframe.style.border = "0";
+    iframe.src = url;
+    document.body.appendChild(iframe);
+
+    iframe.onload = () => {
+      setTimeout(() => {
+        iframe.contentWindow?.focus();
+        iframe.contentWindow?.print();
+        setTimeout(() => {
+          document.body.removeChild(iframe);
+          URL.revokeObjectURL(url);
+        }, 1000);
+      }, 300);
+    };
+  } catch (e) {
+    console.error("Failed to generate printable report", e);
   }
-  reportWindow.document.open();
-  reportWindow.document.write(html);
-  reportWindow.document.close();
-  reportWindow.focus();
-  setTimeout(() => {
-    reportWindow.print();
-  }, 250);
 };

@@ -167,8 +167,8 @@ export default function LecturerDashboard() {
               <p className="t-mark text-accent-deep">File 03 · Submissions</p>
               <h2 className="t-title-1 mt-2 text-ink">
                 {isFiltered
-                  ? `${submissions.length} matching of ${stats.total}`
-                  : `${stats.total} ${stats.total === 1 ? "record" : "records"}`}
+                  ? `${submissions.length} matching of ${stats?.total ?? 0}`
+                  : `${stats?.total ?? 0} ${(stats?.total ?? 0) === 1 ? "record" : "records"}`}
               </h2>
             </div>
 

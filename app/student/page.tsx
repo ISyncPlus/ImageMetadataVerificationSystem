@@ -321,7 +321,7 @@ export default function StudentDashboard() {
             <Card
               mark="File 02"
               title="Your submissions"
-              subtitle={stats.total === 1 ? "1 record" : `${stats.total} records`}
+              subtitle={(stats?.total ?? 0) === 1 ? "1 record" : `${stats?.total ?? 0} records`}
               flush
               actions={
                 submissions.length > 0 ? (

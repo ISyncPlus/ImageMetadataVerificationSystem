@@ -76,8 +76,15 @@ export default function DashboardHeader({
   subtitle,
   slip,
 }: DashboardHeaderProps) {
+  const safeStats: DashboardStats = {
+    total: stats?.total ?? 0,
+    verified: stats?.verified ?? 0,
+    suspicious: stats?.suspicious ?? 0,
+    reused: stats?.reused ?? 0,
+  };
+
   const verifiedRate =
-    stats.total > 0 ? Math.round((stats.verified / stats.total) * 100) : 0;
+    safeStats.total > 0 ? Math.round((safeStats.verified / safeStats.total) * 100) : 0;
 
   return (
     <>
@@ -112,31 +119,31 @@ export default function DashboardHeader({
           <div className="ruled-x grid grid-cols-2 sm:grid-cols-4">
             <Reading
               label="Submissions"
-              value={stats.total}
+              value={safeStats.total}
               hint="Filed in total"
               tone="neutral"
             />
             <Reading
               label="Verified"
-              value={stats.verified}
+              value={safeStats.verified}
               hint="Four of four checks"
               tone="good"
             />
             <Reading
               label="Suspicious"
-              value={stats.suspicious}
+              value={safeStats.suspicious}
               hint="Time, place or device missing"
               tone="warn"
             />
             <Reading
               label="Reused"
-              value={stats.reused}
+              value={safeStats.reused}
               hint="Matches an earlier file"
               tone="bad"
             />
           </div>
 
-          {stats.total > 0 ? (
+          {safeStats.total > 0 ? (
             <div className="flex flex-col gap-3 border-t border-rule py-5 sm:flex-row sm:items-center sm:gap-6">
               <p className="t-mark shrink-0 text-ink-2">
                 <span className="t-num mr-1.5 text-[0.875rem] text-ink">
@@ -146,16 +153,16 @@ export default function DashboardHeader({
               </p>
               <div className="flex-1">
                 <StatusMeter
-                  total={stats.total}
+                  total={safeStats.total}
                   counts={{
-                    Verified: stats.verified,
-                    Suspicious: stats.suspicious,
-                    Reused: stats.reused,
+                    Verified: safeStats.verified,
+                    Suspicious: safeStats.suspicious,
+                    Reused: safeStats.reused,
                   }}
                 />
               </div>
               <p className="t-mark shrink-0 text-ink-3">
-                {stats.total} {stats.total === 1 ? "record" : "records"}
+                {safeStats.total} {safeStats.total === 1 ? "record" : "records"}
               </p>
             </div>
           ) : null}
