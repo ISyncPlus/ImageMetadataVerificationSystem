@@ -1,15 +1,9 @@
 import Link from "next/link";
 import PageShell from "../components/PageShell";
+import Field from "../components/ui/Field";
 import Reveal from "../components/ui/Reveal";
 import { ButtonLink } from "../components/ui/Button";
-import Breadcrumbs from "../components/ui/Breadcrumbs";
-import {
-  ArrowLeft,
-  Compass,
-  Doc,
-  HelpCircle,
-  ShieldCheck,
-} from "../components/ui/icons";
+import { ArrowUpRight, Compass, Doc, HelpCircle } from "../components/ui/icons";
 
 export const metadata = {
   title: "404: Record Not Found | Provenance",
@@ -17,116 +11,112 @@ export const metadata = {
     "The requested page, verification record, or audit ledger document could not be located in the Provenance system.",
 };
 
+const RECOVERY = [
+  {
+    href: "/case-studies",
+    icon: Doc,
+    index: "01",
+    title: "Case studies",
+    detail: "Geology, physics and chemistry audits already run at UNIZIK.",
+  },
+  {
+    href: "/student",
+    icon: Compass,
+    index: "02",
+    title: "Student inspector",
+    detail: "Check a coursework photograph against its own metadata.",
+  },
+  {
+    href: "/privacy",
+    icon: HelpCircle,
+    index: "03",
+    title: "Privacy policy",
+    detail: "What is read on the device, and what is filed on the server.",
+  },
+];
+
 export default function NotFound() {
   return (
-    <PageShell>
-      <div className="py-4">
-        <Breadcrumbs
-          items={[
-            { label: "Home", href: "/" },
-            { label: "404 Not Found" },
-          ]}
-        />
-      </div>
+    <PageShell stamp="Provenance — Record Not Found">
+      <Field pad="lg" className="pt-16">
+        <div className="grid gap-12 lg:grid-cols-12 lg:gap-10">
+          <div className="lg:col-span-7">
+            <div className="flex items-center gap-4">
+              <span className="t-mark text-warn">Status 404</span>
+              <span className="t-mark text-ink-2">Telemetry miss</span>
+              <span className="rule-draw h-px flex-1 bg-rule" />
+            </div>
 
-      <section className="flex flex-col items-center justify-center py-12 text-center sm:py-20">
-        <Reveal>
-          <div className="inline-flex items-center gap-2 rounded-full border border-line bg-surface px-4 py-1.5 shadow-card">
-            <span className="h-2 w-2 rounded-full bg-warn" />
-            <span className="t-caption font-mono font-semibold text-ink">
-              HTTP STATUS 404 · TELEMETRY MISS
+            <Reveal>
+              <h1 className="t-display mt-8 text-balance text-ink">
+                No record at this address.
+              </h1>
+            </Reveal>
+
+            <Reveal index={1}>
+              <p className="t-body mt-7 max-w-lg text-pretty text-ink-2">
+                The certificate, audit sheet or route you asked for is not in the
+                file. It may have been removed from the ledger, relocated, or
+                simply mistyped.
+              </p>
+            </Reveal>
+
+            <Reveal index={2} className="mt-9 flex flex-wrap gap-3">
+              <ButtonLink href="/" variant="primary" size="lg" arrow>
+                Back to the file
+              </ButtonLink>
+              <ButtonLink href="/login" size="lg" variant="secondary">
+                Sign in
+              </ButtonLink>
+            </Reveal>
+          </div>
+
+          {/* The 404 set as an oversized outlined figure — the same marginal
+              numeral the exhibits use, at the scale the error deserves. */}
+          <div className="hidden lg:col-span-5 lg:flex lg:items-center lg:justify-end">
+            <span
+              aria-hidden
+              className="numeral-ghost select-none text-[13rem] leading-none"
+            >
+              404
             </span>
           </div>
-        </Reveal>
+        </div>
 
-        <Reveal index={1}>
-          <h1 className="t-display mt-6 max-w-2xl text-balance text-ink font-bold tracking-tight">
-            The requested record or route does not exist.
-          </h1>
-        </Reveal>
-
-        <Reveal index={2}>
-          <p className="t-body mx-auto mt-4 max-w-lg text-pretty text-ink-2">
-            The verification certificate, audit sheet, or application route you are
-            looking for may have expired, been relocated, or entered incorrectly.
-          </p>
-        </Reveal>
-
-        <Reveal index={3} className="mt-8 flex flex-wrap items-center justify-center gap-3">
-          <ButtonLink href="/" variant="primary" size="lg">
-            <ArrowLeft size={16} />
-            Return to Homepage
-          </ButtonLink>
-          <ButtonLink href="/login" size="lg">
-            <ShieldCheck size={16} />
-            Sign in to Inspector
-          </ButtonLink>
-        </Reveal>
-
-        {/* Directory Recovery Grid */}
-        <Reveal index={4} className="mt-14 w-full max-w-3xl text-left">
-          <div className="rounded-2xl border border-line bg-surface p-6 shadow-card sm:p-8">
-            <p className="t-caption font-semibold uppercase tracking-wider text-accent">
-              Quick Directory Navigation
-            </p>
-            <div className="mt-4 grid gap-4 sm:grid-cols-3">
+        <div className="ruled mt-20 border-y border-rule">
+          {RECOVERY.map((item) => {
+            const Glyph = item.icon;
+            return (
               <Link
-                href="/case-studies"
-                className="group flex flex-col justify-between rounded-xl border border-line bg-surface-2 p-4 transition-all hover:border-accent hover:bg-surface"
+                key={item.href}
+                href={item.href}
+                className="group relative flex items-center gap-5 py-6"
               >
-                <div>
-                  <Doc size={20} className="text-accent group-hover:scale-110 transition-transform" />
-                  <p className="t-callout mt-2 font-semibold text-ink">
-                    Case Studies
-                  </p>
-                  <p className="t-caption mt-1 text-ink-2">
-                    UNIZIK Geology &amp; Physics field verification benchmarks.
-                  </p>
-                </div>
-                <span className="t-caption mt-3 font-semibold text-accent flex items-center gap-1">
-                  View Cases &rarr;
+                <span
+                  aria-hidden
+                  className="absolute inset-y-0 -left-4 w-0.5 origin-top scale-y-0 bg-accent transition-transform duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:scale-y-100 lg:-left-8"
+                />
+                <span className="t-num shrink-0 text-[0.8125rem] text-ink-3">
+                  {item.index}
                 </span>
-              </Link>
-
-              <Link
-                href="/student"
-                className="group flex flex-col justify-between rounded-xl border border-line bg-surface-2 p-4 transition-all hover:border-accent hover:bg-surface"
-              >
-                <div>
-                  <Compass size={20} className="text-accent group-hover:scale-110 transition-transform" />
-                  <p className="t-callout mt-2 font-semibold text-ink">
-                    Student Inspector
-                  </p>
-                  <p className="t-caption mt-1 text-ink-2">
-                    Upload photos for instantaneous in-browser telemetry checks.
-                  </p>
-                </div>
-                <span className="t-caption mt-3 font-semibold text-accent flex items-center gap-1">
-                  Open Inspector &rarr;
+                <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-md bg-well text-ink-2 ring-1 ring-line transition-colors duration-300 group-hover:bg-accent-wash group-hover:text-accent-deep">
+                  <Glyph size={17} />
                 </span>
-              </Link>
-
-              <Link
-                href="/privacy"
-                className="group flex flex-col justify-between rounded-xl border border-line bg-surface-2 p-4 transition-all hover:border-accent hover:bg-surface"
-              >
-                <div>
-                  <HelpCircle size={20} className="text-accent group-hover:scale-110 transition-transform" />
-                  <p className="t-callout mt-2 font-semibold text-ink">
-                    Privacy Policy
-                  </p>
-                  <p className="t-caption mt-1 text-ink-2">
-                    Zero-upload client security and NDPR cryptographic compliance.
-                  </p>
-                </div>
-                <span className="t-caption mt-3 font-semibold text-accent flex items-center gap-1">
-                  Read Policy &rarr;
+                <span className="min-w-0 flex-1">
+                  <span className="t-title-3 block text-ink">{item.title}</span>
+                  <span className="t-footnote mt-1 block text-ink-2">
+                    {item.detail}
+                  </span>
                 </span>
+                <ArrowUpRight
+                  size={16}
+                  className="shrink-0 text-ink-3 transition-transform duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:-translate-y-0.5 group-hover:translate-x-0.5"
+                />
               </Link>
-            </div>
-          </div>
-        </Reveal>
-      </section>
+            );
+          })}
+        </div>
+      </Field>
     </PageShell>
   );
 }

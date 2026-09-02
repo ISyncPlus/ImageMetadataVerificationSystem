@@ -24,7 +24,7 @@ export default function Breadcrumbs({ items, className = "" }: BreadcrumbsProps)
   };
 
   return (
-    <nav aria-label="Breadcrumbs" className={`flex items-center gap-1.5 text-xs text-ink-3 ${className}`}>
+    <nav aria-label="Breadcrumbs" className={`flex items-center gap-1.5 ${className}`}>
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
@@ -34,15 +34,15 @@ export default function Breadcrumbs({ items, className = "" }: BreadcrumbsProps)
           const isLast = index === items.length - 1;
           return (
             <li key={item.label} className="flex items-center gap-1.5">
-              {index > 0 && <ChevronRight size={12} className="text-ink-3 shrink-0" />}
+              {index > 0 && <ChevronRight size={11} className="shrink-0 text-ink-3" />}
               {isLast || !item.href ? (
-                <span className="font-semibold text-ink truncate max-w-[200px]" aria-current={isLast ? "page" : undefined}>
+                <span className="t-mark max-w-[200px] truncate text-ink" aria-current={isLast ? "page" : undefined}>
                   {item.label}
                 </span>
               ) : (
                 <Link
                   href={item.href}
-                  className="font-medium text-ink-2 hover:text-ink transition-colors underline-offset-4 hover:underline"
+                  className="t-mark text-ink-3 transition-colors hover:text-accent-deep"
                 >
                   {item.label}
                 </Link>

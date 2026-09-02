@@ -33,6 +33,24 @@ const getCondensedSnapshot = (): boolean => {
 
 const getServerCondensed = (): boolean => false;
 
+/* The active section lives in the URL hash, which is browser state rather than
+   React state. Reading it through an external store keeps the server render
+   (always "") and the client render in agreement, instead of writing it into
+   state from an effect and re-rendering the whole header a frame later. */
+const subscribeToHash = (callback: () => void): (() => void) => {
+  window.addEventListener("hashchange", callback);
+  window.addEventListener("popstate", callback);
+  return () => {
+    window.removeEventListener("hashchange", callback);
+    window.removeEventListener("popstate", callback);
+  };
+};
+
+const getHashSnapshot = (): string =>
+  typeof window === "undefined" ? "" : window.location.hash;
+
+const getServerHash = (): string => "";
+
 const initials = (name: string) =>
   name
     .split(" ")
@@ -72,7 +90,6 @@ export default function AppNavbar({ session }: AppNavbarProps) {
   const pathname = usePathname();
   const reduced = useReducedMotion();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [hash, setHash] = useState("");
 
   const condensed = useSyncExternalStore(
     subscribeToScroll,
@@ -80,18 +97,11 @@ export default function AppNavbar({ session }: AppNavbarProps) {
     getServerCondensed
   );
 
-  /* Read in an effect, never during render: the server has no hash, so using
-     it to pick the active link would mismatch on hydration. */
-  useEffect(() => {
-    const sync = () => setHash(window.location.hash);
-    sync();
-    window.addEventListener("hashchange", sync);
-    return () => window.removeEventListener("hashchange", sync);
-  }, [pathname]);
-
-  useEffect(() => {
-    setMobileMenuOpen(false);
-  }, [pathname]);
+  const hash = useSyncExternalStore(
+    subscribeToHash,
+    getHashSnapshot,
+    getServerHash
+  );
 
   /* An open full-screen menu owns the viewport; the page behind it must not
      scroll away underneath. */
@@ -127,8 +137,10 @@ export default function AppNavbar({ session }: AppNavbarProps) {
 
       event.preventDefault();
       element.scrollIntoView({ behavior: reduced ? "auto" : "smooth" });
+      /* pushState deliberately does not fire hashchange, so the store that
+         drives the active-link thumb has to be told the hash moved. */
       window.history.pushState(null, "", `#${targetId}`);
-      setHash(`#${targetId}`);
+      window.dispatchEvent(new Event("hashchange"));
       setMobileMenuOpen(false);
     },
     [pathname, reduced]
@@ -272,7 +284,7 @@ export default function AppNavbar({ session }: AppNavbarProps) {
                     with the inner padding, and drifts on hover. */}
                 <Link
                   href="/login"
-                  className="group hidden items-center gap-2 rounded-full bg-accent py-1 pl-4 pr-1 text-accent-ink shadow-accent transition-transform duration-200 active:scale-[0.97] xs:inline-flex"
+                  className="group hidden items-center gap-2 rounded-full bg-accent py-1 pl-4 pr-1 text-accent-ink shadow-accent transition-transform duration-200 active:scale-[0.97] sm:inline-flex"
                 >
                   <span className="t-mark">Sign in</span>
                   <span className="flex h-7 w-7 items-center justify-center rounded-full bg-black/15 transition-transform duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:translate-x-0.5 group-hover:scale-105">
@@ -353,7 +365,13 @@ export default function AppNavbar({ session }: AppNavbarProps) {
                 >
                   <Link
                     href={link.href}
-                    onClick={(event) => handleNavClick(event, link.targetId)}
+                    onClick={(event) => {
+                      handleNavClick(event, link.targetId);
+                      /* Route links navigate away; closing here rather than
+                         from a pathname effect avoids a render pass whose only
+                         job is to undo state the click already resolved. */
+                      setMobileMenuOpen(false);
+                    }}
                     className="group flex items-baseline justify-between gap-4 py-4"
                   >
                     <span className="t-title-1 text-ink transition-colors group-active:text-accent">

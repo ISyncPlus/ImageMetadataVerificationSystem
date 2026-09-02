@@ -5,6 +5,7 @@ import DashboardHeader from "../../components/DashboardHeader";
 import HistoryList from "../../components/HistoryList";
 import PageShell from "../../components/PageShell";
 import Card from "../../components/ui/Card";
+import Field from "../../components/ui/Field";
 import Reveal from "../../components/ui/Reveal";
 import { Button } from "../../components/ui/Button";
 import SubmitWorkspace from "../../components/dashboard/SubmitWorkspace";
@@ -212,99 +213,152 @@ export default function StudentDashboard() {
 
   if (profileLoading || !profile) {
     return (
-      <PageShell>
-        <div className="flex flex-col gap-4 pt-4">
-          <div className="shimmer h-8 w-64 rounded-lg bg-well" />
-          <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-            {[0, 1, 2, 3].map((index) => (
-              <div key={index} className="shimmer h-24 rounded-xl bg-well" />
-            ))}
+      <PageShell stamp="Student Inspector">
+        <Field pad="none" className="pt-12">
+          <div className="flex flex-col gap-5">
+            <div className="shimmer h-3 w-40 rounded-sm bg-well" />
+            <div className="shimmer h-10 w-80 max-w-full rounded-sm bg-well" />
+            <div className="ruled-x mt-6 grid grid-cols-2 border-y border-rule sm:grid-cols-4">
+              {[0, 1, 2, 3].map((index) => (
+                <div key={index} className="px-5 py-7 first:pl-0">
+                  <div className="shimmer h-2.5 w-20 rounded-sm bg-well" />
+                  <div className="shimmer mt-4 h-8 w-14 rounded-sm bg-well" />
+                </div>
+              ))}
+            </div>
+            <div className="mt-4 grid gap-6 lg:grid-cols-12">
+              <div className="shimmer h-96 rounded-lg bg-well lg:col-span-7" />
+              <div className="shimmer h-96 rounded-lg bg-well lg:col-span-5" />
+            </div>
           </div>
-          <div className="shimmer h-72 rounded-2xl bg-well" />
-        </div>
+        </Field>
       </PageShell>
     );
   }
 
+  const filedToday = submissions.filter(
+    (item) =>
+      new Date(item.checkedAt).toDateString() === new Date().toDateString()
+  ).length;
+
   return (
-    <PageShell session={profile}>
-      <div className="py-2">
+    <PageShell session={profile} stamp="Student Inspector · Case File">
+      <Field pad="none" className="pt-6">
         <Breadcrumbs
-          items={[
-            { label: "Home", href: "/" },
-            { label: "Student Inspector" },
-          ]}
+          items={[{ label: "Home", href: "/" }, { label: "Student Inspector" }]}
         />
-      </div>
+      </Field>
 
       <DashboardHeader
         stats={stats}
-        eyebrow="Student"
-        title={`Welcome, ${profile.name.split(" ")[0]}`}
-        subtitle="Submit an original practical, laboratory, fieldwork or SIWES photo. Your file is read on this device: only the resulting record is filed."
+        eyebrow="Student · Inspector"
+        title={`Welcome back, ${profile.name.split(" ")[0]}`}
+        subtitle="Submit an original practical, laboratory, fieldwork or SIWES photograph. It is read here on your device; only the resulting record is filed."
+        slip={
+          /* The reader's own credentials, set as a slip clipped to the file —
+             the same object language as the specimen card on the landing page. */
+          <div className="w-full max-w-xs overflow-hidden rounded-lg border border-line bg-surface shadow-card">
+            <div className="flex items-center justify-between gap-3 border-b border-rule bg-surface-2/60 px-4 py-2.5">
+              <span className="t-mark text-ink-3">Registered</span>
+              <span className="t-mark text-accent-deep">Student</span>
+            </div>
+            <dl className="ruled px-4">
+              <div className="flex items-baseline justify-between gap-4 py-2.5">
+                <dt className="t-mark text-ink-3">Name</dt>
+                <dd className="t-footnote truncate font-semibold text-ink">
+                  {profile.name}
+                </dd>
+              </div>
+              <div className="flex items-baseline justify-between gap-4 py-2.5">
+                <dt className="t-mark text-ink-3">Reg. no</dt>
+                <dd className="t-num text-[0.8125rem] text-ink">
+                  {profile.identifier || "—"}
+                </dd>
+              </div>
+              <div className="flex items-baseline justify-between gap-4 py-2.5">
+                <dt className="t-mark text-ink-3">Filed today</dt>
+                <dd className="t-num text-[0.8125rem] text-ink">
+                  {String(filedToday).padStart(2, "0")}
+                </dd>
+              </div>
+            </dl>
+          </div>
+        }
       />
 
-      <div className="grid gap-4 lg:grid-cols-5">
-        <Reveal index={2} className="lg:col-span-3">
-          <SubmitWorkspace
-            phase={phase}
-            previewUrl={previewUrl}
-            fileName={fileName}
-            step={step}
-            error={error}
-            entry={entry}
-            duplicateOfOtherUser={duplicateOfOtherUser}
-            offlineNotice={offlineNotice}
-            onFile={(file) => void handleFile(file)}
-            onReset={reset}
-            onReport={() => entry && openPrintableReport(buildEntryReportHtml(entry))}
-          />
-        </Reveal>
+      <Field pad="md">
+        {/* Deliberately off-balance: the bench takes the larger share, because
+            checking a photograph is the task and the history is the reference
+            beside it. */}
+        <div className="grid gap-6 lg:grid-cols-12 lg:gap-8">
+          <Reveal index={2} mode="scroll" className="lg:col-span-7">
+            <SubmitWorkspace
+              phase={phase}
+              previewUrl={previewUrl}
+              fileName={fileName}
+              step={step}
+              error={error}
+              entry={entry}
+              duplicateOfOtherUser={duplicateOfOtherUser}
+              offlineNotice={offlineNotice}
+              onFile={(file) => void handleFile(file)}
+              onReset={reset}
+              onReport={() => entry && openPrintableReport(buildEntryReportHtml(entry))}
+            />
+          </Reveal>
 
-        <Reveal index={3} className="lg:col-span-2">
-          <Card
-            title="Your submissions"
-            subtitle={
-              stats.total === 1 ? "1 record" : `${stats.total} records`
-            }
-            actions={
-              submissions.length > 0 ? (
-                <Button
-                  size="sm"
-                  onClick={() =>
-                    openPrintableReport(buildSummaryReportHtml(submissions))
+          <Reveal index={3} mode="scroll" className="lg:col-span-5">
+            <Card
+              mark="File 02"
+              title="Your submissions"
+              subtitle={stats.total === 1 ? "1 record" : `${stats.total} records`}
+              flush
+              actions={
+                submissions.length > 0 ? (
+                  <Button
+                    size="sm"
+                    variant="quiet"
+                    onClick={() =>
+                      openPrintableReport(buildSummaryReportHtml(submissions))
+                    }
+                  >
+                    <Doc size={14} />
+                    Summary
+                  </Button>
+                ) : null
+              }
+              bodyClassName="max-h-[34rem] overflow-y-auto px-3 py-3"
+            >
+              {listError ? (
+                <p className="t-footnote flex items-start gap-2 rounded-sm border-l-2 border-bad bg-bad-wash px-3.5 py-2.5 text-bad">
+                  <Alert size={14} className="mt-0.5 shrink-0" />
+                  {listError}
+                </p>
+              ) : initialLoading ? (
+                <div className="ruled">
+                  {[0, 1, 2, 3].map((index) => (
+                    <div key={index} className="flex items-center gap-3.5 py-3">
+                      <div className="shimmer h-11 w-11 shrink-0 rounded-sm bg-well" />
+                      <div className="flex-1">
+                        <div className="shimmer h-3 w-2/3 rounded-sm bg-well" />
+                        <div className="shimmer mt-2 h-2.5 w-1/2 rounded-sm bg-well" />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <HistoryList
+                  entries={submissions}
+                  onEntryReport={(item) =>
+                    openPrintableReport(buildEntryReportHtml(item))
                   }
-                >
-                  <Doc size={14} />
-                  Summary
-                </Button>
-              ) : null
-            }
-            bodyClassName="max-h-[32rem] overflow-y-auto"
-          >
-            {listError ? (
-              <p className="t-footnote flex items-start gap-2 rounded-xl border border-bad/30 bg-bad-wash px-3.5 py-2.5 text-bad">
-                <Alert size={14} className="mt-0.5 shrink-0" />
-                {listError}
-              </p>
-            ) : initialLoading ? (
-              <div className="flex flex-col gap-2.5">
-                {[0, 1, 2].map((index) => (
-                  <div key={index} className="shimmer h-20 rounded-xl bg-well" />
-                ))}
-              </div>
-            ) : (
-              <HistoryList
-                entries={submissions}
-                onEntryReport={(item) =>
-                  openPrintableReport(buildEntryReportHtml(item))
-                }
-                emptyMessage="Nothing checked yet. Your submissions will appear here."
-              />
-            )}
-          </Card>
-        </Reveal>
-      </div>
+                  emptyMessage="Nothing checked yet. Records appear here as you verify coursework photographs."
+                />
+              )}
+            </Card>
+          </Reveal>
+        </div>
+      </Field>
     </PageShell>
   );
 }

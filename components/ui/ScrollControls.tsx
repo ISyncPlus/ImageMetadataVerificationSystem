@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import { ChevronDown, ChevronUp } from "./icons";
-import { fade, springMove, springSnappy } from "../../lib/motion";
+import { springMove, springSnappy } from "../../lib/motion";
 
 /**
  * ScrollControls
@@ -58,7 +58,7 @@ export default function ScrollControls() {
           exit={reduced ? { opacity: 0 } : { opacity: 0, y: 12, scale: 0.92 }}
           transition={springMove}
           aria-label="Page scroll navigation"
-          className="fixed bottom-6 right-6 z-40 flex flex-col items-center gap-1.5 rounded-full border border-line bg-surface/85 p-1.5 shadow-lift backdrop-blur-md"
+          className="fixed bottom-24 right-4 z-40 flex flex-col items-center gap-1 rounded-full border border-material-edge bg-material p-1.5 shadow-lift backdrop-blur-xl sm:bottom-6 sm:right-6"
         >
           {/* Scroll to Top */}
           <motion.button
@@ -69,7 +69,7 @@ export default function ScrollControls() {
             whileHover={reduced ? {} : { scale: 1.08 }}
             whileTap={reduced ? { opacity: 0.7 } : { scale: 0.9 }}
             transition={springSnappy}
-            className="flex h-9 w-9 items-center justify-center rounded-full bg-well text-ink transition-colors hover:bg-accent hover:text-accent-ink"
+            className="flex h-9 w-9 items-center justify-center rounded-full bg-well text-ink-2 transition-colors hover:bg-accent hover:text-accent-ink"
           >
             <ChevronUp size={16} strokeWidth={2.4} />
           </motion.button>
@@ -85,7 +85,7 @@ export default function ScrollControls() {
               whileHover={reduced ? {} : { scale: 1.08 }}
               whileTap={reduced ? { opacity: 0.7 } : { scale: 0.9 }}
               transition={springSnappy}
-              className="flex h-9 w-9 items-center justify-center rounded-full bg-well text-ink transition-colors hover:bg-accent hover:text-accent-ink"
+              className="flex h-9 w-9 items-center justify-center rounded-full bg-well text-ink-2 transition-colors hover:bg-accent hover:text-accent-ink"
             >
               <ChevronDown size={16} strokeWidth={2.4} />
             </motion.button>

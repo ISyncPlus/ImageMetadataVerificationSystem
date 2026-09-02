@@ -28,18 +28,18 @@ export default function HistoryList({
 
   if (entries.length === 0) {
     return (
-      <div className="flex flex-col items-center gap-2 rounded-xl border border-dashed border-line py-10 text-center">
-        <span className="flex h-10 w-10 items-center justify-center rounded-full bg-well text-ink-3">
+      <div className="flex flex-col items-center gap-3 border border-dashed border-line px-6 py-12 text-center">
+        <span className="flex h-11 w-11 items-center justify-center rounded-sm bg-well text-ink-3 ring-1 ring-line">
           <Doc size={18} />
         </span>
-        <p className="t-footnote max-w-xs text-ink-2">{emptyMessage}</p>
+        <p className="t-footnote max-w-xs text-pretty text-ink-2">{emptyMessage}</p>
       </div>
     );
   }
 
   return (
     <>
-      <ul className="flex flex-col gap-2">
+      <ul className="ruled -mx-3 border-y border-rule">
         <AnimatePresence initial={false}>
           {entries.map((entry) => (
             /* Filtering rearranges the list rather than redrawing it, so a row

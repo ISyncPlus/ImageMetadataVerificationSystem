@@ -11,6 +11,9 @@ export type RailMark = {
   label: string;
 };
 
+/** Stable identity, so the observer effect is not re-run on every render. */
+const NO_MARKS: readonly RailMark[] = [];
+
 type DossierRailProps = {
   /** Vertical stamp running down the top of the rail. */
   stamp?: string;
@@ -33,7 +36,7 @@ type DossierRailProps = {
  */
 export default function DossierRail({
   stamp = "Provenance — Case File",
-  marks = [],
+  marks = NO_MARKS,
 }: DossierRailProps) {
   const { scrollYProgress } = useScroll();
   const [activeId, setActiveId] = useState<string | null>(null);
@@ -78,8 +81,9 @@ export default function DossierRail({
   return (
     <aside
       aria-hidden
+      /* Width matches --rail-w on .dossier, which reserves this column so the
+         reading content never slides underneath. */
       className="pointer-events-none fixed inset-y-0 left-0 z-30 hidden w-19 flex-col items-center justify-between border-r border-rule py-5 lg:flex"
-      style={{ width: "4.75rem" }}
     >
       {/* Datum mark — the origin tile from the brand, reduced to its atom. */}
       <div className="flex flex-col items-center gap-4">

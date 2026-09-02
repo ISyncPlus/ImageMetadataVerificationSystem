@@ -27,6 +27,12 @@ type ExhibitProps = {
  * split — display type on the left, the explanatory lede in the outer column
  * and dropped off its baseline. Symmetry is what makes section headers
  * forgettable; this one is off-balance on purpose.
+ *
+ * There is no oversized marginal numeral here, though the design uses them
+ * elsewhere: at every viewport the page grid actually reaches, the margin
+ * beside an exhibit belongs to the rail, and a ghost figure placed there would
+ * either collide with the header's own action or overhang the section above.
+ * The index in the stamp line already names the exhibit.
  */
 export default function Exhibit({
   index,
@@ -73,17 +79,6 @@ export default function Exhibit({
           </div>
         ) : null}
       </div>
-
-      {/* The oversized outlined figure that marks the exhibit in the margin.
-          Hidden from assistive tech: the index above already says it. */}
-      {index ? (
-        <span
-          aria-hidden
-          className="numeral-ghost pointer-events-none absolute -top-10 right-0 hidden select-none text-[7rem] leading-none xl:block"
-        >
-          {index}
-        </span>
-      ) : null}
     </header>
   );
 }

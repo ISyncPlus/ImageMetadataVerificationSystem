@@ -8,7 +8,6 @@ import {
   useSpring,
 } from "motion/react";
 import type { ComponentProps, PointerEvent, ReactNode } from "react";
-import { useRef } from "react";
 import { ArrowRight } from "./icons";
 import { springSnappy } from "../../lib/motion";
 
@@ -70,7 +69,7 @@ function ArrowWell({ size }: { size: Size }) {
   return (
     <span
       aria-hidden
-      className={`ml-1 flex shrink-0 items-center justify-center rounded-full bg-current/12 transition-transform duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:translate-x-0.5 group-hover:-translate-y-px group-hover:scale-105 ${WELL_SIZES[size]}`}
+      className={`ml-1 flex shrink-0 items-center justify-center rounded-full bg-current/15 transition-transform duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:translate-x-0.5 group-hover:-translate-y-px group-hover:scale-105 ${WELL_SIZES[size]}`}
     >
       <ArrowRight size={size === "lg" ? 16 : 14} strokeWidth={2.2} />
     </span>
@@ -91,18 +90,24 @@ const usePress = () => {
 };
 
 /**
- * Pull toward the cursor. Written entirely with motion values so the pointer
- * never touches React state — a `useState` here would re-render the subtree on
- * every mousemove and collapse frame rate on anything but a desktop.
+ * Pull toward the cursor.
+ *
+ * Written entirely with motion values: the pointer never touches React state,
+ * because a `useState` here would re-render the subtree on every mousemove and
+ * collapse frame rate on anything but a desktop. The element is measured from
+ * `event.currentTarget`, so the hook needs no ref of its own — which also
+ * keeps it out of the render path entirely.
+ *
+ * Touch and pen are excluded: there is no cursor to be magnetic toward, and
+ * the drift would fight the tap.
  */
 const useMagnetic = (strength: number, enabled: boolean) => {
-  const ref = useRef<HTMLElement | null>(null);
   const x = useSpring(useMotionValue(0), { stiffness: 260, damping: 22, mass: 0.4 });
   const y = useSpring(useMotionValue(0), { stiffness: 260, damping: 22, mass: 0.4 });
 
   const onPointerMove = (event: PointerEvent<HTMLElement>) => {
-    if (!enabled || !ref.current || event.pointerType !== "mouse") return;
-    const rect = ref.current.getBoundingClientRect();
+    if (!enabled || event.pointerType !== "mouse") return;
+    const rect = event.currentTarget.getBoundingClientRect();
     x.set((event.clientX - (rect.left + rect.width / 2)) * strength);
     y.set((event.clientY - (rect.top + rect.height / 2)) * strength);
   };
@@ -112,7 +117,7 @@ const useMagnetic = (strength: number, enabled: boolean) => {
     y.set(0);
   };
 
-  return { ref, style: enabled ? { x, y } : undefined, onPointerMove, onPointerLeave };
+  return { style: enabled ? { x, y } : undefined, onPointerMove, onPointerLeave };
 };
 
 type Shared = {
@@ -143,7 +148,6 @@ export function Button({
   return (
     <motion.button
       type="button"
-      ref={pull.ref as React.Ref<HTMLButtonElement>}
       onPointerMove={pull.onPointerMove}
       onPointerLeave={pull.onPointerLeave}
       {...press}
@@ -176,7 +180,6 @@ export function ButtonLink({
 
   return (
     <MotionLink
-      ref={pull.ref as React.Ref<HTMLAnchorElement>}
       onPointerMove={pull.onPointerMove}
       onPointerLeave={pull.onPointerLeave}
       {...press}

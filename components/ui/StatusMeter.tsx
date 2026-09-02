@@ -25,7 +25,7 @@ export default function StatusMeter({ counts, total }: StatusMeterProps) {
   if (total === 0) return null;
 
   return (
-    <div className="flex h-2 w-full gap-0.5" role="img"
+    <div className="flex h-1.5 w-full gap-0.5" role="img"
       aria-label={SEGMENTS.map(
         ({ status }) =>
           `${status}: ${counts[status]} of ${total}`
@@ -38,7 +38,7 @@ export default function StatusMeter({ counts, total }: StatusMeterProps) {
           <motion.span
             key={status}
             title={`${status}: ${counts[status]} of ${total}`}
-            className={`h-full rounded-full ${fill}`}
+            className={`h-full rounded-[1px] ${fill}`}
             initial={false}
             animate={{ width: `${share}%` }}
             transition={reduced ? { duration: 0 } : springMove}

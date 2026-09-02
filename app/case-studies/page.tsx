@@ -1,5 +1,6 @@
 import PageShell from "../../components/PageShell";
-import Reveal from "../../components/ui/Reveal";
+import Field from "../../components/ui/Field";
+import Exhibit from "../../components/ui/Exhibit";
 import Breadcrumbs from "../../components/ui/Breadcrumbs";
 import { ButtonLink } from "../../components/ui/Button";
 import {
@@ -159,179 +160,196 @@ const CASE_STUDIES = [
   },
 ];
 
+const SPECIMEN_ROWS = [
+  { key: "time", label: "Capture time" },
+  { key: "location", label: "Resolved place" },
+  { key: "device", label: "Hardware" },
+  { key: "gps", label: "Coordinates" },
+] as const;
+
 export default function CaseStudiesPage() {
   return (
-    <PageShell>
-      <div className="py-4">
+    <PageShell stamp="Provenance — Case Studies">
+      <Field pad="none" className="pt-6">
         <Breadcrumbs
-          items={[
-            { label: "Home", href: "/" },
-            { label: "Case Studies" },
-          ]}
+          items={[{ label: "Home", href: "/" }, { label: "Case studies" }]}
         />
-      </div>
+      </Field>
 
-      {/* Header */}
-      <section className="py-6 sm:py-10 text-center">
-        <Reveal>
-          <div className="inline-flex items-center gap-2 rounded-full border border-line bg-surface px-4 py-1.5 shadow-card">
-            <GraduationCap size={16} className="text-accent" />
-            <span className="t-caption font-medium text-ink">
-              Faculty of Physical Sciences · Field &amp; Lab Audits
-            </span>
-          </div>
-        </Reveal>
+      <Field pad="md">
+        <Exhibit
+          mark="Case studies"
+          meta="Four departments"
+          title="What the ledger found once it was actually run."
+          lede="Geology fieldwork, physics laboratories, chemistry assays and industrial placement — each with the specimen that passed beside the one that could not."
+        />
+      </Field>
 
-        <Reveal index={1}>
-          <h1 className="t-display mx-auto mt-4 max-w-3xl text-balance text-ink font-bold tracking-tight">
-            Academic Provenance Case Studies
-          </h1>
-        </Reveal>
-
-        <Reveal index={2}>
-          <p className="t-body mx-auto mt-3 max-w-2xl text-pretty text-ink-2">
-            See how the four-pillar verification engine replaces manual visual guesswork
-            with mathematical EXIF telemetry across laboratory, fieldwork, and industrial training courses.
-          </p>
-        </Reveal>
-      </section>
-
-      {/* Case Studies List */}
-      <div className="space-y-12 pb-12">
-        {CASE_STUDIES.map((study, idx) => (
-          <Reveal key={study.id} index={idx}>
-            <article className="overflow-hidden rounded-2xl border border-line bg-surface shadow-card">
-              {/* Top Banner */}
-              <div className="border-b border-line bg-surface-2 px-6 py-4 flex flex-wrap items-center justify-between gap-3">
-                <span className="t-caption font-bold uppercase tracking-wider text-accent">
-                  {study.tag}
+      {CASE_STUDIES.map((study, index) => {
+        const dark = index % 2 === 1;
+        return (
+          <Field
+            key={study.id}
+            id={study.id}
+            tone={dark ? "ink" : "paper"}
+            bleed={dark}
+            pad="lg"
+            className="scroll-mt-28"
+          >
+            <div className={dark ? "bleed-inner" : ""}>
+              {/* Heading block */}
+              <div className="flex items-center gap-4">
+                <span className="t-mark text-accent-deep">
+                  {String(index + 1).padStart(2, "0")}
                 </span>
-                <span className="t-caption rounded-full border border-line bg-surface px-3 py-1 font-medium text-ink-2">
-                  {study.course}
-                </span>
+                <span className="t-mark text-ink-2">{study.tag}</span>
+                <span className="h-px flex-1 bg-rule" />
               </div>
 
-              <div className="p-6 sm:p-8 space-y-6">
+              <div className="mt-7 grid gap-8 lg:grid-cols-12 lg:gap-10">
+                <div className="lg:col-span-7">
+                  <h2 className="t-headline text-balance text-ink">
+                    {study.title}
+                  </h2>
+                </div>
+                <dl className="ruled border-y border-rule lg:col-span-5 lg:self-end">
+                  <div className="flex items-start gap-4 py-3">
+                    <dt className="t-mark w-20 shrink-0 text-ink-3">Course</dt>
+                    <dd className="t-footnote text-ink">{study.course}</dd>
+                  </div>
+                  <div className="flex items-start gap-4 py-3">
+                    <dt className="t-mark w-20 shrink-0 text-ink-3">Site</dt>
+                    <dd className="t-footnote text-ink">{study.location}</dd>
+                  </div>
+                </dl>
+              </div>
+
+              {/* The argument: what went wrong, and what was done about it. */}
+              <div className="mt-14 grid gap-10 lg:grid-cols-2 lg:gap-14">
                 <div>
-                  <h2 className="t-title-1 font-bold text-ink">{study.title}</h2>
-                  <p className="t-caption mt-1.5 flex items-center gap-1.5 text-ink-3">
-                    <MapPin size={14} className="text-accent shrink-0" />
-                    {study.location}
+                  <p className="t-mark flex items-center gap-2 text-warn">
+                    <ShieldAlert size={14} />
+                    The problem
+                  </p>
+                  <p className="t-callout mt-4 text-pretty text-ink-2">
+                    {study.problem}
                   </p>
                 </div>
-
-                {/* Problem vs Solution */}
-                <div className="grid gap-6 md:grid-cols-2">
-                  <div className="rounded-xl border border-line bg-bad-wash/30 p-5">
-                    <p className="t-caption font-semibold uppercase tracking-wider text-bad flex items-center gap-1.5">
-                      <ShieldAlert size={14} /> The Academic Integrity Challenge
-                    </p>
-                    <p className="t-footnote mt-2 text-ink-2 leading-relaxed">
-                      {study.problem}
-                    </p>
-                  </div>
-
-                  <div className="rounded-xl border border-line bg-good-wash/30 p-5">
-                    <p className="t-caption font-semibold uppercase tracking-wider text-good flex items-center gap-1.5">
-                      <ShieldCheck size={14} /> Provenance Telemetry Solution
-                    </p>
-                    <p className="t-footnote mt-2 text-ink-2 leading-relaxed">
-                      {study.solution}
-                    </p>
-                  </div>
-                </div>
-
-                {/* Metrics */}
-                <div className="grid grid-cols-3 gap-3 rounded-xl border border-line bg-well p-4 text-center">
-                  {study.metrics.map((metric) => (
-                    <div key={metric.label}>
-                      <p className="t-title-2 font-bold text-ink">{metric.value}</p>
-                      <p className="t-caption text-ink-3 mt-0.5">{metric.label}</p>
-                    </div>
-                  ))}
-                </div>
-
-                {/* Specimen Telemetry Comparison Grid */}
-                <div className="rounded-xl border border-line bg-surface-2 p-5">
-                  <p className="t-caption font-semibold uppercase tracking-wider text-ink-3 mb-4">
-                    Audit Log Specimen Comparison
+                <div>
+                  <p className="t-mark flex items-center gap-2 text-good">
+                    <ShieldCheck size={14} />
+                    What the audit did
                   </p>
-                  <div className="grid gap-4 md:grid-cols-2">
-                    {/* Authentic specimen */}
-                    <div className="rounded-lg border border-line bg-surface p-4">
-                      <div className="flex items-center justify-between">
-                        <span className="t-caption inline-flex items-center gap-1 font-bold text-good">
-                          <Check size={14} /> VERIFIED SPECIMEN
-                        </span>
-                        <span className="t-caption font-mono text-ink-3">
-                          {study.specimenData.authentic.file}
-                        </span>
-                      </div>
-                      <dl className="mt-3 space-y-1.5 text-xs">
-                        <div className="flex justify-between">
-                          <dt className="text-ink-3">Time:</dt>
-                          <dd className="font-semibold text-ink">{study.specimenData.authentic.time}</dd>
-                        </div>
-                        <div className="flex justify-between">
-                          <dt className="text-ink-3">Location:</dt>
-                          <dd className="font-semibold text-ink">{study.specimenData.authentic.location}</dd>
-                        </div>
-                        <div className="flex justify-between">
-                          <dt className="text-ink-3">Sensor:</dt>
-                          <dd className="font-semibold text-ink">{study.specimenData.authentic.device}</dd>
-                        </div>
-                      </dl>
-                    </div>
-
-                    {/* Tampered specimen */}
-                    <div className="rounded-lg border border-line bg-surface p-4">
-                      <div className="flex items-center justify-between">
-                        <span className="t-caption inline-flex items-center gap-1 font-bold text-bad">
-                          <Alert size={14} /> SUSPICIOUS SPECIMEN
-                        </span>
-                        <span className="t-caption font-mono text-ink-3">
-                          {study.specimenData.tampered.file}
-                        </span>
-                      </div>
-                      <dl className="mt-3 space-y-1.5 text-xs">
-                        <div className="flex justify-between">
-                          <dt className="text-ink-3">Time:</dt>
-                          <dd className="font-semibold text-bad">{study.specimenData.tampered.time}</dd>
-                        </div>
-                        <div className="flex justify-between">
-                          <dt className="text-ink-3">Location:</dt>
-                          <dd className="font-semibold text-bad">{study.specimenData.tampered.location}</dd>
-                        </div>
-                        <div className="flex justify-between">
-                          <dt className="text-ink-3">Sensor:</dt>
-                          <dd className="font-semibold text-bad">{study.specimenData.tampered.device}</dd>
-                        </div>
-                      </dl>
-                    </div>
-                  </div>
+                  <p className="t-callout mt-4 text-pretty text-ink-2">
+                    {study.solution}
+                  </p>
                 </div>
               </div>
-            </article>
-          </Reveal>
-        ))}
-      </div>
 
-      {/* CTA Footer */}
-      <Reveal className="pb-12">
-        <div className="flex flex-col items-center justify-between gap-6 rounded-2xl border border-line bg-surface p-8 text-center shadow-card sm:flex-row sm:text-left">
+              {/* Readings */}
+              <div className="ruled-x mt-12 grid grid-cols-1 border-y border-rule sm:grid-cols-3">
+                {study.metrics.map((metric) => (
+                  <div
+                    key={metric.label}
+                    className="border-t border-rule px-5 py-5 first:border-t-0 first:pl-0 sm:border-t-0"
+                  >
+                    <p className="t-num text-[1.5rem] leading-none text-ink">
+                      {metric.value}
+                    </p>
+                    <p className="t-mark mt-2.5 text-ink-3">{metric.label}</p>
+                  </div>
+                ))}
+              </div>
+
+              {/* Side-by-side comparison: the whole point of the case study is
+                  that two files that look alike do not read alike. */}
+              <div className="mt-14">
+                <p className="t-mark text-ink-3">Specimen comparison</p>
+
+                <div className="mt-4 grid gap-px overflow-hidden rounded-lg bg-rule md:grid-cols-2">
+                  {(
+                    [
+                      ["authentic", study.specimenData.authentic],
+                      ["tampered", study.specimenData.tampered],
+                    ] as const
+                  ).map(([kind, specimen]) => {
+                    const pass = kind === "authentic";
+                    return (
+                      <div key={kind} className="bg-surface">
+                        <div
+                          className={`flex flex-wrap items-center justify-between gap-2 border-b border-rule px-4 py-3 ${
+                            pass ? "bg-good-wash" : "bg-warn-wash"
+                          }`}
+                        >
+                          <span
+                            className={`t-mark flex items-center gap-1.5 ${
+                              pass ? "text-good" : "text-warn"
+                            }`}
+                          >
+                            {pass ? (
+                              <Check size={13} strokeWidth={2.6} />
+                            ) : (
+                              <Alert size={13} strokeWidth={2.4} />
+                            )}
+                            {specimen.status}
+                          </span>
+                          <span className="t-num truncate text-[0.6875rem] text-ink-2">
+                            {specimen.file}
+                          </span>
+                        </div>
+
+                        <dl className="ruled px-4">
+                          {SPECIMEN_ROWS.map((row) => (
+                            <div key={row.key} className="py-3">
+                              <dt className="t-mark text-ink-3">{row.label}</dt>
+                              <dd
+                                className={`t-footnote mt-1.5 text-pretty ${
+                                  pass ? "text-ink" : "text-ink-2"
+                                }`}
+                              >
+                                {specimen[row.key]}
+                              </dd>
+                            </div>
+                          ))}
+                        </dl>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            </div>
+          </Field>
+        );
+      })}
+
+      <Field tone="accent" bleed pad="lg">
+        <div className="bleed-inner flex flex-col items-start justify-between gap-10 lg:flex-row lg:items-end">
           <div>
-            <h3 className="t-title-2 font-bold text-ink">
-              Ready to verify your coursework photographs?
-            </h3>
-            <p className="t-footnote text-ink-2 mt-1">
-              Test your JPEG and PNG files locally in under 50 milliseconds with zero server uploads.
+            <span className="t-mark flex items-center gap-2 text-ink-2">
+              <GraduationCap size={14} />
+              Run it on your own course
+            </span>
+            <h2 className="t-headline mt-6 max-w-2xl text-balance text-ink">
+              Every one of these started with a single photograph.
+            </h2>
+            <p className="t-body mt-5 max-w-lg text-ink-2">
+              <MapPin size={15} className="mr-1.5 inline align-[-2px]" />
+              Faculty of Physical Sciences, Nnamdi Azikiwe University, Awka.
             </p>
           </div>
-          <ButtonLink href="/login" variant="primary" size="lg" className="shrink-0">
-            Start Verification &rarr;
+
+          <ButtonLink
+            href="/login"
+            variant="primary"
+            size="lg"
+            arrow
+            magnetic
+            className="shrink-0"
+          >
+            Start a verification
           </ButtonLink>
         </div>
-      </Reveal>
+      </Field>
     </PageShell>
   );
 }

@@ -298,7 +298,7 @@ export default function LandingPage() {
               <p className="t-body mt-7 max-w-xl text-pretty text-ink-2">
                 Reviewers have always judged coursework photographs by looking at
                 them. Provenance replaces that guess with an audit of what the
-                camera itself recorded: the sensor's timestamp, the coordinates,
+                camera itself recorded: the sensor&apos;s timestamp, the coordinates,
                 the hardware signature, and a hash that no rename survives.
               </p>
             </Reveal>
@@ -439,7 +439,7 @@ export default function LandingPage() {
         {/* The band opens with a kinetic ledger strip: the vocabulary of the
             system, moving, before the system is explained. */}
         <div className="border-b border-rule py-5">
-          <Marquee duration={52} className="[--tw-gradient-from:transparent]">
+          <Marquee duration={52}>
             {LEDGER_STRIP.map((item) => (
               <span key={item} className="flex items-center gap-6 pr-6">
                 <span className="t-mark text-ink-2">{item}</span>
@@ -742,7 +742,7 @@ export default function LandingPage() {
           vermilion, edge to edge, and every component inside re-reads its
           palette from the band. */}
       <Field id="architecture" tone="accent" bleed pad="lg" className="scroll-mt-28">
-        <div className="grid gap-14 lg:grid-cols-12 lg:gap-10">
+        <div className="bleed-inner grid gap-14 lg:grid-cols-12 lg:gap-10">
           <div className="lg:col-span-6">
             <div className="flex items-center gap-4">
               <span className="t-mark text-ink">File 05</span>
@@ -773,7 +773,7 @@ export default function LandingPage() {
 
             <p className="t-mark mt-10 max-w-md text-ink-2">
               The server is still authoritative for verdicts — only it can see
-              every student's digests. That limitation is documented, not hidden.
+              every student&apos;s digests. That limitation is documented, not hidden.
             </p>
           </div>
 
@@ -1098,7 +1098,7 @@ export default function LandingPage() {
 
       {/* ============================================================== CLOSING */}
       <Field tone="accent" bleed pad="lg">
-        <div className="flex flex-col items-start justify-between gap-10 lg:flex-row lg:items-end">
+        <div className="bleed-inner flex flex-col items-start justify-between gap-10 lg:flex-row lg:items-end">
           <div>
             <span className="t-mark text-ink-2">Ready to file</span>
             <h2 className="t-headline mt-6 max-w-2xl text-balance text-ink">

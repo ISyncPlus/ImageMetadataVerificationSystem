@@ -1,15 +1,9 @@
 import PageShell from "../../components/PageShell";
+import Field from "../../components/ui/Field";
 import Reveal from "../../components/ui/Reveal";
 import Breadcrumbs from "../../components/ui/Breadcrumbs";
 import { ButtonLink } from "../../components/ui/Button";
-import {
-  CheckCircle2,
-  Clock,
-  Doc,
-  MapPin,
-  ShieldCheck,
-  Zap,
-} from "../../components/ui/icons";
+import { Check, Clock, Copies, Doc, Pin } from "../../components/ui/icons";
 
 export const metadata = {
   title: "Submission Verified & Confirmed | Provenance",
@@ -20,125 +14,118 @@ export const metadata = {
   },
 };
 
+const READINGS = [
+  {
+    icon: Clock,
+    label: "Capture time",
+    value: "Sensor clock valid",
+    note: "Inside the scheduled window",
+  },
+  {
+    icon: Pin,
+    label: "GPS location",
+    value: "Within the geofence",
+    note: "Resolved to UNIZIK coordinates",
+  },
+  {
+    icon: Copies,
+    label: "Duplicate check",
+    value: "Digest unique",
+    note: "No collision in the ledger",
+  },
+];
+
 export default function ThankYouPage() {
   return (
-    <PageShell>
-      <div className="py-4">
+    <PageShell stamp="Provenance — Record Filed">
+      <Field pad="none" className="pt-6">
         <Breadcrumbs
-          items={[
-            { label: "Home", href: "/" },
-            { label: "Submission Confirmed" },
-          ]}
+          items={[{ label: "Home", href: "/" }, { label: "Submission filed" }]}
         />
-      </div>
+      </Field>
 
-      <section className="mx-auto flex max-w-3xl flex-col items-center py-10 text-center sm:py-16">
-        <Reveal>
-          <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-good-wash text-good shadow-lift ring-8 ring-good-wash/50">
-            <CheckCircle2 size={36} strokeWidth={2.2} />
-          </div>
-        </Reveal>
+      <Field pad="md">
+        <div className="flex items-center gap-4">
+          <span className="t-mark text-good">Filed</span>
+          <span className="t-mark text-ink-2">Record secured</span>
+          <span className="rule-draw h-px flex-1 bg-rule" />
+        </div>
 
-        <Reveal index={1}>
-          <div className="mt-6 inline-flex items-center gap-2 rounded-full border border-line bg-surface px-4 py-1 shadow-card">
-            <span className="h-2 w-2 rounded-full bg-good-mark" />
-            <span className="t-caption font-mono font-semibold text-ink">
-              AUDIT RECORD SECURED · HTTP 200 OK
-            </span>
-          </div>
-        </Reveal>
+        <div className="mt-8 grid gap-10 lg:grid-cols-12 lg:gap-10">
+          <Reveal className="lg:col-span-7">
+            <h1 className="t-headline text-balance text-ink">
+              Audited, and committed to the ledger.
+            </h1>
+            <p className="t-body mt-6 max-w-xl text-pretty text-ink-2">
+              The photograph was read on your own device and its provenance
+              record — digest, telemetry, verdict — has been filed to the
+              departmental ledger. The image itself never left.
+            </p>
 
-        <Reveal index={2}>
-          <h1 className="t-display mt-4 text-ink font-bold tracking-tight">
-            Thank you! Telemetry successfully audited.
-          </h1>
-          <p className="t-body mx-auto mt-3 max-w-xl text-ink-2">
-            Your fieldwork photograph has been analyzed in-browser and its cryptographic
-            provenance record has been securely committed to the departmental ledger.
-          </p>
-        </Reveal>
-
-        {/* Verification Summary Card */}
-        <Reveal index={3} className="mt-10 w-full text-left">
-          <div className="rounded-2xl border border-line bg-surface p-6 shadow-card sm:p-8">
-            <div className="flex flex-wrap items-center justify-between gap-3 border-b border-line pb-4">
-              <div>
-                <p className="t-caption font-semibold uppercase tracking-wider text-ink-3">
-                  Submission Status
-                </p>
-                <p className="t-title-3 font-bold text-good flex items-center gap-1.5 mt-0.5">
-                  <ShieldCheck size={18} />
-                  Cryptographically Verified &amp; Signed
-                </p>
-              </div>
-              <span className="t-caption rounded-lg border border-line bg-well px-3 py-1 font-mono text-ink-2">
-                Response Time: ~24ms
-              </span>
+            <div className="mt-9 flex flex-wrap gap-3">
+              <ButtonLink href="/student" variant="primary" size="lg" arrow>
+                Check another photo
+              </ButtonLink>
+              <ButtonLink href="/case-studies" size="lg" variant="secondary">
+                <Doc size={16} />
+                Read the case studies
+              </ButtonLink>
             </div>
+          </Reveal>
 
-            <div className="mt-6 grid gap-4 sm:grid-cols-3">
-              <div className="rounded-xl border border-line bg-surface-2 p-4">
-                <span className="t-caption text-ink-3 font-medium flex items-center gap-1.5">
-                  <Clock size={14} />
-                  Timestamp Check
+          <Reveal index={1} className="lg:col-span-5">
+            <div className="overflow-hidden rounded-lg border border-line bg-surface shadow-card">
+              <div className="flex items-center justify-between gap-3 border-b border-rule bg-good-wash px-4 py-3">
+                <span className="t-mark flex items-center gap-2 text-good">
+                  <Check size={13} strokeWidth={2.6} />
+                  Verified
                 </span>
-                <p className="t-callout mt-1 font-semibold text-good">
-                  Valid Sensor Clock
-                </p>
-                <p className="text-[11px] text-ink-3 mt-0.5">Matches schedule</p>
+                <span className="t-num text-[0.6875rem] text-good">
+                  4 / 4 CHECKS
+                </span>
               </div>
 
-              <div className="rounded-xl border border-line bg-surface-2 p-4">
-                <span className="t-caption text-ink-3 font-medium flex items-center gap-1.5">
-                  <MapPin size={14} />
-                  Geospatial Proximity
-                </span>
-                <p className="t-callout mt-1 font-semibold text-good">
-                  Lab / Fieldsite Pass
-                </p>
-                <p className="text-[11px] text-ink-3 mt-0.5">UNIZIK coordinates</p>
-              </div>
-
-              <div className="rounded-xl border border-line bg-surface-2 p-4">
-                <span className="t-caption text-ink-3 font-medium flex items-center gap-1.5">
-                  <Zap size={14} />
-                  Duplicate Check
-                </span>
-                <p className="t-callout mt-1 font-semibold text-good">
-                  Unique SHA-256
-                </p>
-                <p className="text-[11px] text-ink-3 mt-0.5">Zero collision</p>
-              </div>
+              <dl className="ruled px-4">
+                {READINGS.map((reading) => {
+                  const Glyph = reading.icon;
+                  return (
+                    <div key={reading.label} className="flex items-start gap-3 py-3.5">
+                      <Glyph size={15} className="mt-0.5 shrink-0 text-ink-3" />
+                      <div className="min-w-0 flex-1">
+                        <dt className="t-mark text-ink-3">{reading.label}</dt>
+                        <dd className="t-footnote mt-1 font-semibold text-ink">
+                          {reading.value}
+                        </dd>
+                        <dd className="t-caption text-ink-3">{reading.note}</dd>
+                      </div>
+                    </div>
+                  );
+                })}
+              </dl>
             </div>
+          </Reveal>
+        </div>
+      </Field>
 
-            <div className="mt-6 rounded-xl border border-line bg-well p-4">
-              <p className="t-caption font-semibold uppercase tracking-wider text-ink-3">
-                Next Steps &amp; Grading Information
-              </p>
-              <ul className="mt-2 space-y-1.5 text-xs text-ink-2">
-                <li>• Your course lecturer can now view your entry in the departmental ledger.</li>
-                <li>• You can generate and print the official archival PDF certificate anytime from your dashboard.</li>
-                <li>• Remember to keep the raw original photograph on your capture device until final grade publication.</li>
-              </ul>
-            </div>
-          </div>
-        </Reveal>
-
-        {/* Action Buttons */}
-        <Reveal index={4} className="mt-8 flex flex-wrap items-center justify-center gap-3">
-          <ButtonLink href="/student" variant="primary" size="lg">
-            <Zap size={16} />
-            Inspect Another Image
-          </ButtonLink>
-          <ButtonLink href="/case-studies" size="lg">
-            <Doc size={16} />
-            View Academic Case Studies
-          </ButtonLink>
-          <ButtonLink href="/" size="lg">
-            Return to Homepage
-          </ButtonLink>
-        </Reveal>
-      </section>
+      <Field tone="ink" bleed pad="md">
+        <div className="bleed-inner">
+          <p className="t-mark text-ink-3">What happens next</p>
+          <ol className="ruled mt-4 border-y border-rule">
+            {[
+              "Your course lecturer can now see this entry in the departmental ledger.",
+              "The archival PDF certificate can be printed from your dashboard at any time.",
+              "Keep the original photograph on your capture device until grades are published.",
+            ].map((line, index) => (
+              <li key={line} className="flex items-start gap-5 py-4">
+                <span className="t-num shrink-0 text-[0.8125rem] text-accent">
+                  {String(index + 1).padStart(2, "0")}
+                </span>
+                <span className="t-callout text-ink-2">{line}</span>
+              </li>
+            ))}
+          </ol>
+        </div>
+      </Field>
     </PageShell>
   );
 }

@@ -1,7 +1,8 @@
 import Image from "next/image";
 import StatusBadge from "./StatusBadge";
+import CryptographicStream from "./ui/CryptographicStream";
 import { Button } from "./ui/Button";
-import { Alert, Camera, Check, Clock, Copies, Doc, Hash, Pin } from "./ui/icons";
+import { Alert, Camera, Check, Clock, Copies, Doc, Pin, User } from "./ui/icons";
 import { formatCoordinates, formatDateTime } from "../lib/format";
 import type { HistoryEntry } from "../lib/types";
 
@@ -20,26 +21,25 @@ const CHECKS: Array<{
   { key: "duplicateCheck", label: "Not a duplicate" },
 ];
 
-function Field({
+/** One line of the record: what it is on the left, what it says on the right. */
+function Reading({
   icon: Glyph,
   label,
   value,
-  mono = false,
 }: {
   icon: typeof Clock;
   label: string;
   value: string | null;
-  mono?: boolean;
 }) {
   return (
-    <div className="flex items-start gap-3 py-2.5">
-      <Glyph size={16} className="mt-0.5 shrink-0 text-ink-3" />
-      <div className="flex min-w-0 flex-1 flex-wrap items-baseline justify-between gap-x-4">
-        <span className="t-footnote text-ink-2">{label}</span>
+    <div className="flex items-start gap-3 py-3">
+      <Glyph size={15} className="mt-0.5 shrink-0 text-ink-3" />
+      <div className="flex min-w-0 flex-1 flex-wrap items-baseline justify-between gap-x-5 gap-y-1">
+        <span className="t-mark shrink-0 text-ink-3">{label}</span>
         <span
           className={`t-footnote min-w-0 text-right wrap-break-word ${
-            mono ? "font-mono text-ink-2" : ""
-          } ${value ? "font-medium text-ink" : "text-ink-3"}`}
+            value ? "font-medium text-ink" : "text-ink-3"
+          }`}
         >
           {value ?? "Not available"}
         </span>
@@ -52,9 +52,9 @@ export default function HistoryDetail({ entry, onReport }: HistoryDetailProps) {
   const coordinates = formatCoordinates(entry.metadata.gps);
 
   return (
-    <div className="flex flex-col gap-5">
+    <div className="flex flex-col gap-7">
       {entry.previewUrl ? (
-        <div className="relative aspect-[16/10] w-full overflow-hidden rounded-xl bg-well">
+        <div className="relative aspect-[16/10] w-full overflow-hidden rounded-md bg-well ring-1 ring-line">
           <Image
             src={entry.previewUrl}
             alt={entry.fileName}
@@ -62,33 +62,42 @@ export default function HistoryDetail({ entry, onReport }: HistoryDetailProps) {
             unoptimized
             className="object-cover"
           />
+          <span className="absolute bottom-2 left-2 rounded-sm bg-black/55 px-2 py-1 backdrop-blur-sm">
+            <span className="t-mark text-[0.5625rem] text-white">Thumbnail · ≤96px</span>
+          </span>
         </div>
       ) : null}
 
-      <div className="flex flex-col gap-2">
+      <div className="flex flex-col gap-2.5">
         <StatusBadge status={entry.status} size="md" />
-        <p className="t-callout text-ink-2">{entry.reason}</p>
+        <p className="t-callout text-pretty text-ink-2">{entry.reason}</p>
       </div>
 
       <div>
-        <h3 className="t-caption mb-2 font-semibold text-ink-2">Checks</h3>
-        <ul className="grid grid-cols-2 gap-1.5">
+        <p className="t-mark text-ink-3">Verification matrix</p>
+        <ul className="ruled mt-1 border-y border-rule">
           {CHECKS.map(({ key, label }) => {
             const passed = entry.verification?.[key] === "Pass";
             return (
-              <li
-                key={key}
-                className="flex items-center gap-2 rounded-lg bg-well px-3 py-2"
-              >
-                <span className={passed ? "text-good" : "text-bad"}>
+              <li key={key} className="flex items-center gap-3 py-2.5">
+                <span
+                  className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-sm ${
+                    passed ? "bg-good-wash text-good" : "bg-bad-wash text-bad"
+                  }`}
+                >
                   {passed ? (
-                    <Check size={14} strokeWidth={2.4} />
+                    <Check size={12} strokeWidth={2.6} />
                   ) : (
-                    <Alert size={14} strokeWidth={2.2} />
+                    <Alert size={12} strokeWidth={2.4} />
                   )}
                 </span>
-                <span className="t-caption min-w-0 flex-1 truncate text-ink">
+                <span className="t-footnote min-w-0 flex-1 truncate text-ink">
                   {label}
+                </span>
+                <span
+                  className={`t-mark shrink-0 ${passed ? "text-good" : "text-bad"}`}
+                >
+                  {passed ? "Pass" : "Fail"}
                 </span>
               </li>
             );
@@ -97,41 +106,49 @@ export default function HistoryDetail({ entry, onReport }: HistoryDetailProps) {
       </div>
 
       <div>
-        <h3 className="t-caption mb-1 font-semibold text-ink-2">Record</h3>
-        <div className="flex flex-col divide-y divide-line">
-          <Field
+        <p className="t-mark text-ink-3">Record</p>
+        <div className="ruled mt-1 border-y border-rule">
+          <Reading
             icon={Clock}
-            label="Capture time"
+            label="Captured"
             value={entry.metadata.captureTime}
           />
-          <Field
+          <Reading
             icon={Pin}
             label="Location"
             value={entry.metadata.locationName ?? coordinates}
           />
           {entry.metadata.locationName && coordinates ? (
-            <Field icon={Pin} label="Coordinates" value={coordinates} />
+            <Reading icon={Pin} label="Coordinates" value={coordinates} />
           ) : null}
-          <Field icon={Camera} label="Device" value={entry.metadata.device} />
-          <Field
-            icon={Copies}
+          <Reading icon={Camera} label="Device" value={entry.metadata.device} />
+          <Reading
+            icon={User}
             label="Submitted by"
             value={
               entry.submittedBy
-                ? `${entry.submittedBy.name} (${entry.submittedBy.identifier})`
+                ? `${entry.submittedBy.name} · ${entry.submittedBy.identifier}`
                 : null
             }
           />
-          <Field
+          <Reading
             icon={Clock}
-            label="Checked"
+            label="Filed"
             value={formatDateTime(entry.checkedAt)}
           />
-          <Field icon={Hash} label="SHA-256" value={entry.hash} mono />
+          <div className="flex items-start gap-3 py-3">
+            <Copies size={15} className="mt-0.5 shrink-0 text-ink-3" />
+            <div className="min-w-0 flex-1">
+              <p className="t-mark text-ink-3">SHA-256</p>
+              <div className="mt-1.5">
+                <CryptographicStream hash={entry.hash} animate={false} />
+              </div>
+            </div>
+          </div>
         </div>
       </div>
 
-      <Button variant="primary" onClick={onReport} className="w-full">
+      <Button variant="primary" onClick={onReport} className="w-full" arrow>
         <Doc size={16} />
         Open printable report
       </Button>

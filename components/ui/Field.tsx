@@ -18,8 +18,6 @@ type FieldProps = {
   id?: string;
   as?: ElementType;
   className?: string;
-  /** Applied to the inner column rather than the band itself. */
-  innerClassName?: string;
 };
 
 const PAD: Record<NonNullable<FieldProps["pad"]>, string> = {
@@ -37,6 +35,8 @@ const PAD: Record<NonNullable<FieldProps["pad"]>, string> = {
  * *contain* vermilion, it *is* vermilion, edge to edge, and everything placed
  * on it re-reads its palette from the band. Alternating them is what gives the
  * page its rhythm without a single decorative divider.
+ *
+ * Wrap children in `.bleed-inner` to bring them back onto the reading column.
  */
 export default function Field({
   children,
@@ -46,14 +46,7 @@ export default function Field({
   id,
   as: Tag = "section",
   className = "",
-  innerClassName = "",
 }: FieldProps) {
-  const body = (
-    <div className={`${bleed ? "bleed-inner" : ""} ${innerClassName}`.trim()}>
-      {children}
-    </div>
-  );
-
   return (
     <Tag
       id={id}
@@ -70,7 +63,12 @@ export default function Field({
           className="pointer-events-none absolute inset-x-0 top-0 h-px bg-line-strong"
         />
       ) : null}
-      {bleed || innerClassName ? body : children}
+      {/* A bled band spans the page; whether its contents return to the reading
+          column is the caller's decision, made by wrapping them in
+          `.bleed-inner`. Deciding it here would make an edge-to-edge layout —
+          a split-screen sign-in, a ledger that wants the whole screen —
+          impossible to express. */}
+      {children}
     </Tag>
   );
 }

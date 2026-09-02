@@ -35,7 +35,7 @@ export default function ThemeToggle() {
       aria-label={`Switch to ${next} appearance`}
       whileTap={reduced ? { opacity: 0.7 } : { scale: 0.92 }}
       transition={springSnappy}
-      className="relative flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-line text-ink-2 transition-colors duration-150 hover:border-line-strong hover:text-ink"
+      className="relative flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-line text-ink-2 transition-colors duration-150 hover:border-line-strong hover:text-ink"
     >
       <motion.span
         initial={false}
@@ -43,7 +43,7 @@ export default function ThemeToggle() {
         transition={springSnappy}
         className="absolute inset-0 flex items-center justify-center"
       >
-        <Sun size={16} />
+        <Sun size={15} />
       </motion.span>
       <motion.span
         initial={false}
@@ -51,7 +51,7 @@ export default function ThemeToggle() {
         transition={springSnappy}
         className="absolute inset-0 flex items-center justify-center"
       >
-        <Moon size={16} />
+        <Moon size={15} />
       </motion.span>
     </motion.button>
   );

@@ -13,26 +13,34 @@ type HistoryItemProps = {
   onOpen: () => void;
 };
 
-/** A row states only what distinguishes it; the full record lives one tap away
- *  so the list stays scannable. */
+/**
+ * A record in the file: a ruled row, not a card.
+ *
+ * A list of twenty submissions is a list, and boxing each one costs a border,
+ * a shadow and a gap per item while communicating nothing — the rule between
+ * two rows already says they are separate. What earns the ink instead is the
+ * evidence: the thumbnail, the digest, and the verdict.
+ */
 export default function HistoryItem({
   entry,
   showSubmitter = false,
   onOpen,
 }: HistoryItemProps) {
   const checkedAt = formatDateTime(entry.checkedAt);
-  const meta =
-    showSubmitter && entry.submittedBy
-      ? `${entry.submittedBy.name} · ${entry.submittedBy.identifier} · ${checkedAt}`
-      : checkedAt;
 
   return (
     <Pressable
       onClick={onOpen}
       aria-label={`Open verification details for ${entry.fileName}`}
-      className="flex w-full items-center gap-3 rounded-xl border border-line bg-surface p-2.5 pr-3 shadow-card transition-colors duration-150 hover:border-line-strong"
+      className="group relative flex w-full items-center gap-3.5 py-3 pl-3 pr-2 transition-colors duration-200 hover:bg-well"
     >
-      <span className="h-11 w-11 shrink-0 overflow-hidden rounded-lg bg-well">
+      {/* The wipe marks which row the pointer owns without moving anything. */}
+      <span
+        aria-hidden
+        className="absolute inset-y-0 left-0 w-0.5 origin-center scale-y-0 bg-accent transition-transform duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:scale-y-100"
+      />
+
+      <span className="relative h-11 w-11 shrink-0 overflow-hidden rounded-sm bg-well ring-1 ring-line">
         {entry.previewUrl ? (
           <Image
             src={entry.previewUrl}
@@ -49,11 +57,18 @@ export default function HistoryItem({
         <span className="t-footnote block truncate font-semibold text-ink">
           {entry.fileName}
         </span>
-        <span className="t-caption block truncate text-ink-2">{meta}</span>
+        <span className="t-num mt-0.5 block truncate text-[0.6875rem] text-ink-3">
+          {showSubmitter && entry.submittedBy
+            ? `${entry.submittedBy.identifier || entry.submittedBy.name} · ${checkedAt}`
+            : `${entry.hash.slice(0, 12)}… · ${checkedAt}`}
+        </span>
       </span>
 
-      <StatusBadge status={entry.status} />
-      <ChevronRight size={16} className="shrink-0 text-ink-3" />
+      <StatusBadge status={entry.status} dot />
+      <ChevronRight
+        size={15}
+        className="shrink-0 text-ink-3 transition-transform duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:translate-x-0.5"
+      />
     </Pressable>
   );
 }

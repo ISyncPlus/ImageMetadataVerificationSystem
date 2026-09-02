@@ -7,6 +7,7 @@ import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import Card from "../ui/Card";
 import { Button } from "../ui/Button";
 import StatusBadge from "../StatusBadge";
+import CryptographicStream from "../ui/CryptographicStream";
 import {
   Alert,
   Camera,
@@ -14,7 +15,6 @@ import {
   Clock,
   Copies,
   Doc,
-  Hash,
   Pin,
   Upload,
 } from "../ui/icons";
@@ -77,7 +77,16 @@ const CHECKS: Array<{
   },
 ];
 
-function CheckPill({
+/** Named so the narration can be shown as a route through the pipeline rather
+ *  than one anonymous line of status text. */
+const PIPELINE = [
+  "Reading the file",
+  "Extracting EXIF metadata",
+  "Resolving location",
+  "Checking against the ledger",
+];
+
+function CheckRow({
   label,
   icon: Icon,
   result,
@@ -98,22 +107,21 @@ function CheckPill({
       initial={reduced ? { opacity: 0 } : { opacity: 0, y: 8 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ ...springMove, delay: stagger(index, 0.06) }}
-      className={`flex items-start gap-2.5 rounded-xl border p-3 ${
-        passed ? "border-good/25 bg-good-wash" : "border-warn/25 bg-warn-wash"
-      }`}
+      className="flex items-start gap-3 py-3"
     >
       <span
-        className={`mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full ${
-          passed ? "bg-good-mark/15 text-good" : "bg-warn-mark/15 text-warn"
+        className={`mt-px flex h-5 w-5 shrink-0 items-center justify-center rounded-sm ${
+          passed ? "bg-good-wash text-good" : "bg-warn-wash text-warn"
         }`}
       >
         {passed ? (
-          <Check size={12} strokeWidth={2.5} />
+          <Check size={12} strokeWidth={2.6} />
         ) : (
-          <Alert size={12} strokeWidth={2.5} />
+          <Alert size={12} strokeWidth={2.6} />
         )}
       </span>
-      <span className="min-w-0">
+
+      <span className="min-w-0 flex-1">
         <span className="t-footnote flex items-center gap-1.5 font-medium text-ink">
           <Icon size={13} className="shrink-0 text-ink-3" />
           {label}
@@ -122,16 +130,23 @@ function CheckPill({
           <span className="t-caption mt-0.5 block text-ink-2">{hint}</span>
         ) : null}
       </span>
+
+      <span
+        className={`t-mark shrink-0 pt-0.5 ${passed ? "text-good" : "text-warn"}`}
+      >
+        {passed ? "Pass" : "Fail"}
+      </span>
     </motion.li>
   );
 }
 
 /**
- * One surface that carries a submission from drop to verdict.
+ * The bench where a submission is examined.
  *
- * The three phases share a card rather than swapping between three of them, so
- * the panel keeps its identity as the work progresses — the thumbnail that
- * appears while analysing is the same element that anchors the result.
+ * Three states share one surface, and the thumbnail travels between them with a
+ * shared-element transition: the same photograph you dropped is the one being
+ * scanned, and then the one attached to the verdict. Redrawing a new image at
+ * each stage would break the thread the whole screen depends on.
  */
 export default function SubmitWorkspace({
   phase,
@@ -165,15 +180,17 @@ export default function SubmitWorkspace({
   );
 
   const verification = entry?.verification ?? null;
+  const activeStep = step ? PIPELINE.indexOf(step) : -1;
 
   return (
     <Card
+      bezel
+      mark="Bench 01"
       title="Submit evidence"
-      subtitle="Original camera photo (JPEG or PNG)"
-      className="overflow-hidden"
+      subtitle="Original camera photograph — JPEG or PNG, up to 25 MB"
       actions={
         phase === "result" ? (
-          <Button size="sm" onClick={onReset}>
+          <Button size="sm" variant="quiet" onClick={onReset}>
             <Upload size={14} />
             New check
           </Button>
@@ -202,12 +219,32 @@ export default function SubmitWorkspace({
               }}
               onDragOver={(event) => event.preventDefault()}
               onDrop={handleDrop}
-              className={`flex cursor-pointer flex-col items-center justify-center gap-3 rounded-2xl border-2 border-dashed px-6 py-12 text-center transition-colors duration-150 ${
+              className={`group relative flex cursor-pointer flex-col items-center justify-center gap-4 overflow-hidden rounded-md border border-dashed px-6 py-14 text-center transition-colors duration-200 ${
                 dragging
                   ? "border-accent bg-accent-wash"
-                  : "border-line hover:border-line-strong hover:bg-well"
+                  : "border-line-strong hover:bg-well"
               }`}
             >
+              {/* A specimen tray: graph paper, with registration marks at the
+                  corners so the empty state still reads as a place where
+                  something is meant to be laid down. */}
+              <span
+                aria-hidden
+                className="grid-paper pointer-events-none absolute inset-0 opacity-60"
+              />
+              {[
+                "left-3 top-3 border-l border-t",
+                "right-3 top-3 border-r border-t",
+                "left-3 bottom-3 border-b border-l",
+                "right-3 bottom-3 border-b border-r",
+              ].map((corner) => (
+                <span
+                  key={corner}
+                  aria-hidden
+                  className={`pointer-events-none absolute h-4 w-4 border-line-strong ${corner}`}
+                />
+              ))}
+
               <input
                 ref={inputRef}
                 type="file"
@@ -219,23 +256,31 @@ export default function SubmitWorkspace({
                   if (file) onFile(file);
                 }}
               />
+
               <motion.span
                 animate={
-                  dragging && !reduced ? { scale: 1.08, y: -2 } : { scale: 1, y: 0 }
+                  dragging && !reduced
+                    ? { scale: 1.1, y: -3 }
+                    : { scale: 1, y: 0 }
                 }
                 transition={springSnappy}
-                className="flex h-12 w-12 items-center justify-center rounded-2xl bg-accent-wash text-accent"
+                className="relative flex h-12 w-12 items-center justify-center rounded-md bg-accent text-accent-ink shadow-accent"
               >
                 <Upload size={20} />
               </motion.span>
-              <span>
-                <span className="t-callout block font-medium text-ink">
-                  {dragging ? "Release to check" : "Drop a photo, or browse"}
+
+              <span className="relative">
+                <span className="t-title-3 block text-ink">
+                  {dragging ? "Release to read it" : "Drop a photo, or browse"}
                 </span>
-                <span className="t-caption mt-1 block text-ink-2">
-                  Metadata is read on your device. The original file is never
-                  uploaded.
+                <span className="t-footnote mx-auto mt-2 block max-w-xs text-pretty text-ink-2">
+                  The file is read here, on this device. Only the resulting
+                  record is filed — never the photograph.
                 </span>
+              </span>
+
+              <span className="t-mark relative text-ink-3">
+                JPEG · PNG · ≤ 25 MB
               </span>
             </label>
 
@@ -246,7 +291,7 @@ export default function SubmitWorkspace({
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0 }}
                   transition={fade}
-                  className="t-footnote mt-3 flex items-start gap-1.5 rounded-xl border border-bad/30 bg-bad-wash px-3.5 py-2.5 text-bad"
+                  className="t-footnote mt-3 flex items-start gap-2 rounded-sm border-l-2 border-bad bg-bad-wash px-3.5 py-2.5 text-bad"
                 >
                   <Alert size={14} strokeWidth={2} className="mt-0.5 shrink-0" />
                   {error}
@@ -264,12 +309,12 @@ export default function SubmitWorkspace({
             animate={{ opacity: 1, y: 0 }}
             exit={reduced ? { opacity: 0 } : { opacity: 0, y: -6 }}
             transition={fade}
-            className="flex flex-col items-center gap-4 py-6"
+            className="flex flex-col gap-6 py-4 sm:flex-row sm:items-center sm:gap-8"
           >
             <motion.div
               layoutId="submission-preview"
               transition={springMove}
-              className="relative h-28 w-28 overflow-hidden rounded-2xl border border-line bg-well"
+              className="relative mx-auto aspect-square w-28 shrink-0 overflow-hidden rounded-sm bg-well ring-1 ring-line sm:mx-0"
             >
               {previewUrl ? (
                 <Image
@@ -280,25 +325,61 @@ export default function SubmitWorkspace({
                   className="object-cover"
                 />
               ) : null}
-              {/* A sheen travelling over the thumbnail reads as "being read",
+              {/* A sheen travelling over the thumbnail reads as "being read"
                   without pretending to know real progress. */}
               {!reduced ? (
                 <motion.span
                   aria-hidden
-                  initial={{ x: "-120%" }}
-                  animate={{ x: "120%" }}
-                  transition={{ duration: 1.1, repeat: Infinity, ease: "easeInOut" }}
-                  className="absolute inset-y-0 w-1/2 bg-gradient-to-r from-transparent via-white/35 to-transparent"
+                  initial={{ y: "-120%" }}
+                  animate={{ y: "120%" }}
+                  transition={{ duration: 1.2, repeat: Infinity, ease: "easeInOut" }}
+                  className="absolute inset-x-0 h-1/2 bg-gradient-to-b from-transparent via-accent/40 to-transparent"
                 />
               ) : null}
             </motion.div>
 
-            <div className="text-center" aria-live="polite">
-              <p className="t-callout font-medium text-ink">
-                {step ?? "Analysing"}
-              </p>
-              <p className="t-caption mt-1 truncate text-ink-2">{fileName}</p>
-            </div>
+            {/* The pipeline, named. A single spinner tells you to wait; a route
+                tells you what is happening and how much of it is left. */}
+            <ol className="ruled min-w-0 flex-1" aria-live="polite">
+              {PIPELINE.map((name, index) => {
+                const done = activeStep > index;
+                const current = activeStep === index;
+                return (
+                  <li key={name} className="flex items-center gap-3 py-2">
+                    <span
+                      className={`t-num w-5 shrink-0 text-[0.6875rem] ${
+                        current ? "text-accent" : "text-ink-3"
+                      }`}
+                    >
+                      {String(index + 1).padStart(2, "0")}
+                    </span>
+                    <span
+                      className={`t-footnote flex-1 truncate ${
+                        current
+                          ? "font-semibold text-ink"
+                          : done
+                            ? "text-ink-2"
+                            : "text-ink-3"
+                      }`}
+                    >
+                      {name}
+                    </span>
+                    {done ? (
+                      <Check size={13} strokeWidth={2.6} className="text-good" />
+                    ) : current ? (
+                      <span className="blink h-1.5 w-1.5 rounded-full bg-accent" />
+                    ) : (
+                      <span className="h-1.5 w-1.5 rounded-full bg-line-strong" />
+                    )}
+                  </li>
+                );
+              })}
+              <li className="pt-2">
+                <p className="t-num truncate text-[0.6875rem] text-ink-3">
+                  {fileName}
+                </p>
+              </li>
+            </ol>
           </motion.div>
         ) : null}
 
@@ -310,13 +391,13 @@ export default function SubmitWorkspace({
             animate={{ opacity: 1, y: 0 }}
             exit={reduced ? { opacity: 0 } : { opacity: 0, y: -8 }}
             transition={springMove}
-            className="flex flex-col gap-5"
+            className="flex flex-col gap-6"
           >
             <div className="flex items-start gap-4">
               <motion.div
                 layoutId="submission-preview"
                 transition={springMove}
-                className="relative h-20 w-20 shrink-0 overflow-hidden rounded-2xl border border-line bg-well"
+                className="relative h-20 w-20 shrink-0 overflow-hidden rounded-sm bg-well ring-1 ring-line"
               >
                 {previewUrl ? (
                   <Image
@@ -330,77 +411,83 @@ export default function SubmitWorkspace({
               </motion.div>
 
               <div className="min-w-0 flex-1">
-                <StatusBadge status={entry.status} />
-                <p className="t-footnote mt-2 truncate font-medium text-ink">
+                <StatusBadge status={entry.status} size="md" />
+                <p className="t-footnote mt-2.5 truncate font-semibold text-ink">
                   {entry.fileName}
                 </p>
-                <p className="t-caption mt-1 text-ink-2">{entry.reason}</p>
+                <p className="t-caption mt-1 text-pretty text-ink-2">
+                  {entry.reason}
+                </p>
               </div>
             </div>
 
             {offlineNotice ? (
-              <p className="t-footnote flex items-start gap-2 rounded-xl border border-warn/30 bg-warn-wash px-3.5 py-2.5 text-warn">
+              <p className="t-footnote flex items-start gap-2 rounded-sm border-l-2 border-warn bg-warn-wash px-3.5 py-2.5 text-warn">
                 <Alert size={14} className="mt-0.5 shrink-0" />
                 {offlineNotice}
               </p>
             ) : null}
 
             {duplicateOfOtherUser ? (
-              <p className="t-footnote flex items-start gap-2 rounded-xl border border-bad/30 bg-bad-wash px-3.5 py-2.5 text-bad">
+              <p className="t-footnote flex items-start gap-2 rounded-sm border-l-2 border-bad bg-bad-wash px-3.5 py-2.5 text-bad">
                 <Copies size={14} className="mt-0.5 shrink-0" />
                 This exact file was already submitted by a different student.
                 Your reviewer can see both records.
               </p>
             ) : null}
 
-            <ul className="grid gap-2 sm:grid-cols-2">
-              {CHECKS.map((check, index) => (
-                <CheckPill
-                  key={check.key}
-                  index={index}
-                  label={check.label}
-                  icon={check.icon}
-                  result={verification[check.key]}
-                  hint={check.failHint}
-                />
-              ))}
-            </ul>
+            <div>
+              <p className="t-mark text-ink-3">Verification matrix</p>
+              <ul className="ruled mt-1 border-t border-rule">
+                {CHECKS.map((check, index) => (
+                  <CheckRow
+                    key={check.key}
+                    index={index}
+                    label={check.label}
+                    icon={check.icon}
+                    result={verification[check.key]}
+                    hint={check.failHint}
+                  />
+                ))}
+              </ul>
+            </div>
 
-            <dl className="grid gap-x-4 gap-y-2.5 rounded-xl border border-line bg-well p-4 sm:grid-cols-2">
-              <div>
-                <dt className="t-caption text-ink-3">Captured</dt>
-                <dd className="t-footnote text-ink">
-                  {entry.metadata.captureTime ?? "Not available"}
-                </dd>
-              </div>
-              <div>
-                <dt className="t-caption text-ink-3">Device</dt>
-                <dd className="t-footnote text-ink">
-                  {entry.metadata.device ?? "Not available"}
-                </dd>
-              </div>
-              <div className="sm:col-span-2">
-                <dt className="t-caption text-ink-3">Location</dt>
-                <dd className="t-footnote text-ink">
-                  {entry.metadata.locationName ??
-                    formatCoordinates(entry.metadata.gps) ??
-                    "Not available"}
-                </dd>
-              </div>
-              <div className="sm:col-span-2">
-                <dt className="t-caption text-ink-3">SHA-256</dt>
-                <dd className="t-caption break-all font-mono text-ink-2">
-                  {entry.hash}
-                </dd>
-              </div>
-            </dl>
+            <div>
+              <p className="t-mark text-ink-3">Extracted telemetry</p>
+              <dl className="ruled mt-1 border-y border-rule">
+                {[
+                  ["Captured", entry.metadata.captureTime ?? "Not available"],
+                  ["Device", entry.metadata.device ?? "Not available"],
+                  [
+                    "Location",
+                    entry.metadata.locationName ??
+                      formatCoordinates(entry.metadata.gps) ??
+                      "Not available",
+                  ],
+                ].map(([label, value]) => (
+                  <div
+                    key={label}
+                    className="flex items-start justify-between gap-6 py-2.5"
+                  >
+                    <dt className="t-mark shrink-0 text-ink-3">{label}</dt>
+                    <dd className="t-footnote text-right text-ink">{value}</dd>
+                  </div>
+                ))}
+                <div className="py-2.5">
+                  <dt className="t-mark text-ink-3">SHA-256</dt>
+                  <dd className="mt-1.5">
+                    <CryptographicStream hash={entry.hash} animate={false} />
+                  </dd>
+                </div>
+              </dl>
+            </div>
 
             <div className="flex flex-wrap gap-2">
-              <Button variant="primary" onClick={onReport}>
+              <Button variant="primary" onClick={onReport} arrow>
                 <Doc size={15} />
                 Print certificate
               </Button>
-              <Button onClick={onReset}>
+              <Button variant="quiet" onClick={onReset}>
                 <Upload size={15} />
                 Check another
               </Button>

@@ -240,7 +240,7 @@ export default function Sheet({
         aria-label={title}
         tabIndex={-1}
         style={{ y, opacity: reduced ? fade : 1 }}
-        className="material relative flex max-h-[88vh] w-full max-w-2xl flex-col overflow-hidden rounded-t-2xl border-t border-material-edge shadow-sheet outline-none backdrop-blur-2xl backdrop-saturate-[180%] sm:mb-4 sm:rounded-2xl sm:border"
+        className="material relative flex max-h-[88vh] w-full max-w-2xl flex-col overflow-hidden rounded-t-xl border-t border-material-edge shadow-sheet outline-none backdrop-blur-2xl backdrop-saturate-[180%] sm:mb-4 sm:rounded-xl sm:border"
       >
         <div
           onPointerDown={onPointerDown}
@@ -249,7 +249,7 @@ export default function Sheet({
           onPointerCancel={endDrag}
           className="shrink-0 cursor-grab touch-none px-6 pb-4 pt-3 active:cursor-grabbing"
         >
-          <div className="mx-auto h-1.5 w-10 rounded-full bg-ink-3" />
+          <div className="mx-auto h-1 w-9 rounded-full bg-line-strong" />
           <div className="mt-4 flex items-start justify-between gap-4">
             <div className="min-w-0">
               <h2 className="t-title-2 on-material truncate text-ink">{title}</h2>

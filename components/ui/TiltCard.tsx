@@ -36,7 +36,14 @@ export default function TiltCard({
   const springConfig = { damping: 25, stiffness: 220, mass: 0.5 };
   const rotateX = useSpring(useTransform(mouseY, [-0.5, 0.5], [maxTilt, -maxTilt]), springConfig);
   const rotateY = useSpring(useTransform(mouseX, [-0.5, 0.5], [-maxTilt, maxTilt]), springConfig);
-  const glareOpacity = useSpring(useTransform(mouseX, [-0.5, 0.5], [0.6, 0.6]), springConfig);
+
+  /* Computed before any early return: hooks must run in the same order on
+     every render, and the reduced-motion branch below returns early. */
+  const sheen = useTransform(
+    [rawX, rawY],
+    ([x, y]) =>
+      `radial-gradient(400px circle at ${x}px ${y}px, ${glowColor}, transparent 70%)`
+  );
 
   const handlePointerMove = (e: React.PointerEvent<HTMLDivElement>) => {
     if (reduced || !cardRef.current) return;
@@ -77,13 +84,7 @@ export default function TiltCard({
       {/* Dynamic Specular Sheen */}
       <motion.div
         className="pointer-events-none absolute inset-0 z-10 transition-opacity duration-300"
-        style={{
-          background: useTransform(
-            [rawX, rawY],
-            ([x, y]) =>
-              `radial-gradient(400px circle at ${x}px ${y}px, ${glowColor}, transparent 70%)`
-          ),
-        }}
+        style={{ background: sheen }}
       />
       <div style={{ transform: "translateZ(12px)" }}>{children}</div>
     </motion.div>
