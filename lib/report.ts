@@ -26,6 +26,72 @@ const formatCoordinates = (entry: HistoryEntry): string => {
   return `${latitude.toFixed(5)}, ${longitude.toFixed(5)}`;
 };
 
+/**
+ * The certificate has to be explicit about which tier of evidence produced the
+ * location, because the tiers make different claims and the document may be
+ * read months later by someone who was not there. An attested position in
+ * particular says where the student was when submitting — printing it beside
+ * the photograph's own metadata without that sentence would misrepresent it.
+ */
+const locationEvidenceSection = (entry: HistoryEntry): string => {
+  const source = entry.verification?.locationSource ?? null;
+  const attested = entry.location ?? null;
+  if (!source) return "";
+
+  const heading: Record<string, string> = {
+    embedded: "Location evidence — from the photograph",
+    witnessed: "Location evidence — witnessed at capture",
+    attested: "Location evidence — attested by the student",
+  };
+
+  const claim: Record<string, string> = {
+    embedded:
+      "These coordinates were read from the file's own EXIF or XMP metadata.",
+    witnessed:
+      "Provenance captured this photograph and read the device position at the same instant. The coordinates describe the capture.",
+    attested:
+      "This position was reported by the student's device at the time of upload. It attests to the student's location when submitting and does NOT establish where the photograph was taken. It was not counted towards the location check.",
+  };
+
+  const coordinates =
+    source === "embedded"
+      ? formatCoordinates(entry)
+      : attested
+        ? `${attested.latitude.toFixed(6)}, ${attested.longitude.toFixed(6)}`
+        : "Not available";
+
+  const extra: string[] = [];
+  if (attested?.accuracyMetres != null) {
+    extra.push(
+      `<tr><th>Reported accuracy</th><td>&plusmn;${Math.round(attested.accuracyMetres)} m</td></tr>`
+    );
+  }
+  if (attested?.fixedAt) {
+    extra.push(
+      `<tr><th>Position fixed at</th><td>${formatDateTime(attested.fixedAt)}</td></tr>`
+    );
+  }
+  if (attested?.driftSeconds != null) {
+    extra.push(
+      `<tr><th>Fix age at capture</th><td>${attested.driftSeconds}s before the shutter</td></tr>`
+    );
+  }
+  if (attested?.locationName) {
+    extra.push(
+      `<tr><th>Resolved place</th><td>${escapeHtml(attested.locationName)}</td></tr>`
+    );
+  }
+
+  return `
+  <h2>${heading[source]}</h2>
+  <table>
+    <tr><th style="width:32%">Coordinates</th><td>${coordinates}</td></tr>
+    ${extra.join("\n    ")}
+    <tr><th>Capture mode</th><td>${entry.captureMode === "witnessed" ? "Captured inside Provenance" : "Uploaded file"}</td></tr>
+  </table>
+  <p style="margin:6px 0 0;font-size:11px;line-height:1.5;color:#444">${claim[source]}</p>`;
+};
+
 const statusColor: Record<string, string> = {
   Verified: "#1e8e3e",
   Suspicious: "#b26a00",
@@ -108,10 +174,16 @@ export const buildEntryReportHtml = (entry: HistoryEntry): string => {
   <p class="status" style="color:${color};">${entry.status.toUpperCase()}</p>
   <p>${escapeHtml(entry.reason)}</p>
 
+  ${locationEvidenceSection(entry)}
+
   <h2>Verification Checks</h2>
   <table>
     <tr><th style="width:32%">Capture time check</th><td>${checkBadge(v?.timeCheck)}</td></tr>
-    <tr><th>GPS location check</th><td>${checkBadge(v?.locationCheck)}</td></tr>
+    <tr><th>Location check</th><td>${checkBadge(v?.locationCheck)}${
+      v?.locationSource === "attested"
+        ? ' <span style="font-size:11px;color:#a85900">attested position not counted</span>'
+        : ""
+    }</td></tr>
     <tr><th>Device information check</th><td>${checkBadge(v?.deviceCheck)}</td></tr>
     <tr><th>Duplicate (reuse) check</th><td>${checkBadge(v?.duplicateCheck)}</td></tr>
   </table>

@@ -1,4 +1,5 @@
 import exifr from "exifr";
+import { isUsableCoordinate } from "./coordinates";
 import type { MetadataResult } from "./types";
 
 type ExifValue = number | { numerator: number; denominator: number };
@@ -263,12 +264,15 @@ export const extractMetadata = async (
         ? Math.abs(longitude)
         : longitude;
 
-  const finalLatitude =
-    signedLatitude != null && Number.isFinite(signedLatitude) ? signedLatitude : null;
-  const finalLongitude =
-    signedLongitude != null && Number.isFinite(signedLongitude)
-      ? signedLongitude
-      : null;
+  /*
+   * A coordinate has to be a place on Earth, not merely a finite number. The
+   * case that matters is (0, 0): strippers commonly leave the GPS IFD in place
+   * and zero its rationals, and reading that as a position would turn the
+   * clearest evidence that a file was stripped into evidence that it was not.
+   */
+  const usable = isUsableCoordinate(signedLatitude, signedLongitude);
+  const finalLatitude = usable ? signedLatitude : null;
+  const finalLongitude = usable ? signedLongitude : null;
 
   const capturedAt =
     parseExifDate(data?.DateTimeOriginal) ||

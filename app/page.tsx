@@ -99,8 +99,8 @@ const CHECKS = [
     title: "Geospatial proximity",
     subtitle: "GPS telemetry",
     description:
-      "Decodes the latitude, longitude and altitude tags embedded in the raw file, then resolves them to a place name to confirm physical presence at the field site or campus laboratory.",
-    signal: "GPSLatitude · GPSLongitude",
+      "Decodes the latitude, longitude and altitude embedded in the raw file — from the EXIF GPS block, an XMP packet, or a PNG's eXIf chunk. Where a file carries none, the specimen can instead be photographed inside Provenance, which reads the device position as the shutter fires.",
+    signal: "GPSLatitude · GPSLongitude · eXIf · XMP",
   },
   {
     icon: Camera,
@@ -249,6 +249,11 @@ const FAQ_ITEMS = [
     question: "How does duplicate detection actually prevent reuse?",
     answer:
       "Each file resolves to one 256-bit digest. Renaming a photograph does not change it. The server holds the digests of every submission in the department and compares each new one against all of them, so the same image submitted by two students collides immediately — with both registration numbers and both timestamps attached.",
+  },
+  {
+    question: "What if the photo has no location in it at all?",
+    answer:
+      "That is the common case, not the exception: a phone writes GPS into a photograph only while its camera app holds location permission, and WhatsApp, Telegram and Signal all strip it from images sent as photos. No parser can recover a coordinate that was never written — so instead the specimen can be captured inside Provenance, where the device position is read at the instant the shutter fires and bound to the record. Where a student uploads an existing file, their device position can be attached as an attestation: it is recorded and shown to the reviewer, but never counted towards the verdict, because it says where the student was when submitting rather than where the photograph was taken.",
   },
   {
     question: "Which formats are supported?",

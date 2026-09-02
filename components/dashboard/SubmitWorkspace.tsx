@@ -20,9 +20,38 @@ import {
 } from "../ui/icons";
 import { fade, springMove, springSnappy, stagger } from "../../lib/motion";
 import { formatCoordinates } from "../../lib/format";
-import type { CheckResult, HistoryEntry } from "../../lib/types";
+import { formatAccuracy, formatCoordinatePair } from "../../lib/coordinates";
+import type { CheckResult, HistoryEntry, LocationSource } from "../../lib/types";
 
 export type WorkspacePhase = "idle" | "working" | "result";
+
+/**
+ * What each tier of location evidence actually claims. The wording matters:
+ * an attested position is a statement about the student, not the photograph,
+ * and the interface must never let the two read as the same finding.
+ */
+const LOCATION_TIERS: Record<
+  LocationSource,
+  { label: string; claim: string; tone: "good" | "warn" }
+> = {
+  embedded: {
+    label: "From the photograph",
+    claim: "The file's own EXIF or XMP carried these coordinates.",
+    tone: "good",
+  },
+  witnessed: {
+    label: "Witnessed at capture",
+    claim:
+      "Provenance took this picture and read the position at the same instant.",
+    tone: "good",
+  },
+  attested: {
+    label: "Attested by the student",
+    claim:
+      "Where the student's device was at upload. It does not establish where the photograph was taken.",
+    tone: "warn",
+  },
+};
 
 type SubmitWorkspaceProps = {
   phase: WorkspacePhase;
@@ -43,6 +72,11 @@ type SubmitWorkspaceProps = {
   onFile: (file: File) => void;
   onReset: () => void;
   onReport: () => void;
+  /** Opens the in-app camera — the one path where the app witnesses capture. */
+  onCapture: () => void;
+  /** Whether to read the device position when an uploaded file has none. */
+  attachPosition: boolean;
+  onAttachPositionChange: (next: boolean) => void;
 };
 
 const CHECKS: Array<{
@@ -160,6 +194,9 @@ export default function SubmitWorkspace({
   onFile,
   onReset,
   onReport,
+  onCapture,
+  attachPosition,
+  onAttachPositionChange,
 }: SubmitWorkspaceProps) {
   const reduced = useReducedMotion();
   const inputRef = useRef<HTMLInputElement>(null);
@@ -207,6 +244,31 @@ export default function SubmitWorkspace({
             exit={reduced ? { opacity: 0 } : { opacity: 0, y: -6 }}
             transition={fade}
           >
+            {/* The witnessed path leads, because it is the stronger claim: an
+                uploaded file's metadata is whatever the file says, while a
+                capture taken here is one the app actually observed. */}
+            <button
+              type="button"
+              onClick={onCapture}
+              className="group mb-4 flex min-h-14 w-full items-center justify-between gap-3 rounded-full bg-accent py-2 pl-6 pr-2 text-accent-ink shadow-accent transition-transform duration-200 active:scale-[0.99]"
+            >
+              <span className="flex min-w-0 flex-col items-start">
+                <span className="t-callout font-semibold">Capture now</span>
+                <span className="t-mark text-[0.5625rem] opacity-75">
+                  Strongest evidence
+                </span>
+              </span>
+              <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-black/15 transition-transform duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:scale-105">
+                <Camera size={18} />
+              </span>
+            </button>
+
+            <div className="mb-4 flex items-center gap-4">
+              <span className="h-px flex-1 bg-rule" />
+              <span className="t-mark text-ink-3">or submit an existing file</span>
+              <span className="h-px flex-1 bg-rule" />
+            </div>
+
             <label
               onDragEnter={(event) => {
                 event.preventDefault();
@@ -219,7 +281,7 @@ export default function SubmitWorkspace({
               }}
               onDragOver={(event) => event.preventDefault()}
               onDrop={handleDrop}
-              className={`group relative flex cursor-pointer flex-col items-center justify-center gap-4 overflow-hidden rounded-md border border-dashed px-6 py-14 text-center transition-colors duration-200 ${
+              className={`group relative flex cursor-pointer flex-col items-center justify-center gap-3 sm:gap-4 overflow-hidden rounded-md border border-dashed px-4 py-8 sm:px-6 sm:py-14 text-center transition-colors duration-200 ${
                 dragging
                   ? "border-accent bg-accent-wash"
                   : "border-line-strong hover:bg-well"
@@ -281,6 +343,28 @@ export default function SubmitWorkspace({
 
               <span className="t-mark relative text-ink-3">
                 JPEG · PNG · ≤ 25 MB
+              </span>
+            </label>
+
+            {/* Asked for here rather than on arrival: a permission prompt that
+                appears the moment a page loads is refused reflexively, and this
+                one only means anything once there is a file to attach it to. */}
+            <label className="mt-4 flex cursor-pointer items-start gap-3 border-t border-rule pt-4">
+              <input
+                type="checkbox"
+                checked={attachPosition}
+                onChange={(event) => onAttachPositionChange(event.target.checked)}
+                className="mt-0.5 h-4 w-4 shrink-0 accent-[var(--brand)]"
+              />
+              <span className="min-w-0">
+                <span className="t-footnote block font-medium text-ink">
+                  Record where I am when I submit
+                </span>
+                <span className="t-caption mt-0.5 block text-pretty text-ink-2">
+                  Used only when the file carries no location of its own. It is
+                  filed as your attestation, and never as evidence about the
+                  photograph.
+                </span>
               </span>
             </label>
 
@@ -451,6 +535,57 @@ export default function SubmitWorkspace({
                 ))}
               </ul>
             </div>
+
+            {/* Location evidence, named by tier. The whole point of separating
+                these is that a reviewer can see at a glance whether the
+                coordinates describe the photograph or the person who filed it. */}
+            {(() => {
+              const source = entry.verification?.locationSource ?? null;
+              if (!source) return null;
+              const tier = LOCATION_TIERS[source];
+              const attested = entry.location;
+              const coords =
+                source === "embedded"
+                  ? entry.metadata.gps.latitude != null &&
+                    entry.metadata.gps.longitude != null
+                    ? formatCoordinatePair(
+                        entry.metadata.gps.latitude,
+                        entry.metadata.gps.longitude
+                      )
+                    : null
+                  : attested
+                    ? formatCoordinatePair(attested.latitude, attested.longitude)
+                    : null;
+              const accuracy = formatAccuracy(attested?.accuracyMetres ?? null);
+
+              return (
+                <div
+                  className={`rounded-sm border-l-2 px-3.5 py-3 ${
+                    tier.tone === "good"
+                      ? "border-good bg-good-wash"
+                      : "border-warn bg-warn-wash"
+                  }`}
+                >
+                  <p
+                    className={`t-mark flex items-center gap-1.5 ${
+                      tier.tone === "good" ? "text-good" : "text-warn"
+                    }`}
+                  >
+                    <Pin size={12} />
+                    {tier.label}
+                  </p>
+                  {coords ? (
+                    <p className="t-num mt-1.5 text-[0.75rem] text-ink">
+                      {coords}
+                      {accuracy ? ` · ${accuracy}` : ""}
+                    </p>
+                  ) : null}
+                  <p className="t-caption mt-1 text-pretty text-ink-2">
+                    {tier.claim}
+                  </p>
+                </div>
+              );
+            })()}
 
             <div>
               <p className="t-mark text-ink-3">Extracted telemetry</p>

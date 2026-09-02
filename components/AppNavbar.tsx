@@ -162,35 +162,43 @@ export default function AppNavbar({ session }: AppNavbarProps) {
           className="mx-auto flex w-full max-w-[86rem] items-center justify-between gap-3"
         >
           {/* ------------------------------------------- Island 1: identity */}
-          <Link
-            href="/"
-            className={`${ISLAND} group relative z-10 flex min-w-0 items-center gap-2.5 py-2 pl-3 pr-4 transition-transform duration-150 active:scale-[0.98]`}
+          <motion.div
+            layout
+            transition={reduced ? { duration: 0 } : springMove}
+            className="flex min-w-0 shrink-0 items-center"
           >
-            <span className="text-ink transition-transform duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:rotate-90">
-              <BrandMark size={22} />
-            </span>
-            <span className="min-w-0">
-              <span className="t-mark on-material block truncate text-ink">
-                Provenance
+            <Link
+              href="/"
+              className={`${ISLAND} group relative z-10 flex min-w-0 items-center gap-2.5 py-2 pl-3 pr-4 transition-transform duration-150 active:scale-[0.98]`}
+            >
+              <span className="text-ink transition-transform duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:rotate-90">
+                <BrandMark size={22} />
               </span>
-              <AnimatePresence initial={false}>
-                {!condensed ? (
-                  <motion.span
-                    initial={{ opacity: 0, height: 0 }}
-                    animate={{ opacity: 1, height: "auto" }}
-                    exit={{ opacity: 0, height: 0 }}
-                    transition={fade}
-                    className="t-mark block overflow-hidden text-[0.5625rem] text-ink-3 xl:whitespace-nowrap"
-                  >
-                    IMVS · UNIZIK
-                  </motion.span>
-                ) : null}
-              </AnimatePresence>
-            </span>
-          </Link>
+              <span className="min-w-0">
+                <span className="t-mark on-material block truncate text-ink">
+                  Provenance
+                </span>
+                <AnimatePresence initial={false}>
+                  {!condensed ? (
+                    <motion.span
+                      initial={{ opacity: 0, height: 0 }}
+                      animate={{ opacity: 1, height: "auto" }}
+                      exit={{ opacity: 0, height: 0 }}
+                      transition={fade}
+                      className="t-mark block overflow-hidden text-[0.5625rem] text-ink-3 xl:whitespace-nowrap"
+                    >
+                      IMVS · UNIZIK
+                    </motion.span>
+                  ) : null}
+                </AnimatePresence>
+              </span>
+            </Link>
+          </motion.div>
 
           {/* ---------------------------------------------- Island 2: route */}
-          <nav
+          <motion.nav
+            layout
+            transition={reduced ? { duration: 0 } : springMove}
             aria-label="Sections"
             className={`${ISLAND} relative z-10 hidden items-center gap-0.5 p-1 md:flex`}
           >
@@ -229,10 +237,14 @@ export default function AppNavbar({ session }: AppNavbarProps) {
                 </Link>
               );
             })}
-          </nav>
+          </motion.nav>
 
           {/* --------------------------------------------- Island 3: action */}
-          <div className={`${ISLAND} relative z-10 flex items-center gap-1.5 p-1.5`}>
+          <motion.div
+            layout
+            transition={reduced ? { duration: 0 } : springMove}
+            className={`${ISLAND} relative z-10 flex shrink-0 items-center gap-1.5 p-1.5`}
+          >
             {session ? (
               <>
                 <AnimatePresence initial={false}>
@@ -321,7 +333,7 @@ export default function AppNavbar({ session }: AppNavbarProps) {
                 />
               </span>
             </button>
-          </div>
+          </motion.div>
         </motion.div>
       </header>
 

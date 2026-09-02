@@ -10,6 +10,8 @@ import Reveal from "../../components/ui/Reveal";
 import { Button } from "../../components/ui/Button";
 import SubmitWorkspace from "../../components/dashboard/SubmitWorkspace";
 import type { WorkspacePhase } from "../../components/dashboard/SubmitWorkspace";
+import CaptureCamera from "../../components/dashboard/CaptureCamera";
+import type { WitnessedCapture } from "../../components/dashboard/CaptureCamera";
 import { Alert, Doc } from "../../components/ui/icons";
 import { createThumbnail, readFileAsArrayBuffer, readFileAsDataUrl } from "../../lib/file";
 import { hashArrayBuffer } from "../../lib/hash";
@@ -25,7 +27,14 @@ import { ApiError, createSubmission } from "../../lib/api";
 import { useRequireProfile } from "../../lib/useProfile";
 import { useSubmissions } from "../../lib/useSubmissions";
 import { verifyImage } from "../../lib/verification";
-import type { HistoryEntry, MetadataResult } from "../../lib/types";
+import { readPosition } from "../../lib/geolocation";
+import { isUsableCoordinate } from "../../lib/coordinates";
+import type {
+  CaptureMode,
+  HistoryEntry,
+  LocationAttestation,
+  MetadataResult,
+} from "../../lib/types";
 
 const getExtension = (name: string): string =>
   name.toLowerCase().match(/\.([a-z0-9]+)$/i)?.[1] ?? "";
@@ -52,20 +61,28 @@ const validateImageFile = (file: File): string | null => {
   return null;
 };
 
-/** Resolves a place name for coordinates that came from the photo's own EXIF. */
-const attachLocationName = async (
-  metadata: MetadataResult
-): Promise<MetadataResult> => {
-  const { latitude, longitude } = metadata.gps;
-  if (
-    latitude == null ||
-    longitude == null ||
-    !Number.isFinite(latitude) ||
-    !Number.isFinite(longitude)
-  ) {
-    return metadata;
-  }
+/** Presents a witnessed instant the same way an EXIF timestamp is presented,
+ *  so the record reads consistently whatever produced it. */
+const formatWitnessedTime = (iso: string): string =>
+  new Intl.DateTimeFormat("en-GB", {
+    dateStyle: "medium",
+    timeStyle: "short",
+  }).format(new Date(iso));
 
+/** How stale the position was when the shutter fired. A large drift is worth
+ *  a reviewer's attention even on a witnessed capture. */
+const driftBetween = (fixedAt: string, capturedAt: string): number | null => {
+  const fix = new Date(fixedAt).getTime();
+  const shot = new Date(capturedAt).getTime();
+  if (!Number.isFinite(fix) || !Number.isFinite(shot)) return null;
+  return Math.round(Math.abs(shot - fix) / 1000);
+};
+
+/** Turns a coordinate pair into a place name, or null if that is not possible. */
+const reverseGeocode = async (
+  latitude: number,
+  longitude: number
+): Promise<string | null> => {
   try {
     const url = new URL("https://nominatim.openstreetmap.org/reverse");
     url.searchParams.set("format", "jsonv2");
@@ -77,16 +94,24 @@ const attachLocationName = async (
     const response = await fetch(url.toString(), {
       headers: { Accept: "application/json" },
     });
-    if (!response.ok) return metadata;
+    if (!response.ok) return null;
 
     const data = (await response.json()) as { display_name?: string };
-    return typeof data.display_name === "string"
-      ? { ...metadata, locationName: data.display_name }
-      : metadata;
+    return typeof data.display_name === "string" ? data.display_name : null;
   } catch {
     // Geocoding is a nicety; coordinates alone still satisfy the check.
-    return metadata;
+    return null;
   }
+};
+
+/** Resolves a place name for coordinates that came from the photo's own EXIF. */
+const attachLocationName = async (
+  metadata: MetadataResult
+): Promise<MetadataResult> => {
+  const { latitude, longitude } = metadata.gps;
+  if (!isUsableCoordinate(latitude, longitude)) return metadata;
+  const name = await reverseGeocode(latitude as number, longitude as number);
+  return name ? { ...metadata, locationName: name } : metadata;
 };
 
 export default function StudentDashboard() {
@@ -102,6 +127,8 @@ export default function StudentDashboard() {
   const [entry, setEntry] = useState<HistoryEntry | null>(null);
   const [duplicateOfOtherUser, setDuplicateOfOtherUser] = useState(false);
   const [offlineNotice, setOfflineNotice] = useState<string | null>(null);
+  const [cameraOpen, setCameraOpen] = useState(false);
+  const [attachPosition, setAttachPosition] = useState(true);
 
   const reset = () => {
     setPhase("idle");
@@ -114,8 +141,34 @@ export default function StudentDashboard() {
     setOfflineNotice(null);
   };
 
-  const handleFile = async (file: File) => {
-    const problem = validateImageFile(file);
+  /**
+   * A picture taken inside Provenance. The file, the instant and the position
+   * are already bound together by the camera component, so the only thing left
+   * is to file them as one record.
+   */
+  const handleCapture = (capture: WitnessedCapture) => {
+    setCameraOpen(false);
+    void handleFile(capture.file, {
+      mode: "witnessed",
+      capture,
+    });
+  };
+
+  type Provenance =
+    | { mode: "uploaded" }
+    | { mode: "witnessed"; capture: WitnessedCapture };
+
+  const handleFile = async (
+    file: File,
+    provenance: Provenance = { mode: "uploaded" }
+  ) => {
+    const witnessed = provenance.mode === "witnessed";
+    const captureMode: CaptureMode = witnessed ? "witnessed" : "uploaded";
+
+    /* A witnessed frame is encoded by this browser, so the format rules written
+       for camera files (HEIC advice, 25MB ceilings) have nothing to say about
+       it — and its own capture path already guarantees a JPEG. */
+    const problem = witnessed ? null : validateImageFile(file);
     if (problem) {
       setError(problem);
       setPhase("idle");
@@ -143,8 +196,74 @@ export default function StudentDashboard() {
         extractMetadata(buffer),
       ]);
 
+      /*
+       * A witnessed capture carries no EXIF — the browser encoded it, not a
+       * camera — so the app's own record of the moment stands in its place.
+       * These values are not presented as file metadata anywhere; the record's
+       * capture mode says where they came from.
+       */
+      let metadata: MetadataResult = witnessed
+        ? {
+            ...extracted,
+            captureTime: formatWitnessedTime(provenance.capture.capturedAt),
+            device: provenance.capture.cameraLabel
+              ? `In-app camera · ${provenance.capture.cameraLabel}`
+              : "In-app camera",
+          }
+        : extracted;
+
       setStep("Resolving location");
-      const metadata = await attachLocationName(extracted);
+      metadata = await attachLocationName(metadata);
+
+      /*
+       * Where the position comes from, and what it is allowed to claim.
+       *
+       * A witnessed fix was read as the shutter fired, so it describes the
+       * photograph. An attested fix is read now, at upload, and describes only
+       * the student — it is collected when the file itself has no coordinates,
+       * and `verifyImage` refuses to let it satisfy the location check.
+       */
+      let attestation: LocationAttestation | null = null;
+
+      if (witnessed && provenance.capture.fix) {
+        const { fix, capturedAt } = provenance.capture;
+        attestation = {
+          ...fix,
+          source: "witnessed",
+          driftSeconds: driftBetween(fix.fixedAt, capturedAt),
+          locationName: null,
+        };
+      } else if (
+        !witnessed &&
+        attachPosition &&
+        !isUsableCoordinate(metadata.gps.latitude, metadata.gps.longitude)
+      ) {
+        setStep("Reading your position");
+        const outcome = await readPosition();
+        if (outcome.ok) {
+          attestation = {
+            ...outcome.fix,
+            source: "attested",
+            driftSeconds: null,
+            locationName: null,
+          };
+        }
+      }
+
+      if (attestation) {
+        const name = await reverseGeocode(
+          attestation.latitude,
+          attestation.longitude
+        );
+        if (name) attestation = { ...attestation, locationName: name };
+        /* A witnessed fix *is* the photograph's location, so it may name the
+           record's place. An attested one may not: naming it would put the
+           student's upload location in the field a reviewer reads as the
+           photograph's. */
+        if (attestation.source === "witnessed" && name) {
+          metadata = { ...metadata, locationName: name };
+        }
+      }
 
       setStep("Checking against the ledger");
       const thumbnail = await createThumbnail(dataUrl);
@@ -155,7 +274,10 @@ export default function StudentDashboard() {
        * given no history: this device cannot see other students' hashes, so it
        * must never claim a file is unique — only the server can settle that.
        */
-      const local = verifyImage(metadata, hash, []);
+      const local = verifyImage(metadata, hash, [], {
+        captureMode,
+        location: attestation,
+      });
       const provisional: HistoryEntry = {
         id: `local-${hash.slice(0, 12)}`,
         hash,
@@ -166,6 +288,8 @@ export default function StudentDashboard() {
         reason: local.reason,
         metadata,
         verification: local,
+        captureMode,
+        location: attestation,
         submittedBy: {
           name: profile?.name ?? "",
           identifier: profile?.identifier ?? "",
@@ -186,11 +310,23 @@ export default function StudentDashboard() {
             device: metadata.device,
             gpsTagsPresent: metadata.gpsTagsPresent,
           },
+          captureMode,
+          location: attestation,
         });
 
-        setEntry(result.submission);
+        /* The deployed API may predate these fields and drop them. The record
+           the student sees and prints should still be whole, so the evidence
+           this device collected is merged back over the server's copy. */
+        const filed: HistoryEntry = {
+          ...result.submission,
+          captureMode: result.submission.captureMode ?? captureMode,
+          location: result.submission.location ?? attestation,
+          verification: result.submission.verification ?? local,
+        };
+
+        setEntry(filed);
         setDuplicateOfOtherUser(result.duplicateOfOtherUser);
-        prepend(result.submission);
+        prepend(filed);
       } catch (caught) {
         if (!(caught instanceof ApiError)) throw caught;
 
@@ -312,6 +448,9 @@ export default function StudentDashboard() {
               duplicateOfOtherUser={duplicateOfOtherUser}
               offlineNotice={offlineNotice}
               onFile={(file) => void handleFile(file)}
+              onCapture={() => setCameraOpen(true)}
+              attachPosition={attachPosition}
+              onAttachPositionChange={setAttachPosition}
               onReset={reset}
               onReport={() => entry && openPrintableReport(buildEntryReportHtml(entry))}
             />
@@ -377,6 +516,12 @@ export default function StudentDashboard() {
           </Reveal>
         </div>
       </Field>
+
+      <CaptureCamera
+        open={cameraOpen}
+        onClose={() => setCameraOpen(false)}
+        onCapture={handleCapture}
+      />
     </PageShell>
   );
 }

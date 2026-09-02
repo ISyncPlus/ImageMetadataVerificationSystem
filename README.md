@@ -41,6 +41,11 @@ npm run dev
   make/model extracted locally with `exifr`.
 - **Verification engine** — four rule-based checks: capture time, GPS
   location, device information, and duplicate (reuse) detection.
+- **Witnessed capture** — students can photograph a specimen inside Provenance;
+  the device position is read as the shutter fires and bound to the record, so
+  the app observes the evidence being made rather than being told about it.
+  Uploaded files fall back to embedded EXIF/XMP coordinates, and to a clearly
+  labelled attestation that never counts towards the verdict.
 - **Duplicate detection** — SHA-256 hashing, compared server-side against every
   student's submissions, so recycled coursework is caught across the department
   rather than only within one browser.

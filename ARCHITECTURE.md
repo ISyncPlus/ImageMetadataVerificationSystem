@@ -159,11 +159,82 @@ backend is unreachable during the defense?
 
 ---
 
+### 6. Where does location actually come from?
+
+**Examiner.** Chapter Three claims a GPS check. In practice most submissions
+have no coordinates at all. Is the parser at fault?
+
+**Architect.** No, and this was tested rather than assumed. The extractor was
+run against fixtures covering every encoding location can take: the EXIF GPS
+IFD with N/E and S/W hemispheres, GPS written without reference tags, an XMP
+packet carrying `exif:GPSLatitude` with no GPS IFD at all, and a PNG `eXIf`
+chunk. It reads all of them. It returns nothing only when the file contains
+nothing.
+
+**Examiner.** Then a lower-level parser — C++ compiled to WebAssembly — would
+do better?
+
+**Architect.** It would not. EXIF, XMP and `eXIf` are byte layouts, not
+computations: a native parser reads the same offsets and reaches the same
+values, faster in bulk and no more capable. Nothing outside those containers
+holds a position — maker notes carry exposure and lens data, not coordinates.
+The only ways to attach a location to a file that lacks one are to infer it
+from image content, or from the uploader's IP. The first is a guess dressed as
+a measurement; the second is city-level and defeated by any VPN. Neither is
+evidence, and putting either behind a "Verified" badge would be worse than
+having no check.
+
+**Examiner.** So why is the coordinate missing so often?
+
+**Architect.** Because it is usually never written. A phone embeds GPS only
+while the camera app holds location permission; denied, or with Precise
+Location off, the file has none. And the common transfer paths strip what does
+exist — WhatsApp, Telegram and Signal all remove GPS from images sent as photos
+rather than as files. A stripped copy is the normal case, not the exception.
+
+**Examiner.** Worse: a coordinate that *is* present proves very little. Writing
+one into a JPEG is a few lines of script.
+
+**Architect.** Correct, and Decision 2 already concedes it — the server
+validates rules, not authenticity. Which means the honest fix is not a better
+parser but a *witnessed* capture: let the student photograph the specimen inside
+Provenance, and read the device position at the instant the shutter fires. The
+app then observes the evidence being made instead of being told about it
+afterwards, which is the one thing an uploaded file can never offer.
+
+**Examiner.** And when the student uploads an old file with no coordinates?
+
+**Architect.** The device position is offered as an *attestation*, recorded and
+shown, but never counted. It says where the student was when they pressed
+submit — a claim about the student, not about the photograph. Conflating the two
+would quietly convert the system's central claim, mathematical auditing, back
+into the guesswork it replaced.
+
+> **Decision 6.** Location evidence is tiered and the tier travels with the
+> coordinates everywhere — verdict, interface and certificate.
+>
+> | Tier | Source | Satisfies the location check |
+> | --- | --- | --- |
+> | `embedded` | The file's own EXIF or XMP | Yes |
+> | `witnessed` | Read as Provenance took the picture | Yes |
+> | `attested` | The student's device at upload | **No** — recorded only |
+>
+> A witnessed capture is additionally scored on its own terms: it carries no
+> EXIF by construction, so the app's record of the moment satisfies the time
+> and device checks instead. Coordinates of (0, 0) are treated as absent
+> everywhere: strippers commonly zero the GPS rationals in place, and reading
+> Null Island as a position turns the clearest evidence of stripping into
+> evidence against it.
+
+
+---
+
 ## Settled architecture
 
 | Concern | Resolution |
 | --- | --- |
 | Image data | Never transmitted at full resolution; ≤96px thumbnail only |
+| Location evidence | Tiered: `embedded` / `witnessed` count; `attested` is recorded, never counted |
 | EXIF + hashing | Client-side (`exifr`, `crypto.subtle`) — unchanged |
 | Verdict authority | **Server** — re-derived from metadata, client value discarded |
 | Duplicate detection | **Server** — global across all students |
@@ -181,3 +252,11 @@ backend is unreachable during the defense?
 2. Lecturer elevation uses a shared invite code, not a faculty registry.
 3. Thumbnails are persisted. The privacy guarantee is "no original file leaves the
    device", not "nothing leaves the device".
+4. A witnessed capture is stronger in practice than an uploaded file — forging it
+   means defeating the browser rather than editing a file — but the *claim* that a
+   capture was witnessed still reaches the server from the client, and shares the
+   trust boundary of Decision 2. Closing it entirely would require the server to
+   receive the image, which Decision 1 rules out.
+5. An attested position is only as honest as the device reporting it; browser
+   geolocation can be overridden by developer tooling. It is recorded as an
+   attestation for exactly that reason, and never as proof.

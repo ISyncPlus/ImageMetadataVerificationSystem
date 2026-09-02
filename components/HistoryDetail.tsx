@@ -4,7 +4,8 @@ import CryptographicStream from "./ui/CryptographicStream";
 import { Button } from "./ui/Button";
 import { Alert, Camera, Check, Clock, Copies, Doc, Pin, User } from "./ui/icons";
 import { formatCoordinates, formatDateTime } from "../lib/format";
-import type { HistoryEntry } from "../lib/types";
+import { formatAccuracy, formatCoordinatePair } from "../lib/coordinates";
+import type { HistoryEntry, LocationSource } from "../lib/types";
 
 type HistoryDetailProps = {
   entry: HistoryEntry;
@@ -20,6 +21,34 @@ const CHECKS: Array<{
   { key: "deviceCheck", label: "Device" },
   { key: "duplicateCheck", label: "Not a duplicate" },
 ];
+
+/**
+ * How each tier of location evidence is named to a reviewer, and what it is
+ * allowed to claim. A reviewer deciding whether a student was where they say
+ * they were needs the distinction stated, not implied by placement.
+ */
+const LOCATION_TIERS: Record<
+  LocationSource,
+  { label: string; claim: string; tone: "good" | "warn" }
+> = {
+  embedded: {
+    label: "From the photograph",
+    claim: "Read from the file's own EXIF or XMP metadata.",
+    tone: "good",
+  },
+  witnessed: {
+    label: "Witnessed at capture",
+    claim:
+      "Provenance took this photograph and read the position at the same instant.",
+    tone: "good",
+  },
+  attested: {
+    label: "Attested by the student",
+    claim:
+      "Reported by the student's device at upload. It does not establish where the photograph was taken, and was not counted towards the location check.",
+    tone: "warn",
+  },
+};
 
 /** One line of the record: what it is on the left, what it says on the right. */
 function Reading({
@@ -72,6 +101,67 @@ export default function HistoryDetail({ entry, onReport }: HistoryDetailProps) {
         <StatusBadge status={entry.status} size="md" />
         <p className="t-callout text-pretty text-ink-2">{entry.reason}</p>
       </div>
+
+      {(() => {
+        const source = entry.verification?.locationSource ?? null;
+        if (!source) return null;
+        const tier = LOCATION_TIERS[source];
+        const attested = entry.location ?? null;
+        const coords =
+          source === "embedded"
+            ? entry.metadata.gps.latitude != null &&
+              entry.metadata.gps.longitude != null
+              ? formatCoordinatePair(
+                  entry.metadata.gps.latitude,
+                  entry.metadata.gps.longitude
+                )
+              : null
+            : attested
+              ? formatCoordinatePair(attested.latitude, attested.longitude)
+              : null;
+        const accuracy = formatAccuracy(attested?.accuracyMetres ?? null);
+
+        return (
+          <div>
+            <p className="t-mark text-ink-3">Location evidence</p>
+            <div
+              className={`mt-2 rounded-sm border-l-2 px-3.5 py-3 ${
+                tier.tone === "good"
+                  ? "border-good bg-good-wash"
+                  : "border-warn bg-warn-wash"
+              }`}
+            >
+              <p
+                className={`t-mark flex items-center gap-1.5 ${
+                  tier.tone === "good" ? "text-good" : "text-warn"
+                }`}
+              >
+                <Pin size={12} />
+                {tier.label}
+              </p>
+              {coords ? (
+                <p className="t-num mt-1.5 text-[0.75rem] text-ink">
+                  {coords}
+                  {accuracy ? ` · ${accuracy}` : ""}
+                </p>
+              ) : null}
+              {attested?.locationName ? (
+                <p className="t-caption mt-1 text-ink-2">
+                  {attested.locationName}
+                </p>
+              ) : null}
+              <p className="t-caption mt-1.5 text-pretty text-ink-2">
+                {tier.claim}
+              </p>
+              {attested?.driftSeconds != null ? (
+                <p className="t-num mt-1.5 text-[0.6875rem] text-ink-3">
+                  fix taken {attested.driftSeconds}s before the shutter
+                </p>
+              ) : null}
+            </div>
+          </div>
+        );
+      })()}
 
       <div>
         <p className="t-mark text-ink-3">Verification matrix</p>
@@ -135,6 +225,15 @@ export default function HistoryDetail({ entry, onReport }: HistoryDetailProps) {
             icon={Clock}
             label="Filed"
             value={formatDateTime(entry.checkedAt)}
+          />
+          <Reading
+            icon={Camera}
+            label="Origin"
+            value={
+              entry.captureMode === "witnessed"
+                ? "Captured inside Provenance"
+                : "Uploaded file"
+            }
           />
           <div className="flex items-start gap-3 py-3">
             <Copies size={15} className="mt-0.5 shrink-0 text-ink-3" />

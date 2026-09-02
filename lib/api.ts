@@ -1,7 +1,12 @@
 "use client";
 
 import { API_URL } from "./auth-client";
-import type { HistoryEntry, VerificationStatus } from "./types";
+import type {
+  CaptureMode,
+  HistoryEntry,
+  LocationAttestation,
+  VerificationStatus,
+} from "./types";
 
 /** An API failure carrying the server's message, so the UI can show it verbatim. */
 export class ApiError extends Error {
@@ -125,18 +130,49 @@ export type CreateSubmissionInput = {
     device: string | null;
     gpsTagsPresent: boolean;
   };
+  /** How the image reached the system — see `CaptureMode`. */
+  captureMode?: CaptureMode;
+  /** A device position offered with the submission, kept apart from the
+   *  file's own coordinates. */
+  location?: LocationAttestation | null;
 };
+
+/** The keys the current API predates. Stripped on a validation retry. */
+const LOCATION_EXTENSION = ["captureMode", "location"] as const;
 
 /**
  * Sends the derived record. Deliberately does not send a verdict — the server
  * re-derives it, so what comes back may differ from the browser's provisional
  * result (most often `Reused`, which only the server can know).
+ *
+ * `captureMode` and `location` are newer than the deployed API. Rather than
+ * gate the whole feature on a server release, the call retries once without
+ * them if the server rejects the body: an updated server persists the evidence,
+ * an older one keeps accepting submissions, and neither needs to know about the
+ * other. The caller still holds the attestation and merges it into the record
+ * it shows, so the student's certificate is complete either way.
  */
-export const createSubmission = (input: CreateSubmissionInput) =>
-  request<{ submission: HistoryEntry; duplicateOfOtherUser: boolean }>(
-    "/api/submissions",
-    { method: "POST", body: JSON.stringify(input) }
-  );
+export const createSubmission = async (input: CreateSubmissionInput) => {
+  const send = (body: CreateSubmissionInput | Omit<CreateSubmissionInput, "captureMode" | "location">) =>
+    request<{ submission: HistoryEntry; duplicateOfOtherUser: boolean }>(
+      "/api/submissions",
+      { method: "POST", body: JSON.stringify(body) }
+    );
+
+  try {
+    return await send(input);
+  } catch (error) {
+    const rejectedTheBody =
+      error instanceof ApiError && (error.status === 400 || error.status === 422);
+    const carriedExtension = LOCATION_EXTENSION.some(
+      (key) => input[key] != null
+    );
+    if (!rejectedTheBody || !carriedExtension) throw error;
+
+    const { captureMode: _mode, location: _location, ...core } = input;
+    return await send(core);
+  }
+};
 
 export const deleteSubmission = (id: string) =>
   request<void>(`/api/submissions/${id}`, { method: "DELETE" });
