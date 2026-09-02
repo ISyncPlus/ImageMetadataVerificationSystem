@@ -38,7 +38,7 @@ const RECOVERY = [
 export default function NotFound() {
   return (
     <PageShell stamp="Provenance — Record Not Found">
-      <Field pad="lg" className="pt-16">
+      <Field pad="none" className="pb-24 pt-16 sm:pb-32 sm:pt-24">
         <div className="grid gap-12 lg:grid-cols-12 lg:gap-10">
           <div className="lg:col-span-7">
             <div className="flex items-center gap-4">

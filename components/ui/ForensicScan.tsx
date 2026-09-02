@@ -26,21 +26,28 @@ export default function ForensicScan({
 
   if (reduced || !active) return null;
 
+  /* Every value resolves through a design token rather than a fixed palette
+     step, so the beam re-reads its colour from the theme — and from the field
+     it is dropped into. The glow is mixed from the same token as the line, so
+     the two can never drift apart. */
+  const wash = (token: string) =>
+    `color-mix(in oklab, var(${token}) 35%, transparent)`;
+
   const colorStyles = {
     brand: {
-      line: "bg-[var(--brand)]",
-      glow: "rgba(224, 75, 40, 0.35)",
-      crosshair: "text-[var(--brand)]",
+      line: "bg-accent",
+      glow: wash("--brand"),
+      crosshair: "text-accent",
     },
     green: {
-      line: "bg-emerald-500",
-      glow: "rgba(16, 185, 129, 0.35)",
-      crosshair: "text-emerald-500",
+      line: "bg-good-mark",
+      glow: wash("--good-mark"),
+      crosshair: "text-good",
     },
     amber: {
-      line: "bg-amber-500",
-      glow: "rgba(245, 158, 11, 0.35)",
-      crosshair: "text-amber-500",
+      line: "bg-warn-mark",
+      glow: wash("--warn-mark"),
+      crosshair: "text-warn",
     },
   }[color];
 
@@ -69,10 +76,10 @@ export default function ForensicScan({
         {showReticle && (
           <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 flex items-center gap-1.5">
             <span
-              className={`h-2.5 w-2.5 rounded-full border border-current bg-background ${colorStyles.crosshair} shadow-sm animate-pulse`}
+              className={`h-2.5 w-2.5 animate-pulse rounded-full border border-current bg-surface shadow-sm ${colorStyles.crosshair}`}
             />
             <span
-              className="text-[9px] font-mono font-bold tracking-widest uppercase px-1.5 py-0.5 rounded bg-background/90 border border-line text-ink backdrop-blur-md"
+              className="t-mark rounded-sm border border-line bg-surface/90 px-1.5 py-0.5 text-[0.5625rem] text-ink backdrop-blur-md"
             >
               SCANNING EXIF
             </span>

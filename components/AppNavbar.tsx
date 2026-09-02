@@ -9,6 +9,7 @@ import type { Profile } from "../lib/api";
 import ThemeToggle from "./ui/ThemeToggle";
 import { ArrowRight, SignOut } from "./ui/icons";
 import { BrandMark } from "./ui/BrandLogo";
+import UserAvatar from "./UserAvatar";
 import { fade, springMove, springSnappy } from "../lib/motion";
 
 type AppNavbarProps = {
@@ -253,16 +254,12 @@ export default function AppNavbar({ session }: AppNavbarProps) {
                   ) : null}
                 </AnimatePresence>
 
-                <span
-                  title={`${session.name}${
-                    session.identifier ? ` · ${session.identifier}` : ""
-                  }`}
-                  className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-accent-wash ring-1 ring-accent-edge"
-                >
-                  <span className="t-mark text-[0.625rem] text-accent-deep">
-                    {initials(session.name)}
-                  </span>
-                </span>
+                <UserAvatar
+                  name={session.name}
+                  image={session.image}
+                  size="md"
+                  className="ring-1 ring-accent-edge"
+                />
 
                 <ThemeToggle />
 

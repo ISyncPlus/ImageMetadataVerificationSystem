@@ -23,6 +23,7 @@ import { ApiError, deleteSubmission } from "../../lib/api";
 import { useRequireProfile } from "../../lib/useProfile";
 import { useDebounced, useSubmissions } from "../../lib/useSubmissions";
 import { formatCoordinates, formatDateTime } from "../../lib/format";
+import UserAvatar from "../../components/UserAvatar";
 import { fade, springMove, stagger } from "../../lib/motion";
 import type { HistoryEntry, VerificationStatus } from "../../lib/types";
 
@@ -123,23 +124,32 @@ export default function LecturerDashboard() {
               <span className="t-mark text-ink-3">Reviewer</span>
               <span className="t-mark text-accent-deep">Lecturer</span>
             </div>
-            <dl className="ruled px-4">
-              <div className="flex items-baseline justify-between gap-4 py-2.5">
-                <dt className="t-mark text-ink-3">Name</dt>
-                <dd className="t-footnote truncate font-semibold text-ink">
+            <div className="flex items-center gap-3 border-b border-rule px-4 py-3 bg-surface">
+              <UserAvatar
+                name={profile.name}
+                image={profile.image}
+                size="lg"
+              />
+              <div className="min-w-0 flex-1">
+                <span className="t-footnote block truncate font-semibold text-ink">
                   {profile.name}
-                </dd>
+                </span>
+                <span className="t-caption block truncate text-ink-3">
+                  {profile.email}
+                </span>
               </div>
+            </div>
+            <dl className="ruled px-4">
               <div className="flex items-baseline justify-between gap-4 py-2.5">
                 <dt className="t-mark text-ink-3">Staff ID</dt>
                 <dd className="t-num text-[0.8125rem] text-ink">
-                  {profile.identifier || "—"}
+                  {profile.identifier || "-"}
                 </dd>
               </div>
               <div className="flex items-baseline justify-between gap-4 py-2.5">
                 <dt className="t-mark text-ink-3">Students filed</dt>
                 <dd className="t-num text-[0.8125rem] text-ink">
-                  {String(stats.students).padStart(2, "0")}
+                  {String(stats?.students ?? 0).padStart(2, "0")}
                 </dd>
               </div>
             </dl>

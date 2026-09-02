@@ -88,18 +88,44 @@ export const useProfile = (): ProfileState => {
 export const useRequireProfile = (
   requiredRole: "student" | "lecturer"
 ): ProfileState => {
-  // Pseudo validation for now
+  const router = useRouter();
+  const { data: session, isPending: sessionPending } = useSession();
+  const { profile, loading: profileLoading, error } = useProfile();
+
+  const user = session?.user;
+
+  useEffect(() => {
+    if (sessionPending || profileLoading) return;
+
+    if (!user) {
+      router.replace("/login");
+      return;
+    }
+
+    if (profile && !profile.onboarded) {
+      router.replace("/onboarding");
+      return;
+    }
+
+    if (profile && profile.role !== requiredRole) {
+      router.replace(profile.role === "lecturer" ? "/lecturer" : "/student");
+    }
+  }, [user, profile, sessionPending, profileLoading, requiredRole, router]);
+
+  // If profile is still loading or not ready, provide session-based fallback
+  const resolvedProfile: Profile | null = profile || (user ? {
+    id: user.id,
+    name: user.name || "Student",
+    email: user.email,
+    image: user.image || null,
+    role: (user as unknown as { role?: string })?.role === "lecturer" ? "lecturer" : "student",
+    identifier: (user as unknown as { identifier?: string })?.identifier || null,
+    onboarded: true,
+  } : null);
+
   return {
-    profile: {
-      id: "fake_id",
-      name: requiredRole === "lecturer" ? "Dr. Lecturer" : "Jane Student",
-      email: `fake_${requiredRole}@unizik.edu.ng`,
-      image: null,
-      role: requiredRole,
-      identifier: requiredRole === "lecturer" ? "LEC123" : "2023000123",
-      onboarded: true,
-    },
-    loading: false,
-    error: null,
+    profile: resolvedProfile,
+    loading: sessionPending || (profileLoading && !resolvedProfile),
+    error,
   };
 };

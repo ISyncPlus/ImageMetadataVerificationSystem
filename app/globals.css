@@ -801,7 +801,12 @@ body {
   .grain::after { display: none; }
 }
 
-.dark {
+/* This app switches theme with [data-theme] (set before first paint by the
+   bootstrap script), not with a `.dark` class. The shadcn compatibility layer
+   is keyed to both, so a component added from the registry later inherits the
+   right appearance instead of silently staying light. */
+.dark,
+:root[data-theme="dark"] {
   --background: oklch(0.145 0 0);
   --foreground: oklch(0.985 0 0);
   --card: oklch(0.205 0 0);

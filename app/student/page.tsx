@@ -20,6 +20,7 @@ import {
   openPrintableReport,
 } from "../../lib/report";
 import Breadcrumbs from "../../components/ui/Breadcrumbs";
+import UserAvatar from "../../components/UserAvatar";
 import { ApiError, createSubmission } from "../../lib/api";
 import { useRequireProfile } from "../../lib/useProfile";
 import { useSubmissions } from "../../lib/useSubmissions";
@@ -262,17 +263,26 @@ export default function StudentDashboard() {
               <span className="t-mark text-ink-3">Registered</span>
               <span className="t-mark text-accent-deep">Student</span>
             </div>
-            <dl className="ruled px-4">
-              <div className="flex items-baseline justify-between gap-4 py-2.5">
-                <dt className="t-mark text-ink-3">Name</dt>
-                <dd className="t-footnote truncate font-semibold text-ink">
+            <div className="flex items-center gap-3 border-b border-rule px-4 py-3 bg-surface">
+              <UserAvatar
+                name={profile.name}
+                image={profile.image}
+                size="lg"
+              />
+              <div className="min-w-0 flex-1">
+                <span className="t-footnote block truncate font-semibold text-ink">
                   {profile.name}
-                </dd>
+                </span>
+                <span className="t-caption block truncate text-ink-3">
+                  {profile.email}
+                </span>
               </div>
+            </div>
+            <dl className="ruled px-4">
               <div className="flex items-baseline justify-between gap-4 py-2.5">
                 <dt className="t-mark text-ink-3">Reg. no</dt>
                 <dd className="t-num text-[0.8125rem] text-ink">
-                  {profile.identifier || "—"}
+                  {profile.identifier || "-"}
                 </dd>
               </div>
               <div className="flex items-baseline justify-between gap-4 py-2.5">
