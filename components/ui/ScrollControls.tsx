@@ -1,20 +1,27 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import { ChevronDown, ChevronUp } from "./icons";
 import { springMove, springSnappy } from "../../lib/motion";
 
 /**
+ * Lenis exponential ease-out: starts fast and decelerates into a silky soft
+ * landing. Identical to the easing used on devrajchatribin.com.
+ */
+const lenisEaseOut = (t: number): number => Math.min(1, 1.001 - Math.pow(2, -10 * t));
+
+/**
  * ScrollControls
  *
- * Provides soft, fluid scroll-to-top and scroll-to-bottom actions.
- * Appears seamlessly in the bottom right once the visitor begins scrolling.
+ * Provides immediate-response scroll-to-top and scroll-to-bottom actions
+ * with Lenis-style exponential deceleration for a soft landing.
  */
 export default function ScrollControls() {
   const reduced = useReducedMotion();
   const [visible, setVisible] = useState(false);
   const [atBottom, setAtBottom] = useState(false);
+  const rafRef = useRef<number>(0);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -22,10 +29,7 @@ export default function ScrollControls() {
       const docHeight = document.documentElement.scrollHeight;
       const winHeight = window.innerHeight;
 
-      // Show controls when scrolled more than 160px
       setVisible(y > 160);
-
-      // Check if near the very bottom (within 80px)
       setAtBottom(y + winHeight >= docHeight - 80);
     };
 
@@ -35,42 +39,40 @@ export default function ScrollControls() {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
-  const smoothScrollTo = (targetY: number, duration = 850) => {
+  const smoothScrollTo = (targetY: number) => {
     if (reduced) {
       window.scrollTo({ top: targetY, behavior: "auto" });
       return;
     }
 
+    // Cancel any in-flight scroll animation
+    if (rafRef.current) cancelAnimationFrame(rafRef.current);
+
     const startY = window.scrollY;
     const distance = targetY - startY;
+    if (Math.abs(distance) < 2) return;
+
+    const duration = 1200; // ms, matching Lenis default
     const startTime = performance.now();
 
-    // Quintic ease-out curve: extremely soft and gradual deceleration as it approaches target
-    const easeOutQuint = (t: number): number => 1 - Math.pow(1 - t, 5);
-
-    const step = (currentTime: number) => {
-      const elapsed = currentTime - startTime;
+    const step = (now: number) => {
+      const elapsed = now - startTime;
       const progress = Math.min(elapsed / duration, 1);
-      const eased = easeOutQuint(progress);
+      const eased = lenisEaseOut(progress);
 
       window.scrollTo(0, startY + distance * eased);
 
       if (progress < 1) {
-        requestAnimationFrame(step);
+        rafRef.current = requestAnimationFrame(step);
       }
     };
 
-    requestAnimationFrame(step);
+    rafRef.current = requestAnimationFrame(step);
   };
 
-  const scrollToTop = () => {
-    smoothScrollTo(0, 950);
-  };
-
-  const scrollToBottom = () => {
-    const docHeight = document.documentElement.scrollHeight;
-    smoothScrollTo(docHeight, 950);
-  };
+  const scrollToTop = () => smoothScrollTo(0);
+  const scrollToBottom = () =>
+    smoothScrollTo(document.documentElement.scrollHeight);
 
   return (
     <AnimatePresence>

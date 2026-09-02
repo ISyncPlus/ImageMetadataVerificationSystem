@@ -118,6 +118,8 @@ const jsonLdOrg = {
 
 import { Suspense } from "react";
 import { UtmTracker } from "../components/UtmTracker";
+import SmoothScrollProvider from "../components/SmoothScrollProvider";
+import "lenis/dist/lenis.css";
 
 export default function RootLayout({
   children,
@@ -156,7 +158,9 @@ export default function RootLayout({
         </Suspense>
         {/* Resolves the theme before first paint — no flash of the wrong one. */}
         <script dangerouslySetInnerHTML={{ __html: THEME_BOOTSTRAP }} />
-        {children}
+        <SmoothScrollProvider>
+          {children}
+        </SmoothScrollProvider>
       </body>
     </html>
   );
