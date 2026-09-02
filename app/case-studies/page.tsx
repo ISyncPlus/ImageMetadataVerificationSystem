@@ -12,7 +12,7 @@ import {
 } from "../../components/ui/icons";
 
 export const metadata = {
-  title: "Academic Case Studies — UNIZIK Physical Sciences",
+  title: "Academic Case Studies: UNIZIK Physical Sciences",
   description:
     "Explore real-world verification case studies across Geology fieldwork, Physics laboratory specimens, and SIWES industrial training at Nnamdi Azikiwe University.",
   alternates: {

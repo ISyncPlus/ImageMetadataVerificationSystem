@@ -12,7 +12,7 @@ import {
 } from "../components/ui/icons";
 
 export const metadata = {
-  title: "404 — Record Not Found | Provenance",
+  title: "404: Record Not Found | Provenance",
   description:
     "The requested page, verification record, or audit ledger document could not be located in the Provenance system.",
 };

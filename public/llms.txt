@@ -1,4 +1,4 @@
-# Provenance — Image Metadata & Verification System
+# Provenance: Image Metadata & Verification System
 > Browser-Native Cryptographic Image Telemetry & Provenance Auditing Platform for Academic Research and Practical Coursework.
 
 ## Overview

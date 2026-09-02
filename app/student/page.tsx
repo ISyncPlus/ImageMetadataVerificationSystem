@@ -241,7 +241,7 @@ export default function StudentDashboard() {
         stats={stats}
         eyebrow="Student"
         title={`Welcome, ${profile.name.split(" ")[0]}`}
-        subtitle="Submit an original practical, laboratory, fieldwork or SIWES photo. Your file is read on this device — only the resulting record is filed."
+        subtitle="Submit an original practical, laboratory, fieldwork or SIWES photo. Your file is read on this device: only the resulting record is filed."
       />
 
       <div className="grid gap-4 lg:grid-cols-5">

@@ -13,7 +13,7 @@ export async function GET() {
       },
     });
   } catch {
-    return new NextResponse("Provenance — Image Metadata & Verification System documentation", {
+    return new NextResponse("Provenance: Image Metadata & Verification System documentation", {
       headers: { "Content-Type": "text/plain; charset=utf-8" },
     });
   }

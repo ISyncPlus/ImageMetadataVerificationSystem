@@ -1,7 +1,7 @@
 import { ImageResponse } from "next/og";
 
 export const runtime = "edge";
-export const alt = "Provenance — Image Metadata & Verification System";
+export const alt = "Provenance: Image Metadata & Verification System";
 export const size = {
   width: 1200,
   height: 630,

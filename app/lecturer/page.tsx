@@ -112,7 +112,7 @@ export default function LecturerDashboard() {
         title="Coursework audit ledger"
         subtitle={`Every submission filed by the department${
           stats.students > 0
-            ? ` — ${stats.students} ${stats.students === 1 ? "student" : "students"} so far`
+            ? ` (${stats.students} ${stats.students === 1 ? "student" : "students"} so far)`
             : ""
         }. Duplicate detection runs across all students, not just each student's own history.`}
       />
@@ -262,7 +262,7 @@ export default function LecturerDashboard() {
                                   {entry.submittedBy?.name ?? "Unknown"}
                                 </span>
                                 <span className="t-caption block truncate font-mono text-ink-3">
-                                  {entry.submittedBy?.identifier || "—"}
+                                  {entry.submittedBy?.identifier || "-"}
                                 </span>
                               </span>
                             </div>
@@ -294,7 +294,7 @@ export default function LecturerDashboard() {
 
                           <td className="whitespace-nowrap px-3 py-3">
                             <span className="t-footnote block text-ink">
-                              {entry.metadata.captureTime ?? "—"}
+                              {entry.metadata.captureTime ?? "-"}
                             </span>
                             <span className="t-caption block text-ink-3">
                               filed {formatDateTime(entry.checkedAt)}
@@ -304,7 +304,7 @@ export default function LecturerDashboard() {
                           <td className="max-w-[12rem] px-3 py-3">
                             <span className="t-footnote block truncate text-ink">
                               {entry.metadata.locationName ??
-                                (coords ? "Coordinates only" : "—")}
+                                (coords ? "Coordinates only" : "-")}
                             </span>
                             {coords ? (
                               <span className="t-caption block truncate font-mono text-ink-3">
@@ -315,7 +315,7 @@ export default function LecturerDashboard() {
 
                           <td className="max-w-[9rem] px-3 py-3">
                             <span className="t-footnote block truncate text-ink">
-                              {entry.metadata.device ?? "—"}
+                              {entry.metadata.device ?? "-"}
                             </span>
                           </td>
 

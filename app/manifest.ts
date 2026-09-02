@@ -2,7 +2,7 @@ import type { MetadataRoute } from "next";
 
 export default function manifest(): MetadataRoute.Manifest {
   return {
-    name: "Provenance — Image Metadata Verification System",
+    name: "Provenance: Image Metadata Verification System",
     short_name: "Provenance",
     description:
       "Browser-native image provenance and metadata verification system for academic submissions, laboratory fieldwork, and SIWES reports.",

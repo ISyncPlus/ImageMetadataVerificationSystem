@@ -14,11 +14,11 @@ const inter = Inter({ subsets: ["latin"], variable: "--font-inter" });
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
   title: {
-    default: "Provenance — Image Metadata & Verification System",
+    default: "Provenance: Image Metadata & Verification System",
     template: "%s | Provenance",
   },
   description:
-    "Browser-native image provenance and metadata verification system for academic submissions, laboratory fieldwork, and SIWES reports — Faculty of Physical Sciences, Nnamdi Azikiwe University.",
+    "Browser-native image provenance and metadata verification system for academic submissions, laboratory fieldwork, and SIWES reports at Faculty of Physical Sciences, Nnamdi Azikiwe University.",
   applicationName: "Provenance",
   authors: [{ name: "Ebube Ezedimbu", url: siteUrl }],
   keywords: [
@@ -43,7 +43,7 @@ export const metadata: Metadata = {
     apple: "/apple-icon.png",
   },
   openGraph: {
-    title: "Provenance — Image Metadata & Verification System",
+    title: "Provenance: Image Metadata & Verification System",
     description:
       "Proof that a photo is what it claims to be. Browser-native EXIF extraction, timestamp auditing, GPS geocoding, and cryptographic duplicate detection.",
     url: siteUrl,
@@ -55,13 +55,13 @@ export const metadata: Metadata = {
         url: "/og-image.jpg",
         width: 1200,
         height: 630,
-        alt: "Provenance — Image Metadata & Verification System banner",
+        alt: "Provenance: Image Metadata & Verification System banner",
       },
     ],
   },
   twitter: {
     card: "summary_large_image",
-    title: "Provenance — Image Metadata & Verification System",
+    title: "Provenance: Image Metadata & Verification System",
     description:
       "Proof that a photo is what it claims to be. Academic image provenance and metadata verification.",
     images: ["/og-image.jpg"],
@@ -102,7 +102,7 @@ const jsonLdOrg = {
     {
       "@type": "SoftwareApplication",
       "@id": `${siteUrl}/#software`,
-      name: "Provenance — Image Metadata & Verification System",
+      name: "Provenance: Image Metadata & Verification System",
       applicationCategory: "EducationalApplication",
       operatingSystem: "All modern web browsers (Chromium, Safari, Firefox)",
       offers: {

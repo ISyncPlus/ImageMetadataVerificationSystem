@@ -32,7 +32,7 @@ export const verifyImage = (
     return {
       status: "Reused",
       reason:
-        "This image's SHA-256 hash matches a previous submission — possible duplicate or reused evidence.",
+        "This image's SHA-256 hash matches a previous submission: possible duplicate or reused evidence.",
       timeCheck,
       locationCheck,
       deviceCheck,

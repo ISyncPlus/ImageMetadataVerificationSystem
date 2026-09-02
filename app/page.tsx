@@ -28,6 +28,36 @@ import {
 } from "../components/ui/icons";
 import { dashboardPathFor } from "../lib/auth-client";
 import { useProfile } from "../lib/useProfile";
+import TiltCard from "../components/ui/TiltCard";
+import ForensicScan from "../components/ui/ForensicScan";
+import RadarPing from "../components/ui/RadarPing";
+import NumberTicker from "../components/ui/NumberTicker";
+import CryptographicStream from "../components/ui/CryptographicStream";
+import { ScrollSplitCard } from "../components/ui/scroll-split-card";
+
+const SPLIT_CARDS = [
+  {
+    title: "Temporal Sensor Clock",
+    description: "Validates original capture timestamps directly from camera hardware against official physical sciences lab schedules.",
+    bgColor: "#141416",
+    textColor: "#ffffff",
+    icon: <Clock size={28} className="text-accent" />,
+  },
+  {
+    title: "SHA-256 Binary Digest",
+    description: "Generates an immutable 256-bit hash. Server-authoritative cross-matching flags duplicate photo submissions instantly.",
+    bgColor: "#E04B28",
+    textColor: "#ffffff",
+    icon: <ShieldCheck size={28} className="text-white" />,
+  },
+  {
+    title: "Geodetic GPS Telemetry",
+    description: "Extracts physical coordinates and reverse geocodes against UNIZIK faculty laboratory and fieldwork geofences.",
+    bgColor: "#18181b",
+    textColor: "#ffffff",
+    icon: <Pin size={28} className="text-accent" />,
+  },
+];
 
 const PILLARS = [
   {
@@ -66,7 +96,7 @@ const PILLARS = [
 
 const SPECIMENS = {
   authentic: {
-    title: "Geology Fieldwork — Sample Core 04",
+    title: "Geology Fieldwork: Sample Core 04",
     fileName: "UNIZIK_GLY_2026_04.jpg",
     status: "Verified" as const,
     reason: "Original EXIF telemetry intact. Matches assigned field coordinates and timeframe.",
@@ -83,7 +113,7 @@ const SPECIMENS = {
     },
   },
   tampered: {
-    title: "Physics Lab — Oscilloscope Specimen",
+    title: "Physics Lab: Oscilloscope Specimen",
     fileName: "shared_photo_whatsapp.jpeg",
     status: "Suspicious" as const,
     reason: "EXIF metadata stripped by messaging compression. Missing GPS and sensor telemetry.",
@@ -223,7 +253,7 @@ export default function LandingPage() {
         <Reveal index={3}>
           <p className="t-body mx-auto max-w-2xl text-pretty text-ink-2">
             Provenance replaces subjective visual guesswork with mathematically
-            auditing raw camera metadata — verifiable sensor timestamps,
+            auditing raw camera metadata: verifiable sensor timestamps,
             GPS coordinates, optical hardware signatures, and SHA-256 duplicate detection.
           </p>
         </Reveal>
@@ -275,18 +305,32 @@ export default function LandingPage() {
         </Reveal>
       </section>
 
-      {/* ------------------------------------------- Interactive Specimen Demo */}
-      <section id="interactive-demo" className="py-6 scroll-mt-20">
+      {/* ---------------------------------- 3D Scroll Split Card Deconstruction */}
+      <section className="relative w-full">
+        <ScrollSplitCard
+          imageSrc="/imvs_hero.jpeg"
+          cards={SPLIT_CARDS}
+          eyebrow="Forensic Architecture"
+          heading="How Verification Unfolds"
+          endingText="Cryptographically audited evidence: zero subjective guesswork."
+        />
+      </section>
+
+      {/* ------------------------------------------- Interactive Specimen Demo (Double-Bezel) */}
+      <section id="interactive-demo" className="py-12 scroll-mt-20">
         <Reveal>
-          <div className="overflow-hidden rounded-2xl border border-line bg-surface shadow-lift">
-            {/* Header Toolbar */}
-            <div className="flex flex-wrap items-center justify-between gap-3 border-b border-line bg-surface-2 px-6 py-4">
-              <div className="flex items-center gap-2.5">
-                <span className="flex h-2.5 w-2.5 rounded-full bg-accent" />
-                <p className="t-callout font-semibold text-ink">
-                  Interactive Telemetry Specimen
-                </p>
-              </div>
+          {/* Outer Hardware Chassis (Double-Bezel Shell) */}
+          <div className="rounded-[2rem] border border-line bg-well/70 p-2 sm:p-2.5 shadow-lift">
+            {/* Inner Core Surface */}
+            <div className="relative overflow-hidden rounded-[calc(2rem-0.625rem)] border border-line bg-surface shadow-sm">
+              {/* Header Toolbar */}
+              <div className="flex flex-wrap items-center justify-between gap-3 border-b border-line bg-surface-2 px-6 py-4">
+                <div className="flex items-center gap-2.5">
+                  <span className="flex h-2.5 w-2.5 rounded-full bg-accent" />
+                  <p className="t-callout font-semibold text-ink">
+                    Interactive Telemetry Specimen
+                  </p>
+                </div>
 
               {/* Specimen Mode Switcher */}
               <div className="flex rounded-lg border border-line bg-surface p-0.5">
@@ -315,8 +359,15 @@ export default function LandingPage() {
               </div>
             </div>
 
+            {/* Optical Laser Reticle Scan Layer */}
+            <ForensicScan
+              active={true}
+              color={specimen.status === "Verified" ? "green" : "amber"}
+              className="z-10"
+            />
+
             {/* Specimen Body */}
-            <div className="grid gap-6 p-6 lg:grid-cols-12">
+            <div className="grid gap-6 p-6 lg:grid-cols-12 relative z-0">
               {/* Left Column: Specimen Overview & Checks */}
               <div className="flex flex-col justify-between gap-6 lg:col-span-5">
                 <div>
@@ -428,8 +479,8 @@ export default function LandingPage() {
                         <Copies size={15} className="text-ink-3 shrink-0" />
                         SHA-256 Binary Digest
                       </dt>
-                      <dd className="t-caption font-mono text-ink-2 max-w-[240px] truncate text-right">
-                        {specimen.hash}
+                      <dd className="text-right max-w-[280px]">
+                        <CryptographicStream hash={specimen.hash} />
                       </dd>
                     </div>
                   </dl>
@@ -437,7 +488,7 @@ export default function LandingPage() {
 
                 <div className="mt-4 flex items-center justify-between border-t border-line pt-3">
                   <p className="t-caption text-ink-3">
-                    Calculated in-browser in 18ms via WebAssembly &amp; WebCrypto
+                    Calculated in-browser via WebAssembly &amp; WebCrypto
                   </p>
                   <span className="t-caption font-semibold text-accent flex items-center gap-1">
                     <ShieldCheck size={14} />
@@ -447,8 +498,9 @@ export default function LandingPage() {
               </div>
             </div>
           </div>
-        </Reveal>
-      </section>
+        </div>
+      </Reveal>
+    </section>
 
       {/* ---------------------------------------- The 4 Pillars of Verification */}
       <section className="py-10">
@@ -471,25 +523,27 @@ export default function LandingPage() {
             const Glyph = pillar.icon;
             return (
               <Reveal key={pillar.title} index={index}>
-                <article className="flex h-full flex-col justify-between rounded-2xl border border-line bg-surface p-6 shadow-card">
-                  <div>
-                    <div className="flex items-center justify-between">
-                      <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-accent-wash text-accent">
-                        <Glyph size={20} />
-                      </span>
-                      <span className="t-caption font-mono font-semibold text-ink-3">
-                        {pillar.tag}
-                      </span>
+                <TiltCard className="h-full rounded-2xl border border-line bg-surface p-6 shadow-card transition-shadow hover:shadow-lift">
+                  <div className="flex h-full flex-col justify-between">
+                    <div>
+                      <div className="flex items-center justify-between">
+                        <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-accent-wash text-accent">
+                          <Glyph size={20} />
+                        </span>
+                        <span className="t-caption font-mono font-semibold text-ink-3">
+                          {pillar.tag}
+                        </span>
+                      </div>
+                      <h3 className="t-title-3 mt-4 text-ink">{pillar.title}</h3>
+                      <p className="t-caption font-medium text-accent mt-0.5">
+                        {pillar.subtitle}
+                      </p>
+                      <p className="t-footnote mt-2 text-ink-2">
+                        {pillar.description}
+                      </p>
                     </div>
-                    <h3 className="t-title-3 mt-4 text-ink">{pillar.title}</h3>
-                    <p className="t-caption font-medium text-accent mt-0.5">
-                      {pillar.subtitle}
-                    </p>
-                    <p className="t-footnote mt-2 text-ink-2">
-                      {pillar.description}
-                    </p>
                   </div>
-                </article>
+                </TiltCard>
               </Reveal>
             );
           })}
@@ -518,35 +572,31 @@ export default function LandingPage() {
           </Link>
         </Reveal>
 
-        <div className="grid gap-4 md:grid-cols-3">
-          {CASE_STUDY_PREVIEWS.map((item, idx) => (
-            <Reveal key={item.title} index={idx}>
-              <div className="flex h-full flex-col justify-between rounded-2xl border border-line bg-surface p-6 shadow-card">
+        <div className="grid gap-6 md:grid-cols-3">
+          {CASE_STUDY_PREVIEWS.map((study, idx) => (
+            <Reveal key={study.title} index={idx}>
+              <TiltCard className="flex h-full flex-col justify-between rounded-2xl border border-line bg-surface p-6 shadow-card hover:border-accent/40 transition-colors">
                 <div>
                   <div className="flex items-center justify-between gap-2">
-                    <span className="t-caption font-bold text-accent">
-                      {item.tag}
+                    <span className="t-caption rounded-full bg-accent-wash px-2.5 py-0.5 font-semibold text-accent">
+                      {study.tag}
                     </span>
-                    <span className="t-caption font-mono rounded bg-surface-2 px-2 py-0.5 text-ink-3">
-                      {item.course}
+                    <span className="t-caption font-mono text-ink-3">
+                      {study.course}
                     </span>
                   </div>
-                  <h3 className="t-title-3 mt-3 font-semibold text-ink">
-                    {item.title}
-                  </h3>
-                  <p className="t-footnote mt-2 text-ink-2">
-                    {item.result}
-                  </p>
+                  <h3 className="t-title-3 mt-3 text-ink font-semibold">{study.title}</h3>
+                  <p className="t-footnote mt-2 text-ink-2">{study.result}</p>
                 </div>
-                <div className="mt-6 pt-4 border-t border-line">
+                <div className="mt-4 pt-3 border-t border-line">
                   <Link
-                    href={item.link}
-                    className="t-caption inline-flex items-center gap-1 font-semibold text-accent hover:underline"
+                    href={study.link}
+                    className="t-caption font-semibold text-accent inline-flex items-center gap-1 hover:underline"
                   >
-                    Read full case analysis &rarr;
+                    Read case study <ArrowRight size={12} />
                   </Link>
                 </div>
-              </div>
+              </TiltCard>
             </Reveal>
           ))}
         </div>
@@ -763,7 +813,9 @@ export default function LandingPage() {
                   </div>
 
                   <div className="flex items-start gap-3 rounded-xl border border-line bg-surface-2 p-3.5">
-                    <Compass size={20} className="text-accent shrink-0 mt-0.5" />
+                    <div className="shrink-0 mt-1 flex items-center justify-center">
+                      <RadarPing size={18} />
+                    </div>
                     <div>
                       <p className="t-footnote font-semibold text-ink">GPS Reference Telemetry</p>
                       <p className="t-caption font-mono text-ink-2">

@@ -169,7 +169,7 @@ export default function SubmitWorkspace({
   return (
     <Card
       title="Submit evidence"
-      subtitle="Original camera photo — JPEG or PNG"
+      subtitle="Original camera photo (JPEG or PNG)"
       className="overflow-hidden"
       actions={
         phase === "result" ? (

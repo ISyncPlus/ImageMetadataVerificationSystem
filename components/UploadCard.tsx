@@ -148,7 +148,7 @@ export default function UploadCard({
               initial={reduced ? { opacity: 0 } : { opacity: 0, scale: 1.05 }}
               animate={{ opacity: 1, scale: 1 }}
               transition={springMove}
-              className="h-full w-full"
+              className="h-full w-full relative"
             >
               <Image
                 src={previewUrl}
@@ -158,6 +158,9 @@ export default function UploadCard({
                 unoptimized
                 className="h-full w-full object-cover"
               />
+              {isProcessing && (
+                <div className="absolute inset-0 pointer-events-none bg-accent/20 animate-pulse" />
+              )}
             </motion.div>
           ) : (
             <div className="flex h-full w-full items-center justify-center text-ink-3">
@@ -174,7 +177,7 @@ export default function UploadCard({
               <>
                 <Hash size={12} className="shrink-0 text-accent" />
                 <span className="truncate font-mono font-medium text-ink-2">
-                  {hash.slice(0, 20)}…{hash.slice(-8)}
+                  {hash.slice(0, 16)}…{hash.slice(-8)}
                 </span>
               </>
             ) : (
