@@ -3,7 +3,15 @@ import { THEME_BOOTSTRAP } from "../lib/theme";
 import "./globals.css";
 import GoogleAnalytics from "../components/GoogleAnalytics";
 
-const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://provenance-unizik.edu.ng";
+const getSiteUrl = () => {
+  if (process.env.NEXT_PUBLIC_SITE_URL) return process.env.NEXT_PUBLIC_SITE_URL;
+  if (process.env.VERCEL_PROJECT_PRODUCTION_URL) return `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}`;
+  if (process.env.NEXT_PUBLIC_VERCEL_URL) return `https://${process.env.NEXT_PUBLIC_VERCEL_URL}`;
+  if (process.env.VERCEL_URL) return `https://${process.env.VERCEL_URL}`;
+  return "https://provenance-imvs.vercel.app";
+};
+
+const siteUrl = getSiteUrl();
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
@@ -49,6 +57,7 @@ export const metadata: Metadata = {
         url: "/og-image.jpg",
         width: 1200,
         height: 630,
+        type: "image/jpeg",
         alt: "Provenance: Image Metadata & Verification System banner",
       },
     ],
