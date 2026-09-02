@@ -105,7 +105,15 @@ export const useTheme = () => {
     installTransitionStyles(createAnimation("top-left").css);
     /* flushSync so React's own re-render lands inside the snapshot, rather
        than one frame after it. */
-    document.startViewTransition(() => flushSync(commit));
+    const transition = document.startViewTransition(() => flushSync(commit));
+
+    /* A view transition that gets skipped — a second toggle arriving before the
+       first has settled, or the tab being hidden mid-sweep — rejects both of
+       these with InvalidStateError. The callback above has already applied the
+       theme by then, so there is nothing to recover: the only thing an
+       unhandled rejection achieves is reporting a failure that did not happen. */
+    transition.ready.catch(() => {});
+    transition.finished.catch(() => {});
   }, []);
 
   return { preference, resolved, setTheme };

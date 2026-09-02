@@ -11,16 +11,16 @@ const COOKIE_CONSENT_KEY = "provenance_privacy_consent_v1";
 
 export default function CookieBanner() {
   const reduced = useReducedMotion();
-  const [mounted, setMounted] = useState(false);
   const [visible, setVisible] = useState(false);
 
+  /* `visible` doubles as the mounted guard: it starts false on the server and
+     on the client's first paint, and only the timer below can turn it true —
+     which cannot happen before hydration. An extra `mounted` flag set
+     synchronously here would render the whole tree a second time for nothing. */
   useEffect(() => {
-    setMounted(true);
-    const hasConsented = localStorage.getItem(COOKIE_CONSENT_KEY);
-    if (!hasConsented) {
-      const timer = setTimeout(() => setVisible(true), 1200);
-      return () => clearTimeout(timer);
-    }
+    if (localStorage.getItem(COOKIE_CONSENT_KEY)) return;
+    const timer = setTimeout(() => setVisible(true), 1200);
+    return () => clearTimeout(timer);
   }, []);
 
   const accept = () => {
@@ -32,8 +32,6 @@ export default function CookieBanner() {
     localStorage.setItem(COOKIE_CONSENT_KEY, "essential_only");
     setVisible(false);
   };
-
-  if (!mounted) return null;
 
   return (
     <AnimatePresence>

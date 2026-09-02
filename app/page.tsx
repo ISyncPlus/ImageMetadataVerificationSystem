@@ -449,14 +449,22 @@ export default function LandingPage() {
           </Marquee>
         </div>
 
+        {/* Only the stamp line here, deliberately: the deck below pins its own
+            title to the viewport as it plays, and a second heading in normal
+            flow would say the same thing twice, ten pixels apart. */}
         <div className="bleed-inner pt-20 sm:pt-28">
-          <Exhibit
-            index="02"
-            mark="Method"
-            meta="Scroll to decompose"
-            title="One photograph, taken apart into the three things that can be proven."
-            lede="The image is the claim. The metadata underneath it is the evidence. Scrolling separates one from the other."
-          />
+          <div className="flex items-center gap-4">
+            <span className="t-mark text-accent">02</span>
+            <span className="t-mark text-ink-2">Method</span>
+            <span className="h-px flex-1 bg-rule" />
+            <span className="t-mark hidden text-ink-3 sm:block">
+              Three provable facts
+            </span>
+          </div>
+          <p className="t-body mt-6 max-w-lg text-pretty text-ink-2">
+            The image is the claim. The metadata underneath it is the evidence.
+            Scrolling separates one from the other.
+          </p>
         </div>
 
         {/* The user's scroll-split deck, kept exactly as built and given a dark
@@ -465,7 +473,7 @@ export default function LandingPage() {
           imageSrc="/imvs_hero.jpeg"
           cards={SPLIT_CARDS}
           eyebrow="Forensic architecture"
-          heading="How verification unfolds"
+          heading="One photograph, taken apart"
           endingText="Cryptographically audited evidence: zero subjective guesswork."
         />
       </Field>
@@ -771,9 +779,10 @@ export default function LandingPage() {
               </ButtonLink>
             </div>
 
-            <p className="t-mark mt-10 max-w-md text-ink-2">
+            <p className="t-footnote mt-10 max-w-md text-pretty text-ink-2">
               The server is still authoritative for verdicts — only it can see
-              every student&apos;s digests. That limitation is documented, not hidden.
+              every student&apos;s digests. That limitation is documented, not
+              hidden.
             </p>
           </div>
 
