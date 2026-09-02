@@ -1,4 +1,3 @@
-import Link from "next/link";
 import PageShell from "../../components/PageShell";
 import Reveal from "../../components/ui/Reveal";
 import Breadcrumbs from "../../components/ui/Breadcrumbs";
@@ -7,8 +6,6 @@ import {
   CheckCircle2,
   Clock,
   Doc,
-  Download,
-  ExternalLink,
   MapPin,
   ShieldCheck,
   Zap,

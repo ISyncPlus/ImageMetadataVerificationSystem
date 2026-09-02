@@ -13,10 +13,8 @@ import { Alert } from "../../components/ui/icons";
 import { GoogleGlyph, GitHubGlyph } from "../../components/ui/ProviderGlyphs";
 import { BrandMark } from "../../components/ui/BrandLogo";
 import {
-  authClient,
   enabledProviders,
   signIn,
-  signUp,
   useSession,
 } from "../../lib/auth-client";
 import { fade, springMove } from "../../lib/motion";

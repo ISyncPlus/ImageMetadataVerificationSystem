@@ -2,7 +2,6 @@ import Link from "next/link";
 import PageShell from "../components/PageShell";
 import Reveal from "../components/ui/Reveal";
 import { ButtonLink } from "../components/ui/Button";
-import { BrandMark } from "../components/ui/BrandLogo";
 import Breadcrumbs from "../components/ui/Breadcrumbs";
 import {
   ArrowLeft,

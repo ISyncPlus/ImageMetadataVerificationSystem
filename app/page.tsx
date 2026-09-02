@@ -20,22 +20,14 @@ import {
   Clock,
   Compass,
   Copies,
-  Doc,
-  ExternalLink,
-  GraduationCap,
-  HelpCircle,
-  Mail,
   MapPin,
   Pin,
-  ShieldAlert,
   ShieldCheck,
   Sparkles,
-  Users,
   Zap,
 } from "../components/ui/icons";
 import { dashboardPathFor } from "../lib/auth-client";
 import { useProfile } from "../lib/useProfile";
-import { fade, springMove } from "../lib/motion";
 
 const PILLARS = [
   {
@@ -113,22 +105,22 @@ const CASE_STUDY_PREVIEWS = [
   {
     tag: "Geological Sciences",
     course: "GLY 304",
-    title: "Awka Basin Escarpment Fieldwork Provenance",
-    result: "100% duplicate outcrop recycling eliminated across 148 submissions.",
+    title: "Structural Rock Core & Mineral Outcrop Provenance",
+    result: "100% duplicate outcrop recycling eliminated across 186 field specimens.",
     link: "/case-studies",
   },
   {
-    tag: "Pure & Applied Physics",
+    tag: "Pure & Industrial Physics",
     course: "PHY 306",
-    title: "Optical Interferometry & Screen Capture Audits",
-    result: "12 cross-group waveform duplications detected instantly in-browser.",
+    title: "Laser Interferometry & Oscilloscope Capture Audits",
+    result: "14 cross-group waveform duplications detected instantly via SHA-256.",
     link: "/case-studies",
   },
   {
-    tag: "Industrial Training",
-    course: "ITF 300",
-    title: "SIWES Workplace Geographic Geotag Verification",
-    result: "98.4% geotag confirmation rate across nationwide industrial field sites.",
+    tag: "Pure & Industrial Chemistry",
+    course: "ICH 312",
+    title: "Spectrophotometric Assays & TLC Plate Provenance",
+    result: "28 timestamp violations flagged during scheduled laboratory hours.",
     link: "/case-studies",
   },
 ];

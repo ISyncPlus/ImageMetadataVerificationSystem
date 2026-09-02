@@ -5,11 +5,8 @@ import { ButtonLink } from "../../components/ui/Button";
 import {
   CheckCircle2,
   Doc,
-  FileText,
-  HelpCircle,
   Mail,
   MapPin,
-  ShieldAlert,
   ShieldCheck,
   Zap,
 } from "../../components/ui/icons";
