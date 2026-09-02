@@ -49,6 +49,7 @@ export default function FloatingContact() {
           <motion.div
             role="dialog"
             aria-label="Department inquiry and feedback"
+            data-lenis-prevent
             initial={reduced ? { opacity: 0 } : { opacity: 0, y: 16, scale: 0.94 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={reduced ? { opacity: 0 } : { opacity: 0, y: 16, scale: 0.94 }}

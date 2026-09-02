@@ -239,6 +239,7 @@ export default function Sheet({
         aria-modal="true"
         aria-label={title}
         tabIndex={-1}
+        data-lenis-prevent
         style={{ y, opacity: reduced ? fade : 1 }}
         className="material relative flex max-h-[88vh] w-full max-w-2xl flex-col overflow-hidden rounded-t-xl border-t border-material-edge shadow-sheet outline-none backdrop-blur-2xl backdrop-saturate-[180%] sm:mb-4 sm:rounded-xl sm:border"
       >
@@ -260,7 +261,10 @@ export default function Sheet({
           </div>
         </div>
 
-        <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-6 pb-8">
+        <div
+          data-lenis-prevent
+          className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-6 pb-8"
+        >
           {children}
         </div>
       </motion.div>

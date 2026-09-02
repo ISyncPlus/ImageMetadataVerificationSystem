@@ -186,6 +186,7 @@ export default function SiteSearch() {
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={reduced ? { opacity: 0 } : { opacity: 0, scale: 0.95, y: -8 }}
               transition={springMove}
+              data-lenis-prevent
               className="relative w-full max-w-xl overflow-hidden rounded-2xl border border-material-edge bg-surface shadow-2xl"
             >
               {/* Search Input Bar */}
@@ -213,7 +214,7 @@ export default function SiteSearch() {
               </div>
 
               {/* Search Results */}
-              <div className="max-h-80 overflow-y-auto p-2">
+              <div data-lenis-prevent className="max-h-80 overflow-y-auto p-2">
                 {filtered.length === 0 ? (
                   <div className="p-8 text-center text-ink-3">
                     <p className="t-footnote">No matches found for &ldquo;{query}&rdquo;</p>
