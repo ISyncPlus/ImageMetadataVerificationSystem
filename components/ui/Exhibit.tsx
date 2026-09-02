@@ -47,25 +47,32 @@ export default function Exhibit({
 
   return (
     <header className={`relative ${className}`}>
-      {/* Stamp line */}
-      <div className="flex items-center gap-4">
-        {index ? (
-          <span className="t-mark shrink-0 text-accent">{index}</span>
-        ) : null}
-        <span className="t-mark shrink-0 text-ink-2">{mark}</span>
+      {/* Stamp line. On a phone the action drops to its own row: sharing the
+          line with a control leaves the rule a ten-pixel stub, which reads as
+          a rendering fault rather than a rule. */}
+      <div className="flex flex-col gap-5 sm:flex-row sm:items-center sm:gap-4">
+        <div className="flex min-w-0 flex-1 items-center gap-4">
+          {index ? (
+            <span className="t-mark shrink-0 text-accent">{index}</span>
+          ) : null}
+          <span className="t-mark shrink-0 text-ink-2">{mark}</span>
 
-        <motion.span
-          aria-hidden
-          initial={reduced ? { opacity: 0 } : { scaleX: 0 }}
-          whileInView={reduced ? { opacity: 1 } : { scaleX: 1 }}
-          viewport={{ once: true, margin: "-15% 0px" }}
-          transition={{ duration: 0.9, ease: [0.16, 1, 0.3, 1] }}
-          className="h-px flex-1 origin-left bg-rule"
-        />
+          <motion.span
+            aria-hidden
+            initial={reduced ? { opacity: 0 } : { scaleX: 0 }}
+            whileInView={reduced ? { opacity: 1 } : { scaleX: 1 }}
+            viewport={{ once: true, margin: "-15% 0px" }}
+            transition={{ duration: 0.9, ease: [0.16, 1, 0.3, 1] }}
+            className="h-px flex-1 origin-left bg-rule"
+          />
 
-        {meta ? (
-          <span className="t-mark hidden shrink-0 text-ink-3 sm:block">{meta}</span>
-        ) : null}
+          {meta ? (
+            <span className="t-mark hidden shrink-0 text-ink-3 sm:block">
+              {meta}
+            </span>
+          ) : null}
+        </div>
+
         {action ? <div className="shrink-0">{action}</div> : null}
       </div>
 

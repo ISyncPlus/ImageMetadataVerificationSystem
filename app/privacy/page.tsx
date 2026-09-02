@@ -109,14 +109,11 @@ export default function PrivacyPage() {
           lede="What the system reads, where it reads it, and the small derived record that is all it keeps."
         />
 
-        <div className="ruled-x mt-12 grid grid-cols-1 border-y border-rule sm:grid-cols-3">
+        <div className="rule-trio mt-12 border-y border-rule">
           {GUARANTEES.map((item) => {
             const Glyph = item.icon;
             return (
-              <div
-                key={item.title}
-                className="border-t border-rule px-5 py-6 first:border-t-0 first:pl-0 sm:border-t-0"
-              >
+              <div key={item.title}>
                 <Glyph size={18} className="text-accent" />
                 <p className="t-title-3 mt-3.5 text-ink">{item.title}</p>
                 <p className="t-footnote mt-1.5 text-pretty text-ink-2">

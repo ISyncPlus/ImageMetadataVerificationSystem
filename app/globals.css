@@ -602,7 +602,84 @@ body {
 /* The ruled ledger: rows separated by hairlines rather than boxed in cards.
    Used wherever data is a list of facts and elevation would be a lie. */
 .ruled > * + * { border-top: 1px solid var(--rule); }
+
+/* `.ruled-x` is only correct for a row that never wraps. `* + *` cannot know
+   which cell begins a new line, so on a wrapped grid it draws a vertical rule
+   against the page gutter and leaves the row break unruled — and `first:pl-0`
+   only unindents the very first cell, so column one falls out of alignment on
+   every row after the first. */
 .ruled-x > * + * { border-left: 1px solid var(--rule); }
+
+/* Cell grids that change their column count between breakpoints get their
+   rules from position instead, which is the only way to be right at both.
+   `.rule-quad` is four readings: two columns on a phone, four above `sm`.
+   `.rule-trio` is three: stacked on a phone, three across above `sm`. */
+.rule-quad,
+.rule-trio {
+  display: grid;
+}
+
+.rule-quad > *,
+.rule-trio > * {
+  min-width: 0;
+  /* Right padding on every cell, so a long value never touches the rule that
+     follows it; the last cell simply stops short of the gutter. */
+  padding-block: 1.25rem;
+  padding-right: 1.25rem;
+}
+
+.rule-quad {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.rule-quad > *:nth-child(2n) {
+  padding-left: 1.25rem;
+  border-left: 1px solid var(--rule);
+}
+
+.rule-quad > *:nth-child(n + 3) {
+  border-top: 1px solid var(--rule);
+}
+
+.rule-trio {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.rule-trio > * + * {
+  border-top: 1px solid var(--rule);
+}
+
+@media (min-width: 640px) {
+  .rule-quad,
+  .rule-trio {
+    grid-template-columns: repeat(var(--rule-cols), minmax(0, 1fr));
+  }
+
+  .rule-quad > *,
+  .rule-trio > * {
+    padding-block: 1.5rem;
+  }
+
+  /* One row again: every cell but the first takes the vertical rule, and the
+     row-break rules from the stacked layout are cleared. */
+  .rule-quad > *:nth-child(n + 3),
+  .rule-trio > * + * {
+    border-top: 0;
+  }
+
+  .rule-quad > * + *,
+  .rule-trio > * + * {
+    padding-left: 1.5rem;
+    border-left: 1px solid var(--rule);
+  }
+
+  .rule-quad > *:nth-child(2n) {
+    padding-left: 1.5rem;
+  }
+}
+
+.rule-quad { --rule-cols: 4; }
+.rule-trio { --rule-cols: 3; }
 
 /* An outlined numeral, for the oversized index figures in the margin. They
    need to be present without competing with content for ink. */
@@ -613,6 +690,22 @@ body {
   font-stretch: 78%;
   font-weight: 600;
   line-height: 0.8;
+}
+
+/* A row of controls that is legitimately wider than a phone column scrolls
+   sideways rather than forcing the page to. The scrollbar itself is hidden:
+   the row is short, and a visible bar under a segmented control reads as
+   damage. Momentum scrolling still works, and the row is keyboard-reachable
+   because the controls inside it are. */
+.scroll-strip {
+  overflow-x: auto;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  overscroll-behavior-x: contain;
+}
+
+.scroll-strip::-webkit-scrollbar {
+  display: none;
 }
 
 /* The vertical stamp running down the index rail. */

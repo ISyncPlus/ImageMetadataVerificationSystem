@@ -170,7 +170,7 @@ export default function AppNavbar({ session }: AppNavbarProps) {
               <BrandMark size={22} />
             </span>
             <span className="min-w-0">
-              <span className="t-mark on-material block text-ink">
+              <span className="t-mark on-material block truncate text-ink">
                 Provenance
               </span>
               <AnimatePresence initial={false}>
@@ -270,7 +270,7 @@ export default function AppNavbar({ session }: AppNavbarProps) {
                   aria-label="Sign out"
                   whileTap={reduced ? { opacity: 0.7 } : { scale: 0.92 }}
                   transition={springMove}
-                  className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-line text-ink-2 transition-colors duration-150 hover:border-bad hover:text-bad"
+                  className="hidden h-8 w-8 shrink-0 items-center justify-center rounded-full border border-line text-ink-2 transition-colors duration-150 hover:border-bad hover:text-bad sm:flex"
                 >
                   <SignOut size={15} />
                 </motion.button>
@@ -409,6 +409,20 @@ export default function AppNavbar({ session }: AppNavbarProps) {
                   <ArrowRight size={16} strokeWidth={2.2} />
                 </span>
               </Link>
+              {session ? (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setMobileMenuOpen(false);
+                    void handleSignOut();
+                  }}
+                  className="t-mark flex items-center justify-center gap-2 rounded-full border border-line py-3 text-ink-2 transition-colors active:border-bad active:text-bad"
+                >
+                  <SignOut size={14} />
+                  Sign out
+                </button>
+              ) : null}
+
               <Link
                 href="/privacy"
                 className="t-mark py-3 text-center text-ink-3"

@@ -83,7 +83,7 @@ export default function ScrollControls() {
           exit={reduced ? { opacity: 0 } : { opacity: 0, y: 12, scale: 0.92 }}
           transition={springMove}
           aria-label="Page scroll navigation"
-          className="fixed bottom-24 right-4 z-40 flex flex-col items-center gap-1 rounded-full border border-material-edge bg-material p-1.5 shadow-lift backdrop-blur-xl sm:bottom-6 sm:right-6"
+          className="fixed bottom-6 right-6 z-40 hidden flex-col items-center gap-1 rounded-full border border-material-edge bg-material p-1.5 shadow-lift backdrop-blur-xl sm:flex"
         >
           {/* Scroll to Top */}
           <motion.button

@@ -107,6 +107,40 @@ overshoot is reserved for motion the user's own gesture put in flight.
   feedback survives, the vestibular part does not. `prefers-reduced-transparency`
   and `prefers-contrast: more` are also handled, including inside fields.
 
+## Small screens
+
+The dossier holds its shape on a phone, but four of its devices need explicit
+handling. These are rules, not observations — breaking them reintroduces bugs
+that were found by auditing real 320px and 390px viewports.
+
+- **Cell grids use `.rule-quad` / `.rule-trio`, never `.ruled-x`.** `.ruled-x`
+  draws its rules with `> * + *`, which cannot know which cell begins a new
+  line: on a grid that changes column count it puts a vertical rule against the
+  page gutter and leaves the row break unruled, while `first:pl-0` unindents
+  only the very first cell so column one falls out of alignment on every row
+  after the first. `.ruled-x` is correct only for a row that never wraps (the
+  three department codes on the location card).
+- **The index rail is desktop-only, and so are the scroll controls.** Below
+  `lg` there is no margin for a rail; below `sm` the scroll panel lands on top
+  of body copy and directly over the FAQ's own toggles, making them untappable.
+  The exhibit headers carry the same index marks inline, and a phone scrolls by
+  flick.
+- **One thing owns the bottom edge.** The sticky action bar has it below `sm`;
+  the contact trigger takes a `raised` prop so it clears the bar *only* on
+  pages that have one, rather than moving the collision up the page everywhere
+  else.
+- **Controls that are wider than the column scroll, they do not wrap.** The
+  ledger's status filters use `.scroll-strip` — a sideways scroller with its
+  scrollbar hidden — so the page itself never gains horizontal scroll.
+
+Two composition rules follow from the same audit: an `Exhibit` action drops to
+its own row below `sm` (sharing the line leaves the rule a ten-pixel stub), and
+the hero's calls to action go full-width and stacked rather than wrapping into
+two capsules of different lengths. Section padding scales from 64px on a phone
+to 160px on a desktop: macro-whitespace is a desktop luxury, and at 96px a
+phone pays a quarter-screen at every one of the landing page's ten band
+boundaries.
+
 ## Preserved by request
 
 `components/ui/scroll-split-card.tsx` — the scroll-driven 3D split-and-flip deck

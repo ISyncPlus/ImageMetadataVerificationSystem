@@ -219,9 +219,9 @@ export default function StudentDashboard() {
           <div className="flex flex-col gap-5">
             <div className="shimmer h-3 w-40 rounded-sm bg-well" />
             <div className="shimmer h-10 w-80 max-w-full rounded-sm bg-well" />
-            <div className="ruled-x mt-6 grid grid-cols-2 border-y border-rule sm:grid-cols-4">
+            <div className="rule-quad mt-6 border-y border-rule">
               {[0, 1, 2, 3].map((index) => (
-                <div key={index} className="px-5 py-7 first:pl-0">
+                <div key={index}>
                   <div className="shimmer h-2.5 w-20 rounded-sm bg-well" />
                   <div className="shimmer mt-4 h-8 w-14 rounded-sm bg-well" />
                 </div>

@@ -4,7 +4,7 @@ import { useCallback, useSyncExternalStore } from "react";
 
 /** Subscribes to a media query. Reports false on the server and for the first
  *  hydration render, then the real value. */
-const useMediaQuery = (query: string): boolean => {
+export const useMediaQuery = (query: string): boolean => {
   const subscribe = useCallback(
     (onChange: () => void) => {
       const list = window.matchMedia(query);

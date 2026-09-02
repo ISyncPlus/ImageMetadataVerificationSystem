@@ -6,7 +6,16 @@ import { MessageSquare, Close, Mail, Phone, MapPin } from "./ui/icons";
 import { Button } from "./ui/Button";
 import { fade, springMove, springSnappy } from "../lib/motion";
 
-export default function FloatingContact() {
+type FloatingContactProps = {
+  /**
+   * Set when the page also shows the sticky mobile action bar, which owns the
+   * bottom edge below `sm`. Raising the trigger unconditionally would just
+   * move the collision up the page on every screen that has no bar.
+   */
+  raised?: boolean;
+};
+
+export default function FloatingContact({ raised = false }: FloatingContactProps) {
   const reduced = useReducedMotion();
   const [open, setOpen] = useState(false);
   const [submitted, setSubmitted] = useState(false);
@@ -28,7 +37,11 @@ export default function FloatingContact() {
   };
 
   return (
-    <div className="fixed bottom-6 left-6 z-40">
+    <div
+      className={`fixed left-4 z-40 sm:bottom-6 sm:left-6 ${
+        raised ? "bottom-24" : "bottom-6"
+      }`}
+    >
       {/* Trigger Button */}
       <motion.button
         type="button"

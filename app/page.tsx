@@ -26,6 +26,7 @@ import {
 } from "../components/ui/icons";
 import { dashboardPathFor } from "../lib/auth-client";
 import { useProfile } from "../lib/useProfile";
+import { useMediaQuery } from "../lib/useMediaQuery";
 import ForensicScan from "../components/ui/ForensicScan";
 import RadarPing from "../components/ui/RadarPing";
 import CryptographicStream from "../components/ui/CryptographicStream";
@@ -264,6 +265,7 @@ const FAQ_ITEMS = [
 export default function LandingPage() {
   const { profile: session } = useProfile();
   const reduced = useReducedMotion();
+  const narrow = useMediaQuery("(max-width: 639px)");
   const [specimenKey, setSpecimenKey] = useState<"authentic" | "tampered">(
     "authentic"
   );
@@ -303,7 +305,12 @@ export default function LandingPage() {
               </p>
             </Reveal>
 
-            <Reveal index={3} className="mt-9 flex flex-wrap items-center gap-3">
+            {/* Full width and stacked on a phone: two capsules of different
+                lengths wrapping onto separate lines reads as a mistake. */}
+            <Reveal
+              index={3}
+              className="mt-9 flex flex-col items-stretch gap-3 sm:flex-row sm:flex-wrap sm:items-center"
+            >
               {session ? (
                 <>
                   <ButtonLink
@@ -342,11 +349,14 @@ export default function LandingPage() {
           {/* The evidence slip. A physical artefact from the file, sitting
               slightly off-square until you touch it. */}
           <Reveal index={2} className="lg:col-span-5">
+            {/* The off-square tilt is a desktop conceit: a phone has no hover to
+                straighten it, and at 320px the rotated corners push the card's
+                own content past the screen edge. */}
             <motion.div
               initial={false}
-              whileHover={reduced ? {} : { rotate: 0, y: -6 }}
+              whileHover={reduced || narrow ? {} : { rotate: 0, y: -6 }}
               transition={{ type: "spring", bounce: 0.15, duration: 0.6 }}
-              style={{ rotate: reduced ? 0 : -1.1 }}
+              style={{ rotate: reduced || narrow ? 0 : -1.1 }}
               className="relative overflow-hidden rounded-lg border border-line bg-surface shadow-lift"
             >
               <div className="flex items-center justify-between gap-3 border-b border-rule bg-surface-2/60 px-4 py-3">
@@ -384,10 +394,13 @@ export default function LandingPage() {
                 ].map((row) => (
                   <div
                     key={row.label}
-                    className="flex items-baseline justify-between gap-4 py-3"
+                    /* Stacked on a phone: a mono value like the coordinate pair
+                       needs the whole column, and squeezing it opposite its
+                       label just truncates the evidence. */
+                    className="flex flex-col gap-1 py-3 sm:flex-row sm:items-baseline sm:justify-between sm:gap-4"
                   >
                     <dt className="t-mark shrink-0 text-ink-3">{row.label}</dt>
-                    <dd className="t-num truncate text-[0.8125rem] text-ink">
+                    <dd className="t-num text-[0.8125rem] text-ink sm:truncate">
                       {row.value}
                     </dd>
                   </div>
@@ -413,14 +426,14 @@ export default function LandingPage() {
 
         {/* Four facts on a rule, not four boxes. */}
         <Reveal index={4} className="mt-16">
-          <div className="ruled-x grid grid-cols-2 border-y border-rule sm:grid-cols-4">
+          <div className="rule-quad border-y border-rule">
             {[
               { figure: "0", label: "images uploaded", note: "Analysis is local" },
               { figure: "4", label: "objective checks", note: "Per submission" },
               { figure: "256", label: "bit digest", note: "Rename-proof" },
               { figure: "1", label: "shared ledger", note: "Across all students" },
             ].map((fact) => (
-              <div key={fact.label} className="px-4 py-5 first:pl-0">
+              <div key={fact.label}>
                 <p className="t-num text-[1.75rem] leading-none text-ink">
                   {fact.figure}
                 </p>
@@ -816,7 +829,7 @@ export default function LandingPage() {
           action={
             <Link
               href="/case-studies"
-              className="t-mark group inline-flex items-center gap-2 text-accent-deep"
+              className="t-mark group -my-2 inline-flex items-center gap-2 py-2 text-accent-deep"
             >
               All cases
               <ArrowRight

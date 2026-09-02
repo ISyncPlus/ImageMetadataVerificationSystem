@@ -247,12 +247,9 @@ export default function CaseStudiesPage() {
               </div>
 
               {/* Readings */}
-              <div className="ruled-x mt-12 grid grid-cols-1 border-y border-rule sm:grid-cols-3">
+              <div className="rule-trio mt-12 border-y border-rule">
                 {study.metrics.map((metric) => (
-                  <div
-                    key={metric.label}
-                    className="border-t border-rule px-5 py-5 first:border-t-0 first:pl-0 sm:border-t-0"
-                  >
+                  <div key={metric.label}>
                     <p className="t-num text-[1.5rem] leading-none text-ink">
                       {metric.value}
                     </p>

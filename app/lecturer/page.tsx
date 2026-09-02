@@ -84,9 +84,9 @@ export default function LecturerDashboard() {
           <div className="flex flex-col gap-5">
             <div className="shimmer h-3 w-44 rounded-sm bg-well" />
             <div className="shimmer h-10 w-96 max-w-full rounded-sm bg-well" />
-            <div className="ruled-x mt-6 grid grid-cols-2 border-y border-rule sm:grid-cols-4">
+            <div className="rule-quad mt-6 border-y border-rule">
               {[0, 1, 2, 3].map((index) => (
-                <div key={index} className="px-5 py-7 first:pl-0">
+                <div key={index}>
                   <div className="shimmer h-2.5 w-20 rounded-sm bg-well" />
                   <div className="shimmer mt-4 h-8 w-14 rounded-sm bg-well" />
                 </div>
@@ -214,14 +214,18 @@ export default function LecturerDashboard() {
               </AnimatePresence>
             </div>
 
-            <div className="flex flex-wrap items-center gap-2 lg:ml-auto">
+            {/* Four status filters plus the view switch are wider than a phone
+                column; the row scrolls sideways so the page does not. */}
+            <div className="scroll-strip -mx-5 flex items-center gap-2 px-5 lg:mx-0 lg:ml-auto lg:overflow-visible lg:px-0">
               <SegmentedControl
                 options={FILTERS}
                 value={filter}
                 onChange={setFilter}
                 label="Filter by status"
+                className="shrink-0"
+                segmentClassName="px-3 sm:px-4"
               />
-              <div className="hidden sm:block">
+              <div className="hidden shrink-0 sm:block">
                 <SegmentedControl
                   options={VIEW_MODES}
                   value={viewMode}

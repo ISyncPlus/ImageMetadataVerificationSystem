@@ -47,7 +47,7 @@ function Reading({
   tone: Tone;
 }) {
   return (
-    <div className="px-5 py-6 first:pl-0 sm:py-7">
+    <div>
       <div className="flex items-center gap-2">
         <span className={`h-1.5 w-1.5 shrink-0 rounded-full ${MARKS[tone]}`} />
         <p className="t-mark truncate text-ink-2">{label}</p>
@@ -116,7 +116,7 @@ export default function DashboardHeader({
 
       <Field tone="ink" bleed pad="none">
         <div className="bleed-inner">
-          <div className="ruled-x grid grid-cols-2 sm:grid-cols-4">
+          <div className="rule-quad">
             <Reading
               label="Submissions"
               value={safeStats.total}

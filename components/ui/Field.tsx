@@ -20,11 +20,17 @@ type FieldProps = {
   className?: string;
 };
 
+/*
+ * Macro-whitespace is a desktop luxury. At 96px top and bottom, every band
+ * boundary costs a phone nearly a quarter of a screen of nothing, and the
+ * landing page alone has ten of them. The scale still opens up generously from
+ * `sm`; it just does not make a 390px viewport pay desktop rent.
+ */
 const PAD: Record<NonNullable<FieldProps["pad"]>, string> = {
   none: "",
-  sm: "py-12 sm:py-16",
-  md: "py-16 sm:py-24",
-  lg: "py-24 sm:py-32 lg:py-40",
+  sm: "py-10 sm:py-14",
+  md: "py-12 sm:py-20 lg:py-24",
+  lg: "py-16 sm:py-28 lg:py-40",
 };
 
 /**

@@ -79,7 +79,7 @@ export default function PageShell({
 
       {showMobileCta ? <StickyMobileCta /> : null}
       <ScrollControls />
-      <FloatingContact />
+      <FloatingContact raised={showMobileCta} />
       <CookieBanner />
     </div>
   );

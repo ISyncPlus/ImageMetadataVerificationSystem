@@ -3,6 +3,7 @@
 import { cn } from "@/lib/utils";
 import { motion, useScroll, useTransform, useMotionTemplate } from "motion/react";
 import React, { useRef } from "react";
+import { useMediaQuery } from "@/lib/useMediaQuery";
 
 export interface ScrollSplitCardItem {
   title: string;
@@ -42,6 +43,14 @@ export function ScrollSplitCard({
 }: ScrollSplitCardProps) {
   const sectionRef = useRef<HTMLDivElement>(null);
 
+  /* Below `sm` the deck splits the photograph into three horizontal bands
+     stacked down the screen instead of three columns across it. Three columns
+     inside a 350px viewport gives each card about 54px of usable width, which
+     turns every heading into a one-word-per-line ribbon and clips the body
+     copy mid-sentence. The choreography is unchanged — separate, flip, lift —
+     it just runs along the other axis. */
+  const narrow = useMediaQuery("(max-width: 639px)");
+
   const { scrollYProgress } = useScroll({
     target: sectionRef,
     offset: ["start start", "end end"],
@@ -58,9 +67,17 @@ export function ScrollSplitCard({
   const rotateZRight = useTransform(scrollYProgress, [0.4, 0.8], [0, -6]);
 
   // Dynamic borders and radii so it starts as ONE flat monolithic image
-  const borderRadiusLeft = useTransform(scrollYProgress, [0, 0.2], ["16px 0px 0px 16px", "16px 16px 16px 16px"]);
+  const borderRadiusLeft = useTransform(
+    scrollYProgress,
+    [0, 0.2],
+    [narrow ? "16px 16px 0px 0px" : "16px 0px 0px 16px", "16px 16px 16px 16px"]
+  );
   const borderRadiusMiddle = useTransform(scrollYProgress, [0, 0.2], ["0px 0px 0px 0px", "16px 16px 16px 16px"]);
-  const borderRadiusRight = useTransform(scrollYProgress, [0, 0.2], ["0px 16px 16px 0px", "16px 16px 16px 16px"]);
+  const borderRadiusRight = useTransform(
+    scrollYProgress,
+    [0, 0.2],
+    [narrow ? "0px 0px 16px 16px" : "0px 16px 16px 0px", "16px 16px 16px 16px"]
+  );
   const borderOpacity = useTransform(scrollYProgress, [0, 0.2], [0, 0.2]);
   const shadowOpacity = useTransform(scrollYProgress, [0, 0.2], [0, 0.4]);
   const boxShadow = useMotionTemplate`inset 0 1px 1px rgba(255, 255, 255, ${borderOpacity}), inset 0 -24px 48px rgba(0, 0, 0, ${shadowOpacity}), 0 25px 50px -12px rgba(0, 0, 0, ${shadowOpacity})`;
@@ -85,7 +102,7 @@ export function ScrollSplitCard({
       <div className="sticky top-0 flex h-screen w-full flex-col items-center justify-center overflow-hidden [perspective:1200px]">
         {/* Section Header */}
         <motion.div
-          className="absolute top-[14%] left-0 right-0 text-center px-4 z-10 pointer-events-none"
+          className="pointer-events-none absolute left-0 right-0 top-[5%] z-10 px-4 text-center sm:top-[14%]"
           style={{
             opacity: startTextOpacity,
             y: startTextY,
@@ -103,14 +120,15 @@ export function ScrollSplitCard({
         {/* 3D Splitting & Flipping Deck */}
         <motion.div
           style={{ scale, y: cardsY, transformStyle: "preserve-3d" }}
-          className="flex h-[380px] sm:h-[420px] w-full max-w-4xl px-4 relative z-0"
+          className="relative z-0 flex h-[30rem] w-full max-w-4xl flex-col px-4 sm:h-[420px] sm:flex-row"
         >
           {cards.slice(0, 3).map((card, i) => (
             <motion.div
               key={i}
               className="relative h-full flex-1"
               style={{
-                x: i === 0 ? leftX : i === 2 ? rightX : 0,
+                x: narrow ? 0 : i === 0 ? leftX : i === 2 ? rightX : 0,
+                y: narrow ? (i === 0 ? leftX : i === 2 ? rightX : 0) : 0,
                 rotateY,
                 rotateZ: i === 0 ? rotateZLeft : i === 2 ? rotateZRight : 0,
                 zIndex: i, // Ensures Left is under Middle, and Right is above Middle
@@ -127,9 +145,12 @@ export function ScrollSplitCard({
                 }}
               >
                 <div
-                  className="absolute inset-0 h-full w-[300%]"
+                  className={cn(
+                    "absolute inset-0",
+                    narrow ? "h-[300%] w-full" : "h-full w-[300%]"
+                  )}
                   style={{
-                    left: `${-100 * i}%`,
+                    ...(narrow ? { top: `${-100 * i}%` } : { left: `${-100 * i}%` }),
                     backgroundImage: `url(${imageSrc})`,
                     backgroundSize: "cover",
                     backgroundPosition: "center",
@@ -140,7 +161,7 @@ export function ScrollSplitCard({
               {/* Back Face: Telemetry verification card */}
               <motion.div
                 className={cn(
-                  "absolute inset-0 overflow-hidden flex flex-col justify-between p-7 sm:p-8 [backface-visibility:hidden] will-change-transform",
+                  "absolute inset-0 flex flex-col justify-between overflow-hidden p-5 sm:p-8 [backface-visibility:hidden] will-change-transform",
                   "border border-white/10 bg-gradient-to-br from-white/10 to-transparent",
                   "shadow-[inset_0_1px_1px_rgba(255,255,255,0.1),inset_0_-24px_48px_rgba(0,0,0,0.2)]"
                 )}
@@ -164,7 +185,7 @@ export function ScrollSplitCard({
 
                 <div className="relative z-10 mb-auto">{card.icon}</div>
                 <div className="relative z-10 mb-2">
-                  <h3 className="text-xl sm:text-2xl font-bold leading-tight tracking-tight">
+                  <h3 className="text-lg font-bold leading-tight tracking-tight sm:text-2xl">
                     {card.title}
                   </h3>
                   <p className="mt-2.5 text-xs sm:text-sm opacity-85 leading-relaxed">
@@ -185,7 +206,7 @@ export function ScrollSplitCard({
 
         {/* Ending Text in Sticky Viewport */}
         <motion.div
-          className="absolute bottom-[16%] left-0 right-0 text-center px-4 z-10 pointer-events-none"
+          className="pointer-events-none absolute bottom-[7%] left-0 right-0 z-10 px-4 text-center sm:bottom-[16%]"
           style={{
             opacity: textOpacity,
             y: textY,
