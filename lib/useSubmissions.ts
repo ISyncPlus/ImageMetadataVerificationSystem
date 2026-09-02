@@ -102,9 +102,25 @@ export const useSubmissions = (query: SubmissionQuery = {}): SubmissionsState =>
           fetchStats(),
         ]);
         if (cancelled || id !== requestId.current) return;
-        setSubmissions(list.submissions);
-        setStats(counts);
-        saveCachedSubmissions(list.submissions);
+        
+        // Merge server submissions with local submissions so nothing is lost
+        const cached = getCachedSubmissions();
+        const serverIds = new Set(list.submissions.map((s) => s.id));
+        const merged = [...list.submissions, ...cached.filter((c) => !serverIds.has(c.id))];
+        
+        setSubmissions(merged);
+        
+        // Compute merged stats combining server ledger with any offline submissions
+        const mergedStats: Stats = {
+          total: Math.max(counts.total, merged.length),
+          verified: Math.max(counts.verified, merged.filter((m) => m.status === "Verified").length),
+          suspicious: Math.max(counts.suspicious, merged.filter((m) => m.status === "Suspicious").length),
+          reused: Math.max(counts.reused, merged.filter((m) => m.status === "Reused").length),
+          students: Math.max(counts.students, 1),
+        };
+        
+        setStats(mergedStats);
+        saveCachedSubmissions(merged);
         setError(null);
       } catch (caught) {
         if (cancelled || id !== requestId.current) return;
@@ -139,15 +155,9 @@ export const useSubmissions = (query: SubmissionQuery = {}): SubmissionsState =>
     setSubmissions((current) => {
       const next = [entry, ...current.filter((item) => item.id !== entry.id)];
       saveCachedSubmissions(next);
+      setStats(computeStatsFromEntries(next));
       return next;
     });
-    setStats((current) => ({
-      total: (current?.total ?? 0) + 1,
-      verified: (current?.verified ?? 0) + (entry.status === "Verified" ? 1 : 0),
-      suspicious: (current?.suspicious ?? 0) + (entry.status === "Suspicious" ? 1 : 0),
-      reused: (current?.reused ?? 0) + (entry.status === "Reused" ? 1 : 0),
-      students: current?.students ?? 1,
-    }));
   }, []);
 
   const remove = useCallback((id: string) => {
