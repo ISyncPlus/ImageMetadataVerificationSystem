@@ -1154,7 +1154,6 @@ export default function LandingPage() {
                 heading: "Standards",
                 links: [
                   { label: "Privacy & security", href: "/privacy" },
-                  { label: "llms.txt", href: "/llms.txt" },
                   { label: "Sitemap", href: "/sitemap.xml" },
                   { label: "Robots", href: "/robots.txt" },
                 ],
@@ -1208,9 +1207,12 @@ export default function LandingPage() {
             PROVENANCE
           </p>
 
-          <div className="mt-8 flex flex-col justify-between gap-3 sm:flex-row">
+          <div className="mt-8 flex flex-col justify-between items-start gap-3 sm:flex-row sm:items-center">
             <p className="t-mark text-ink-3">
               © 2026 · Final year thesis · Ebube Ezedimbu
+            </p>
+            <p className="t-mark text-ink-3">
+              Last updated: September 2026 · Active Release v2.4.0
             </p>
             <p className="t-mark text-ink-3">
               Faculty of Physical Sciences, UNIZIK

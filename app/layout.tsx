@@ -116,6 +116,9 @@ const jsonLdOrg = {
   ],
 };
 
+import { Suspense } from "react";
+import { UtmTracker } from "../components/UtmTracker";
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -148,6 +151,9 @@ export default function RootLayout({
       </head>
       <body className="grain antialiased">
         <GoogleAnalytics />
+        <Suspense fallback={null}>
+          <UtmTracker />
+        </Suspense>
         {/* Resolves the theme before first paint — no flash of the wrong one. */}
         <script dangerouslySetInnerHTML={{ __html: THEME_BOOTSTRAP }} />
         {children}

@@ -794,11 +794,29 @@ body {
 }
 
 @media print {
-  body { background: #fff; color: #000; overflow-x: visible; }
-  .dossier { --rail-w: 0px; }
+  *, *::before, *::after {
+    background: transparent !important;
+    color: #000 !important;
+    box-shadow: none !important;
+    text-shadow: none !important;
+  }
+  body {
+    background: #fff !important;
+    color: #000 !important;
+    overflow-x: visible !important;
+    font-size: 11pt;
+    line-height: 1.4;
+  }
+  .dossier { --rail-w: 0px !important; }
+  header, nav, footer, [role="region"], [aria-label="Privacy and cookies"],
+  .fixed, aside, button[aria-label="Scroll to top of page"], [data-lenis-prevent] {
+    display: none !important;
+  }
   [data-field="ink"],
   [data-field="accent"] { background: #fff !important; color: #000 !important; }
-  .grain::after { display: none; }
+  .grain::after { display: none !important; }
+  h1, h2, h3, tr { page-break-inside: avoid; }
+  a[href^="http"]:after { content: " (" attr(href) ")"; font-size: 85%; }
 }
 
 /* This app switches theme with [data-theme] (set before first paint by the

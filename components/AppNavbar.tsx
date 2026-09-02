@@ -7,6 +7,7 @@ import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import { signOut } from "../lib/auth-client";
 import type { Profile } from "../lib/api";
 import ThemeToggle from "./ui/ThemeToggle";
+import SiteSearch from "./ui/SiteSearch";
 import { ArrowRight, SignOut } from "./ui/icons";
 import { BrandMark } from "./ui/BrandLogo";
 import UserAvatar from "./UserAvatar";

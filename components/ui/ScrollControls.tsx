@@ -35,18 +35,41 @@ export default function ScrollControls() {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
+  const smoothScrollTo = (targetY: number, duration = 850) => {
+    if (reduced) {
+      window.scrollTo({ top: targetY, behavior: "auto" });
+      return;
+    }
+
+    const startY = window.scrollY;
+    const distance = targetY - startY;
+    const startTime = performance.now();
+
+    // Quintic ease-out curve: extremely soft and gradual deceleration as it approaches target
+    const easeOutQuint = (t: number): number => 1 - Math.pow(1 - t, 5);
+
+    const step = (currentTime: number) => {
+      const elapsed = currentTime - startTime;
+      const progress = Math.min(elapsed / duration, 1);
+      const eased = easeOutQuint(progress);
+
+      window.scrollTo(0, startY + distance * eased);
+
+      if (progress < 1) {
+        requestAnimationFrame(step);
+      }
+    };
+
+    requestAnimationFrame(step);
+  };
+
   const scrollToTop = () => {
-    window.scrollTo({
-      top: 0,
-      behavior: reduced ? "auto" : "smooth",
-    });
+    smoothScrollTo(0, 950);
   };
 
   const scrollToBottom = () => {
-    window.scrollTo({
-      top: document.documentElement.scrollHeight,
-      behavior: reduced ? "auto" : "smooth",
-    });
+    const docHeight = document.documentElement.scrollHeight;
+    smoothScrollTo(docHeight, 950);
   };
 
   return (

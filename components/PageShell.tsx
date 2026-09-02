@@ -4,6 +4,9 @@ import DossierRail from "./ui/DossierRail";
 import type { RailMark } from "./ui/DossierRail";
 import RaysBackground from "./ui/RaysBackground";
 import ScrollControls from "./ui/ScrollControls";
+import ScrollProgressBar from "./ScrollProgressBar";
+import CookieBanner from "./ui/CookieBanner";
+import FloatingContact from "./FloatingContact";
 import StickyMobileCta from "./StickyMobileCta";
 import type { Profile } from "../lib/api";
 
@@ -26,7 +29,7 @@ type PageShellProps = {
  * Children are placed directly onto the dossier grid, so any of them can opt
  * out of the reading column and run the full width of the page by carrying
  * `bleed` (see `Field`). That is the whole point of the grid: the alternative
- * — a centred wrapper plus negative viewport-unit margins — breaks the moment
+ * - a centred wrapper plus negative viewport-unit margins - breaks the moment
  * a scrollbar or a reserved rail changes what "centre" means.
  */
 export default function PageShell({
@@ -39,6 +42,17 @@ export default function PageShell({
 }: PageShellProps) {
   return (
     <div className="relative min-h-dvh bg-canvas text-ink">
+      {/* Skip to Content for Accessibility */}
+      <a
+        href="#main-content"
+        className="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:left-4 focus:z-50 focus:rounded-full focus:bg-accent focus:px-4 focus:py-2 focus:text-accent-ink focus:shadow-lift focus:outline-none"
+      >
+        Skip to main content
+      </a>
+
+      {/* Spring Physics Top Scroll Progress Bar */}
+      <ScrollProgressBar />
+
       <div className="pointer-events-none fixed inset-0 z-0" aria-hidden>
         <div className="ambient absolute inset-0" />
         <RaysBackground />
@@ -51,7 +65,8 @@ export default function PageShell({
         <AppNavbar session={session} />
 
         <main
-          className="dossier pb-28"
+          id="main-content"
+          className="dossier pb-0"
           style={
             width === "narrow"
               ? ({ "--measure": "26rem" } as CSSProperties)
@@ -64,6 +79,8 @@ export default function PageShell({
 
       {showMobileCta ? <StickyMobileCta /> : null}
       <ScrollControls />
+      <FloatingContact />
+      <CookieBanner />
     </div>
   );
 }

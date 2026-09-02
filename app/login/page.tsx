@@ -10,7 +10,7 @@ import Field from "../../components/ui/Field";
 import Reveal from "../../components/ui/Reveal";
 import SegmentedControl from "../../components/ui/SegmentedControl";
 import { Button } from "../../components/ui/Button";
-import { Alert } from "../../components/ui/icons";
+import { Alert, Eye, EyeOff, Check } from "../../components/ui/icons";
 import { GoogleGlyph, GitHubGlyph } from "../../components/ui/ProviderGlyphs";
 import { BrandMark } from "../../components/ui/BrandLogo";
 import {
@@ -29,7 +29,6 @@ const MODE_LABEL: Record<Mode, string> = {
   signup: "Create account",
 };
 
-
 export default function LoginPage() {
   const router = useRouter();
   const reduced = useReducedMotion();
@@ -39,6 +38,8 @@ export default function LoginPage() {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [successMsg, setSuccessMsg] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState<string | null>(null);
 
@@ -254,19 +255,42 @@ export default function LoginPage() {
 
                 <label className="flex flex-col gap-1">
                   <span className="t-mark text-ink-3">Password</span>
-                  <input
-                    type="password"
-                    value={password}
-                    autoComplete={
-                      mode === "signup" ? "new-password" : "current-password"
-                    }
-                    onChange={(event) => setPassword(event.target.value)}
-                    placeholder="At least 8 characters"
-                    className={fieldClass}
-                  />
+                  <div className="relative flex items-center">
+                    <input
+                      type={showPassword ? "text" : "password"}
+                      value={password}
+                      autoComplete={
+                        mode === "signup" ? "new-password" : "current-password"
+                      }
+                      onChange={(event) => setPassword(event.target.value)}
+                      placeholder="At least 8 characters"
+                      className={`${fieldClass} pr-9`}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword((prev) => !prev)}
+                      aria-label={showPassword ? "Hide password" : "Show password"}
+                      className="absolute right-1 text-ink-3 hover:text-ink transition-colors p-1"
+                    >
+                      {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                    </button>
+                  </div>
                 </label>
 
                 <AnimatePresence initial={false}>
+                  {successMsg ? (
+                    <motion.p
+                      initial={{ opacity: 0, y: -4 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0 }}
+                      transition={fade}
+                      className="t-footnote flex items-start gap-2 rounded-sm border-l-2 border-good bg-good-wash px-3.5 py-2.5 text-good"
+                    >
+                      <Check size={14} strokeWidth={2.2} className="mt-0.5 shrink-0" />
+                      {successMsg}
+                    </motion.p>
+                  ) : null}
+
                   {error ? (
                     <motion.p
                       initial={{ opacity: 0, y: -4 }}
