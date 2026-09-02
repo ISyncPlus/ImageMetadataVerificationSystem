@@ -257,7 +257,7 @@ export default function LecturerDashboard() {
                 <Doc size={18} />
               </span>
               <p className="t-footnote max-w-sm text-pretty text-ink-2">
-                {stats.total === 0
+                {(stats?.total ?? 0) === 0
                   ? "No submissions yet. Records appear here as students check their coursework photographs."
                   : "Nothing matches that search or filter."}
               </p>
