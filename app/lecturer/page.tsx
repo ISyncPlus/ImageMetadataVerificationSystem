@@ -189,7 +189,7 @@ export default function LecturerDashboard() {
       <Field bleed pad="md">
         <div className="mx-auto w-full max-w-[104rem] px-5 lg:px-8">
           <div className="flex flex-wrap items-end justify-between gap-4">
-            <div>
+            <div className="min-w-0">
               <p className="t-mark text-accent-deep">File 03 · Submissions</p>
               <h2 className="t-title-1 mt-2 text-ink">
                 {isFiltered

@@ -476,7 +476,13 @@ export default function StudentDashboard() {
                   </Button>
                 ) : null
               }
-              bodyClassName="max-h-[34rem] overflow-y-auto px-3 py-3"
+              /* The capped, independently-scrolling body is a desktop
+                 affordance: it keeps the list beside the bench instead of
+                 running past it. On a phone the two are stacked, so a nested
+                 scroller inside a scrolling page just traps the gesture and
+                 hides records behind an edge with no visible scrollbar — the
+                 list simply runs its full length there. */
+              bodyClassName="px-3 py-3 lg:max-h-[34rem] lg:overflow-y-auto"
             >
               {listError && submissions.length === 0 ? (
                 <p className="t-footnote flex items-start gap-2 rounded-sm border-l-2 border-bad bg-bad-wash px-3.5 py-2.5 text-bad">

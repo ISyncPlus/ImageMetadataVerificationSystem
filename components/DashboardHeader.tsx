@@ -3,13 +3,16 @@ import Field from "./ui/Field";
 import Reveal from "./ui/Reveal";
 import StatusMeter from "./ui/StatusMeter";
 import Ticker from "./ui/Ticker";
+import type { Stats } from "../lib/api";
 
-export type DashboardStats = {
-  total: number;
-  verified: number;
-  suspicious: number;
-  reused: number;
-};
+/* The readings this masthead draws — a subset of the ledger's counts, since
+   `students` belongs to the lecturer's slip rather than the band. Derived from
+   `Stats` rather than restated, so a field added to the API contract cannot
+   quietly leave a second definition of the same shape behind. */
+export type DashboardStats = Pick<
+  Stats,
+  "total" | "verified" | "suspicious" | "reused"
+>;
 
 type DashboardHeaderProps = {
   stats: DashboardStats;
@@ -52,10 +55,14 @@ function Reading({
         <span className={`h-1.5 w-1.5 shrink-0 rounded-full ${MARKS[tone]}`} />
         <p className="t-mark truncate text-ink-2">{label}</p>
       </div>
-      <p className="t-num mt-3 text-[2rem] leading-none text-ink sm:text-[2.5rem]">
+      <p className="t-num mt-2.5 text-[1.75rem] leading-none text-ink sm:mt-3 sm:text-[2.5rem]">
         <Ticker value={value} />
       </p>
-      <p className="t-caption mt-2 text-ink-3">{hint}</p>
+      {/* The hints are a full sentence each. In a half-width phone cell they
+          wrap to three lines and turn a compact instrument panel into a screen
+          of its own, so below `sm` the reading is just the label and the
+          figure — which is what a reader glances at anyway. */}
+      <p className="t-caption mt-2 hidden text-ink-3 sm:block">{hint}</p>
     </div>
   );
 }
@@ -144,14 +151,24 @@ export default function DashboardHeader({
           </div>
 
           {safeStats.total > 0 ? (
-            <div className="flex flex-col gap-3 border-t border-rule py-5 sm:flex-row sm:items-center sm:gap-6">
-              <p className="t-mark shrink-0 text-ink-2">
-                <span className="t-num mr-1.5 text-[0.875rem] text-ink">
-                  {verifiedRate}%
-                </span>
-                verified
-              </p>
-              <div className="flex-1">
+            /* Rate, meter, count. Stacking all three on a phone gave three
+               full-width lines for two short labels and a 6px bar; instead the
+               labels sit on one line at opposite ends and the meter spans
+               beneath them, which is the same reading in a third of the height.
+               Above `sm` they return to a single row. */
+            <div className="border-t border-rule py-4 sm:flex sm:items-center sm:gap-6 sm:py-5">
+              <div className="flex items-baseline justify-between gap-4 sm:contents">
+                <p className="t-mark shrink-0 text-ink-2">
+                  <span className="t-num mr-1.5 text-[0.875rem] text-ink">
+                    {verifiedRate}%
+                  </span>
+                  verified
+                </p>
+                <p className="t-mark order-last shrink-0 text-ink-3">
+                  {safeStats.total} {safeStats.total === 1 ? "record" : "records"}
+                </p>
+              </div>
+              <div className="mt-3 flex-1 sm:mt-0">
                 <StatusMeter
                   total={safeStats.total}
                   counts={{
@@ -161,9 +178,6 @@ export default function DashboardHeader({
                   }}
                 />
               </div>
-              <p className="t-mark shrink-0 text-ink-3">
-                {safeStats.total} {safeStats.total === 1 ? "record" : "records"}
-              </p>
             </div>
           ) : null}
         </div>

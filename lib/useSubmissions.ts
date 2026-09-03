@@ -68,12 +68,24 @@ const computeStatsFromEntries = (entries: HistoryEntry[]): Stats => {
   const verified = entries.filter((e) => e.status === "Verified").length;
   const suspicious = entries.filter((e) => e.status === "Suspicious").length;
   const reused = entries.filter((e) => e.status === "Reused").length;
+
+  /* Counted from the cached rows rather than assumed to be 1. On a student's
+     own dashboard that is the student; on a lecturer's it is however many
+     distinct students appear in the cached page of the ledger — which is a
+     floor, not the department's true total, but never the flat "01" that a
+     hardcoded value showed a reviewer whose cache held a dozen students. */
+  const students = new Set(
+    entries
+      .map((entry) => entry.submittedBy?.identifier || entry.submittedBy?.name)
+      .filter((key): key is string => Boolean(key))
+  ).size;
+
   return {
     total: entries.length,
     verified,
     suspicious,
     reused,
-    students: 1,
+    students,
   };
 };
 
