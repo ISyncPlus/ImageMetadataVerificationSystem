@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useSyncExternalStore } from "react";
 import Image from "next/image";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import DashboardHeader from "../../components/DashboardHeader";
@@ -33,6 +33,22 @@ type ViewMode = "table" | "cards";
 const FILTERS: readonly StatusFilter[] = ["All", "Verified", "Suspicious", "Reused"];
 const VIEW_MODES: readonly ViewMode[] = ["table", "cards"];
 
+/* A ledger table this wide is legitimately a desktop artefact; a phone reads
+   it as the card fallback by default. This tracks the viewport rather than
+   setting state from an effect, so an in-flight rotation is reflected
+   immediately and there is no cascading render at mount. */
+const NARROW_QUERY = "(max-width: 639px)";
+
+const subscribeToViewport = (callback: () => void): (() => void) => {
+  const mq = window.matchMedia(NARROW_QUERY);
+  mq.addEventListener("change", callback);
+  return () => mq.removeEventListener("change", callback);
+};
+
+const getNarrowSnapshot = (): boolean =>
+  typeof window === "undefined" ? false : window.matchMedia(NARROW_QUERY).matches;
+const getServerNarrow = (): boolean => false;
+
 const initials = (name: string) =>
   name
     .split(" ")
@@ -47,7 +63,17 @@ export default function LecturerDashboard() {
 
   const [query, setQuery] = useState("");
   const [filter, setFilter] = useState<StatusFilter>("All");
-  const [viewMode, setViewMode] = useState<ViewMode>("table");
+  // Once the reviewer explicitly picks a layout, that choice wins over the
+  // viewport from then on — the switch stays reachable specifically so a
+  // phone can open the wide table on purpose.
+  const [manualViewMode, setManualViewMode] = useState<ViewMode | null>(null);
+  const isNarrowViewport = useSyncExternalStore(
+    subscribeToViewport,
+    getNarrowSnapshot,
+    getServerNarrow
+  );
+  const viewMode: ViewMode =
+    manualViewMode ?? (isNarrowViewport ? "cards" : "table");
   const [selected, setSelected] = useState<HistoryEntry | null>(null);
   const [pendingDelete, setPendingDelete] = useState<HistoryEntry | null>(null);
   const [actionError, setActionError] = useState<string | null>(null);
@@ -225,11 +251,11 @@ export default function LecturerDashboard() {
                 className="shrink-0"
                 segmentClassName="px-3 sm:px-4"
               />
-              <div className="hidden shrink-0 sm:block">
+              <div className="shrink-0">
                 <SegmentedControl
                   options={VIEW_MODES}
                   value={viewMode}
-                  onChange={setViewMode}
+                  onChange={setManualViewMode}
                   label="View layout"
                   render={(mode) => <span className="capitalize">{mode}</span>}
                 />

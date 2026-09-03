@@ -259,7 +259,7 @@ export default function CaptureCamera({
           className="fixed inset-0 z-[60] flex flex-col"
         >
           {/* Chrome */}
-          <div className="flex shrink-0 items-center justify-between gap-3 border-b border-rule px-4 py-3">
+          <div className="flex shrink-0 items-center justify-between gap-3 border-b border-rule px-4 pb-3 pt-[max(0.75rem,env(safe-area-inset-top))]">
             <span className="t-mark text-ink-2">Witnessed capture</span>
             <button
               type="button"
@@ -315,7 +315,7 @@ export default function CaptureCamera({
           </div>
 
           {/* Position read-out and shutter */}
-          <div className="shrink-0 border-t border-rule px-4 pb-8 pt-4">
+          <div className="shrink-0 border-t border-rule px-4 pt-4 pb-[max(2rem,env(safe-area-inset-bottom))]">
             <div className="mx-auto flex w-full max-w-md flex-col gap-4">
               <div className="flex items-center justify-between gap-3">
                 <span className="flex min-w-0 items-center gap-2.5">

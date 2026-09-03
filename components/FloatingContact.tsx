@@ -2,9 +2,9 @@
 
 import { useState } from "react";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
-import { MessageSquare, Close, Mail, Phone, MapPin } from "./ui/icons";
+import { MessageSquare, Close, Mail, MapPin } from "./ui/icons";
 import { Button } from "./ui/Button";
-import { fade, springMove, springSnappy } from "../lib/motion";
+import { springMove, springSnappy } from "../lib/motion";
 
 type FloatingContactProps = {
   /**
@@ -39,7 +39,9 @@ export default function FloatingContact({ raised = false }: FloatingContactProps
   return (
     <div
       className={`fixed left-4 z-40 sm:bottom-6 sm:left-6 ${
-        raised ? "bottom-24" : "bottom-6"
+        raised
+          ? "bottom-[calc(6rem+env(safe-area-inset-bottom))]"
+          : "bottom-[calc(1.5rem+env(safe-area-inset-bottom))]"
       }`}
     >
       {/* Trigger Button */}
@@ -81,7 +83,8 @@ export default function FloatingContact({ raised = false }: FloatingContactProps
               <button
                 type="button"
                 onClick={() => setOpen(false)}
-                className="rounded p-1 text-ink-3 hover:text-ink transition-colors"
+                aria-label="Close"
+                className="-m-1.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-ink-3 transition-colors hover:bg-well hover:text-ink"
               >
                 <Close size={15} />
               </button>

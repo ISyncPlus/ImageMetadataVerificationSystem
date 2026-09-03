@@ -7,7 +7,6 @@ import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import { signOut } from "../lib/auth-client";
 import type { Profile } from "../lib/api";
 import ThemeToggle from "./ui/ThemeToggle";
-import SiteSearch from "./ui/SiteSearch";
 import { ArrowRight, SignOut } from "./ui/icons";
 import { BrandMark } from "./ui/BrandLogo";
 import UserAvatar from "./UserAvatar";
@@ -52,14 +51,6 @@ const getHashSnapshot = (): string =>
   typeof window === "undefined" ? "" : window.location.hash;
 
 const getServerHash = (): string => "";
-
-const initials = (name: string) =>
-  name
-    .split(" ")
-    .filter(Boolean)
-    .slice(0, 2)
-    .map((part) => part[0]?.toUpperCase() ?? "")
-    .join("");
 
 type NavLink = {
   label: string;
@@ -154,7 +145,7 @@ export default function AppNavbar({ session }: AppNavbarProps) {
 
   return (
     <>
-      <header className="sticky top-0 z-40 px-3 pt-3 sm:px-5 sm:pt-4">
+      <header className="sticky top-0 z-40 px-3 pt-[max(0.75rem,env(safe-area-inset-top))] sm:px-5 sm:pt-4">
         <motion.div
           initial={false}
           animate={{ paddingTop: condensed ? 0 : 4 }}
@@ -310,7 +301,7 @@ export default function AppNavbar({ session }: AppNavbarProps) {
               onClick={() => setMobileMenuOpen((open) => !open)}
               aria-label={mobileMenuOpen ? "Close menu" : "Open navigation menu"}
               aria-expanded={mobileMenuOpen}
-              className="relative flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-line text-ink transition-colors hover:bg-well md:hidden"
+              className="relative flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-line text-ink transition-colors hover:bg-well md:hidden"
             >
               <span className="relative block h-3 w-4">
                 <motion.span
@@ -345,7 +336,7 @@ export default function AppNavbar({ session }: AppNavbarProps) {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
-            className="fixed inset-0 z-[45] flex flex-col justify-end bg-canvas/85 px-5 pb-8 pt-24 backdrop-blur-2xl md:hidden"
+            className="fixed inset-0 z-[45] flex flex-col justify-end bg-canvas/85 px-5 pt-24 pb-[max(2rem,env(safe-area-inset-bottom))] backdrop-blur-2xl md:hidden"
           >
             <motion.nav
               aria-label="Site"

@@ -263,7 +263,7 @@ export default function Sheet({
 
         <div
           data-lenis-prevent
-          className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-6 pb-8"
+          className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-6 pb-[max(2rem,env(safe-area-inset-bottom))]"
         >
           {children}
         </div>
