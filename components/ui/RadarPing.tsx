@@ -34,12 +34,12 @@ export default function RadarPing({ className = "", size = 18 }: RadarPingProps)
       <motion.span
         className="absolute inset-0 rounded-full border border-[var(--brand)] opacity-75"
         animate={{ scale: [1, 2.6], opacity: [0.8, 0] }}
-        transition={{ duration: 2.2, repeat: Infinity, ease: "easeOut" }}
+        transition={{ duration: 2.2, repeat: Infinity, ease: "easeOut", repeatDelay: 1.6 }}
       />
       <motion.span
         className="absolute inset-0 rounded-full border border-[var(--brand)] opacity-50"
         animate={{ scale: [1, 3.8], opacity: [0.6, 0] }}
-        transition={{ duration: 2.2, delay: 0.7, repeat: Infinity, ease: "easeOut" }}
+        transition={{ duration: 2.2, delay: 0.7, repeat: Infinity, ease: "easeOut", repeatDelay: 1.6 }}
       />
       {/* Central Solid Datum Beacon */}
       <span

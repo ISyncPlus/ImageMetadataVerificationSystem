@@ -125,9 +125,11 @@
   --ink-3: rgba(20, 17, 15, 0.42);
 
   /* One accent, now with a tonal ramp so it can build structure instead of
-     only underlining it. --accent-deep is the text-safe step: it clears
-     4.5:1 on the wash, which the raw brand does not. */
-  --brand: #e04b28;
+     only underlining it. The raw brand is tuned to clear 4.5:1 on canvas
+     itself (not just --accent-deep on the wash) — at the original #e04b28 it
+     sat at 3.7:1, which read as washed-out on every t-mark/t-num label site-
+     wide in light mode. --accent-deep remains the deeper, even safer step. */
+  --brand: #c34123;
   --accent-deep: #b0331a;
   --accent-hi: #f2704f;
   --accent-ink: #ffffff;

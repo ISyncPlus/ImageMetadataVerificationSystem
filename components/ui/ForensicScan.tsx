@@ -57,12 +57,16 @@ export default function ForensicScan({
       <motion.div
         className="absolute left-0 right-0 h-[2px] z-20"
         initial={{ top: "0%" }}
-        animate={{ top: ["0%", "100%", "0%"] }}
+        animate={{ top: ["0%", "100%"] }}
         transition={{
-          duration: 3.6,
+          duration: 3.2,
           ease: "easeInOut",
           repeat: Infinity,
           repeatType: "reverse",
+          // A pause at each end so the beam reads as an occasional pass over
+          // the frame rather than a metronome — motion that never rests is
+          // the single biggest source of "too much going on" on this page.
+          repeatDelay: 1.4,
         }}
       >
         <div className={`h-full w-full ${colorStyles.line}`} />
@@ -76,7 +80,7 @@ export default function ForensicScan({
         {showReticle && (
           <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 flex items-center gap-1.5">
             <span
-              className={`h-2.5 w-2.5 animate-pulse rounded-full border border-current bg-surface shadow-sm ${colorStyles.crosshair}`}
+              className={`h-2.5 w-2.5 rounded-full border border-current bg-surface shadow-sm ${colorStyles.crosshair}`}
             />
             <span
               className="t-mark rounded-sm border border-line bg-surface/90 px-1.5 py-0.5 text-[0.5625rem] text-ink backdrop-blur-md"

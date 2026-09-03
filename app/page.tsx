@@ -41,9 +41,8 @@ const RAIL: readonly RailMark[] = [
   { id: "checks", index: "04", label: "Checks" },
   { id: "architecture", index: "05", label: "Architecture" },
   { id: "case-studies", index: "06", label: "Cases" },
-  { id: "team", index: "07", label: "Team" },
-  { id: "faq", index: "08", label: "Questions" },
-  { id: "location", index: "09", label: "Anchor" },
+  { id: "faq", index: "07", label: "Questions" },
+  { id: "location", index: "08", label: "Anchor" },
 ];
 
 const SPLIT_CARDS = [
@@ -199,33 +198,6 @@ const CASE_STUDIES = [
     result: "28 captures fell outside the scheduled laboratory hours.",
     figure: "28",
     figureLabel: "timestamp violations",
-  },
-];
-
-const TEAM = [
-  {
-    name: "Ebube Ezedimbu",
-    role: "Lead software engineer & researcher",
-    affiliation: "Faculty of Physical Sciences, UNIZIK Awka",
-    bio: "Final-year software engineering researcher working on digital image provenance, local-first cryptography, and client-side security architecture.",
-    image: "/team/ebube-ezedimbu.jpg",
-    badge: "System creator",
-  },
-  {
-    name: "Prof. O. C. Okeke",
-    role: "Academic project supervisor",
-    affiliation: "Faculty of Physical Sciences, Nnamdi Azikiwe University",
-    bio: "Leads curriculum integrity and applied computational methodology research across scientific fieldwork assessment.",
-    image: "/team/prof-okeke.jpg",
-    badge: "Faculty supervisor",
-  },
-  {
-    name: "Dr. N. A. Eze",
-    role: "Senior departmental reviewer",
-    affiliation: "Departmental Laboratory Assessment Board, UNIZIK",
-    bio: "Coordinates undergraduate laboratory examinations and technical SIWES moderation frameworks.",
-    image: "/team/dr-eze.jpg",
-    badge: "Department reviewer",
   },
 ];
 
@@ -902,66 +874,10 @@ export default function LandingPage() {
         </div>
       </Field>
 
-      {/* ============================================================= 07 TEAM */}
-      <Field id="team" tone="ink" bleed pad="lg" className="scroll-mt-28">
-        <div className="bleed-inner">
-          <Exhibit
-            index="07"
-            mark="Attribution"
-            title="Built at Nnamdi Azikiwe University, and supervised there too."
-            lede="A final-year research project, reviewed by the faculty that runs the assessments it audits."
-          />
-
-          {/* Staggered, gallery-style: labels sit outside the frame, and the
-              column heights alternate so the row never reads as three tiles. */}
-          <div className="mt-16 grid gap-10 md:grid-cols-3 md:gap-6">
-            {TEAM.map((member, index) => (
-              <Reveal
-                key={member.name}
-                mode="scroll"
-                index={index}
-                className={index === 1 ? "md:mt-16" : index === 2 ? "md:mt-8" : ""}
-              >
-                <figure className="group">
-                  <div className="relative aspect-[4/5] w-full overflow-hidden rounded-lg border border-line bg-surface-2">
-                    <Image
-                      src={member.image}
-                      alt={`${member.name}, ${member.role}, ${member.affiliation}`}
-                      fill
-                      className="object-cover grayscale transition-[filter,transform] duration-700 ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:scale-[1.03] group-hover:grayscale-0"
-                      sizes="(max-width: 768px) 100vw, 33vw"
-                    />
-                    <span className="absolute left-3 top-3 rounded-sm bg-black/45 px-2 py-1 backdrop-blur-sm">
-                      <span className="t-mark text-[0.5625rem] text-white">
-                        {member.badge}
-                      </span>
-                    </span>
-                  </div>
-
-                  <figcaption className="mt-5">
-                    <div className="flex items-baseline gap-3">
-                      <span className="t-num text-[0.75rem] text-ink-3">
-                        {String(index + 1).padStart(2, "0")}
-                      </span>
-                      <h3 className="t-title-3 text-ink">{member.name}</h3>
-                    </div>
-                    <p className="t-mark mt-2 text-accent">{member.role}</p>
-                    <p className="t-caption mt-1.5 text-ink-3">
-                      {member.affiliation}
-                    </p>
-                    <p className="t-footnote mt-3 text-ink-2">{member.bio}</p>
-                  </figcaption>
-                </figure>
-              </Reveal>
-            ))}
-          </div>
-        </div>
-      </Field>
-
-      {/* ======================================================== 08 QUESTIONS */}
+      {/* ======================================================== 07 QUESTIONS */}
       <Field id="faq" pad="lg" className="scroll-mt-28">
         <Exhibit
-          index="08"
+          index="07"
           mark="Questions"
           title="What people ask before they trust it."
           lede="Local-first parsing, stripped metadata, duplicate detection and what happens to the photograph itself."
@@ -1028,12 +944,12 @@ export default function LandingPage() {
         </div>
       </Field>
 
-      {/* ============================================================ 09 ANCHOR */}
+      {/* ============================================================ 08 ANCHOR */}
       <Field id="location" pad="lg" className="scroll-mt-28">
         <div className="grid gap-12 lg:grid-cols-12 lg:gap-10">
           <div className="lg:col-span-5">
             <div className="flex items-center gap-4">
-              <span className="t-mark text-accent-deep">File 09</span>
+              <span className="t-mark text-accent-deep">File 08</span>
               <span className="t-mark text-ink-2">Institutional anchor</span>
             </div>
 

@@ -194,8 +194,8 @@ export function ScrollSplitCard({
                 </div>
                 <div className="relative z-10 pt-3 border-t border-white/15 flex items-center justify-between text-[11px] font-mono">
                   <span className="opacity-80">AUDIT VERDICT</span>
-                  <span className="font-bold flex items-center gap-1.5 text-emerald-400">
-                    <span className="h-2 w-2 rounded-full bg-emerald-400 animate-pulse" />
+                  <span className="font-bold flex items-center gap-1.5 text-good">
+                    <span className="h-2 w-2 rounded-full bg-good-mark" />
                     VERIFIED PASS
                   </span>
                 </div>

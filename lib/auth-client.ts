@@ -11,7 +11,10 @@ export const API_URL =
  * app added to User, so `session.user.role` is typed rather than `any`.
  */
 export const authClient = createAuthClient({
-  baseURL: API_URL,
+  // "" (same-origin, proxied through next.config.ts) must become undefined
+  // here — better-auth's own same-origin resolution is the tested path.
+  // Passing "" straight through as baseURL is not.
+  baseURL: API_URL || undefined,
   plugins: [
     /*
      * `input: false` mirrors the server. Without it the inferred `signUp.email`
